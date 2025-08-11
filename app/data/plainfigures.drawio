@@ -1,0 +1,175 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/28.0.6 Chrome/138.0.7204.100 Electron/37.2.3 Safari/537.36" version="28.0.6">
+  <diagram name="Page-1" id="xzw0bKewws7VvCnf6s7D">
+    <mxGraphModel dx="1185" dy="679" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-40" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="fBPSEUs_gA1NAAYJYjuw-2" target="fBPSEUs_gA1NAAYJYjuw-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-2" value="Text Input (chatbot)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="224" y="570" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="fBPSEUs_gA1NAAYJYjuw-3" target="fBPSEUs_gA1NAAYJYjuw-11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-3" value="Upload Image of a received invoice (camera)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="354" y="160" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="fBPSEUs_gA1NAAYJYjuw-4" target="fBPSEUs_gA1NAAYJYjuw-14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-4" value="PDF Upload (Invoice)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="530" y="160" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-5" value="&lt;span style=&quot;color: rgb(183, 177, 168); font-family: Tomorrow, &amp;quot;Tomorrow Placeholder&amp;quot;, sans-serif; font-size: 16px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: 0.96px; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: pre-wrap; background-color: rgb(32, 35, 36); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;&quot;&gt;track cash flow&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="590" y="740" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-6" value="&lt;span style=&quot;color: rgb(183, 177, 168); font-family: Tomorrow, &amp;quot;Tomorrow Placeholder&amp;quot;, sans-serif; font-size: 16px; letter-spacing: 0.96px; text-align: start; white-space-collapse: preserve; background-color: rgb(32, 35, 36);&quot;&gt;generate invoices&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="224" y="700" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-7" value="&lt;span style=&quot;color: rgb(183, 177, 168); font-family: Tomorrow, &amp;quot;Tomorrow Placeholder&amp;quot;, sans-serif; font-size: 16px; letter-spacing: 0.96px; text-align: start; white-space-collapse: preserve; background-color: rgb(32, 35, 36);&quot;&gt;manage expenses&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="760" y="740" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="fBPSEUs_gA1NAAYJYjuw-8">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="650" y="540" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="520" y="500" />
+              <mxPoint x="651" y="500" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-28" value="When payment is successful ($$ OUT)" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="fBPSEUs_gA1NAAYJYjuw-26">
+          <mxGeometry x="-0.4428" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-8" value="Invoices" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" vertex="1" parent="1">
+          <mxGeometry x="490" y="390" width="60" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-9" value="SMEs&lt;div&gt;User&lt;/div&gt;" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" vertex="1" parent="1">
+          <mxGeometry x="254" y="400" width="60" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-37" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="fBPSEUs_gA1NAAYJYjuw-10" target="fBPSEUs_gA1NAAYJYjuw-21">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-38" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="fBPSEUs_gA1NAAYJYjuw-10" target="fBPSEUs_gA1NAAYJYjuw-7">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="650" y="650" />
+              <mxPoint x="820" y="650" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-10" value="CashFlow" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" vertex="1" parent="1">
+          <mxGeometry x="620" y="545" width="60" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-11" value="Extract data from Image" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" vertex="1" parent="1">
+          <mxGeometry x="349" y="260" width="130" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="fBPSEUs_gA1NAAYJYjuw-11">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="520" y="380" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="420" y="353" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-14" value="Extract information from PDF" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" vertex="1" parent="1">
+          <mxGeometry x="525" y="260" width="130" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="fBPSEUs_gA1NAAYJYjuw-14">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="520" y="380" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="590" y="353" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-17" value="- Shows $$ IN/OUT per week, month, quarter&lt;div&gt;- payments due on this date&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="580" y="820" width="140" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-18" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;Walkthrough&lt;/h1&gt;&lt;p&gt;1. User takes picture/ uploads image of invoice&lt;/p&gt;&lt;p&gt;2. g&lt;/p&gt;&lt;p&gt;3. Customer wants to buy something - generate invoice for them&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="80" width="310" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-19" value="For a Client/Customer who wants to buy from us" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="224" y="770" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-20" value="- $$ Spent on Marketing, Services, Expenses" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="760" y="810" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-21" value="DASHBOARD" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="620" y="710" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-23" value="YOU (an SME) gets an invoice from a Supplier/ Vendor" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="420" y="80" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-24" value="Our assistant lets:&#xa;1. owners chat, speak or snap a receipt to build ledgers instantly, &#xa;2. auto-generate invoices, &#xa;3. project cash flow, and &#xa;4. explain budgeting, loan criteria and policy fine-print in localized languages," style="text;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="280" width="410" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-25" value="Record of $$ going out" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="465" y="320" width="95" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-29" value="&lt;div&gt;SALES&lt;/div&gt;Revenue" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="680" y="360" width="108" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-30" value="Salaries" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="790" y="385" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-31" value="Marketing" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="870" y="385" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-32" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.733;entryY=0.025;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="fBPSEUs_gA1NAAYJYjuw-29" target="fBPSEUs_gA1NAAYJYjuw-10">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="734" y="480" />
+              <mxPoint x="664" y="480" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-33" value="$$ IN" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="fBPSEUs_gA1NAAYJYjuw-32">
+          <mxGeometry x="-0.241" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-34" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0;entryDx=0;entryDy=52.5;entryPerimeter=0;" edge="1" parent="1" source="fBPSEUs_gA1NAAYJYjuw-30" target="fBPSEUs_gA1NAAYJYjuw-10">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="830" y="598" />
+              <mxPoint x="735" y="598" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-35" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0;entryDx=0;entryDy=52.5;entryPerimeter=0;" edge="1" parent="1" source="fBPSEUs_gA1NAAYJYjuw-31" target="fBPSEUs_gA1NAAYJYjuw-10">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="910" y="598" />
+              <mxPoint x="775" y="598" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-36" value="$$ OUT" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="fBPSEUs_gA1NAAYJYjuw-35">
+          <mxGeometry x="0.6749" y="1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-39" value="&quot;Create invoice for Customer X, who wants to buy Y units of Product Z on Date A&quot;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="50" y="580" width="170" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-44" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="fBPSEUs_gA1NAAYJYjuw-41" target="fBPSEUs_gA1NAAYJYjuw-43">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-41" value="HTML 2 PDF - Share with Customer" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" vertex="1" parent="1">
+          <mxGeometry x="220" y="850" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-42" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.567;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="fBPSEUs_gA1NAAYJYjuw-19" target="fBPSEUs_gA1NAAYJYjuw-41">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fBPSEUs_gA1NAAYJYjuw-43" value="Customer Payment Tracker" style="triangle;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="384" y="840" width="60" height="80" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
