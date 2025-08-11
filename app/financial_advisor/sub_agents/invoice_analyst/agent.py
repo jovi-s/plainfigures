@@ -12,12 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Invoice_analyst_agent for analyzing invoices"""
+"""InvoiceAgent for creating and managing invoices"""
 
 from google.adk import Agent
 
 from . import prompt
-from ...tools.finance_tools import process_invoice
+from ...tools.finance_tools import (
+    create_invoice,
+    render_invoice_pdf,
+    mark_invoice_paid,
+)
 
 MODEL = "gemini-2.5-pro"
 
@@ -25,6 +29,6 @@ invoice_analyst_agent = Agent(
     model=MODEL,
     name="invoice_analyst_agent",
     instruction=prompt.INVOICE_ANALYST_PROMPT,
-    output_key="invoice_analysis_output",
-    tools=[process_invoice],
+    output_key="invoice_agent_output",
+    tools=[create_invoice, render_invoice_pdf, mark_invoice_paid],
 )

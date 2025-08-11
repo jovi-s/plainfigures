@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Financial coordinator: provide reasonable investment strategies"""
+"""Financial coordinator: orchestrates CashflowAgent and InvoiceAgent for SME MVP"""
 
 from google.adk.agents import LlmAgent
 from google.adk.tools.agent_tool import AgentTool
@@ -22,9 +22,7 @@ import os
 from . import prompt
 from .sub_agents.cashflow_analyst import cashflow_agent
 from .sub_agents.invoice_analyst import invoice_analyst_agent
-from .tools.finance_tools import (
-    
-)
+# Note: sub-agents encapsulate CSV-backed tools; no direct tool imports here
 
 
 load_dotenv()

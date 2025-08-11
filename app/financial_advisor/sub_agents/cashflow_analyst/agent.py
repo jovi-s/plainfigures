@@ -12,12 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""cashflow_analyst_agent for analyzing cashflow"""
+"""CashflowAgent for recording transactions and summarizing cashflow"""
 
 from google.adk import Agent
 
 from . import prompt
-# from ...tools.finance_tools import 
+from ...tools.finance_tools import (
+    load_customers,
+    load_suppliers,
+    record_transaction,
+    summarize_cashflow,
+)
 
 MODEL = "gemini-2.5-pro"
 
@@ -25,6 +30,6 @@ cashflow_agent = Agent(
     model=MODEL,
     name="cashflow_agent",
     instruction=prompt.CASHFLOW_AGENT_PROMPT,
-    output_key="cashflow_analysis_output",
-    tools=[],
+    output_key="cashflow_agent_output",
+    tools=[load_customers, load_suppliers, record_transaction, summarize_cashflow],
 )
