@@ -24,7 +24,7 @@ from ...tools.finance_tools import (
     summarize_cashflow,
 )
 
-MODEL = "gemini-2.5-pro"
+MODEL = "gpt-4o-mini"
 
 cashflow_agent = Agent(
     model=MODEL,

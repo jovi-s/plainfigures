@@ -23,7 +23,7 @@ from ...tools.finance_tools import (
     mark_invoice_paid,
 )
 
-MODEL = "gemini-2.5-pro"
+MODEL = "gpt-4o-mini"
 
 invoice_analyst_agent = Agent(
     model=MODEL,
