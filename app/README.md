@@ -1,46 +1,50 @@
-# Financial Advisor
+# Pan-SEA AI Developer Challenge 2025 FINANCE
 
+- https://github.com/google/adk-samples/tree/main/python/agents/financial-advisor
+- https://github.com/google/adk-samples/tree/main/python/agents/customer-service
+- https://github.com/google/adk-samples/tree/main/python/agents/gemini-fullstack
+
+Financial Inclusion:
+
+A lightweight, LLM-driven assistant that helps small business owners track cash flow, generate invoices, manage expenses, ... and explore microfinancing options.
+
+A conversational chatbot powered by SEA-LION that explains fundamental financial concepts (e.g. budgeting, saving, digital payments, interest rates) in local Southeast Asian languages and dialects.
+
+An LLM-related solution that explains loan application criteria (and recommends suitable financial products based on user profile)—all in regional languages.
+
+Financial Trust:
+
+An LLM-related solution that reads and summarizes complex bank or insurance documents into understandable, localized language—clarifying fees, terms, and risks.
+
+(A chatbot that informs users of their rights regarding loans, digital payments, and banking services based on country-specific financial regulations.)
+
+income = money coming in
+
+expenses = money going out
+
+Asset = something that puts money in your pocket
+
+Liability = something that takes money out of your pocket
+
+cash flow = asset -> income
 
 ## Overview
 
 The Financial Advisor is a team of specialized AI agents that assists human financial advisors.
 
-1. Cashflow Agent: This agent is responsible for creating in-depth and current market analysis reports for specific stock tickers. It achieves this by repeatedly using Google Search to find a predetermined amount of unique, recent (within a given timeframe), and insightful information. The agent focuses on gathering both SEC filings and broader market intelligence via Google Search tool, which it then uses to compile a structured report based solely on the collected data.
+1. Cashflow Agent: 
 
-2. Invoice Agent: This agent's task is to develop and describe at least five different trading strategies. It does this by carefully reviewing the comprehensive market analysis provided by the Data Analyst Agent. Each proposed strategy must be customized to match the user's declared risk tolerance and intended investment duration.
-
-
-## Agent Details
-
-The key features of the Financial Advisor include:
-
-| Feature | Description |
-| --- | --- |
-| **Interaction Type** | Conversational |
-| **Complexity**  | Medium |
-| **Agent Type**  | Multi Agent |
-| **Components**  | Tools: built-in Google Search |
-| **Vertical**  | Financial |
-
-
-### Agent architecture:
-
-This diagram shows the detailed architecture of the agents and tools used
-to implement this workflow.
-<img src="financial-advisor.png" alt="Financial Advisor" width="800"/>
+2. Invoice Agent: 
 
 ## Setup and Installation
 
 1.  **Prerequisites**
 
     *   Python 3.11+
-    *   Poetry
-        *   For dependency management and packaging. Please follow the
-            instructions on the official
-            [Poetry website](https://python-poetry.org/docs/) for installation.
+    *   uv
 
         ```bash
-        pip install poetry
+        pip install uv
         ```
 
     * A project on Google Cloud Platform
@@ -52,7 +56,7 @@ to implement this workflow.
 
     ```bash
     # Install the package and dependencies.
-    poetry install
+    uv install
     ```
 
 
@@ -82,18 +86,7 @@ blank. Here are some example requests you may ask the Financial Advisor to verif
 who are you
 ```
 
-```
-I am the financial coordinator agent. My role is to guide you through a structured process to receive financial advice. I work with specialized subagents to help you:
-
-Analyze a market ticker.
-Develop trading strategies based on your risk profile and investment goals.
-Define an optimal plan for executing those strategies.
-Evaluate the overall risk of the proposed plan.
-How can I help you start this process today? For example, we could begin by analyzing a market ticker.
-
-```
-
-## Running Tests
+## Running Tests [NOT IMPLEMENTED]
 
 For running tests and evaluation, install the extra dependencies:
 
@@ -115,7 +108,7 @@ is functional. `eval` is a demonstration of how to evaluate the agent, using the
 that the agent's responses match a pre-defined response reasonably well.
 
 
-## Deployment
+## Deployment [NOT IMPLEMENTED]
 
 The Financial Advisor can be deployed to Vertex AI Agent Engine using the following
 commands:
@@ -142,32 +135,3 @@ To delete the deployed agent, you may run the following command:
 ```bash
 python3 deployment/deploy.py --delete --resource_id=${AGENT_ENGINE_ID}
 ```
-
-# Pan-SEA AI Developer Challenge 2025 FINANCE
-
-https://github.com/google/adk-samples/tree/main/python/agents/financial-advisor
-https://github.com/google/adk-samples/tree/main/python/agents/customer-service
-https://github.com/google/adk-samples/tree/main/python/agents/gemini-fullstack
-
-Financial Inclusion:
-
-A lightweight, LLM-driven assistant that helps small business owners track cash flow, generate invoices, manage expenses, ... and explore microfinancing options.
-
-A conversational chatbot powered by SEA-LION that explains fundamental financial concepts (e.g. budgeting, saving, digital payments, interest rates) in local Southeast Asian languages and dialects.
-
-An LLM-related solution that explains loan application criteria (and recommends suitable financial products based on user profile)—all in regional languages.
-
-Financial Trust:
-
-An LLM-related solution that reads and summarizes complex bank or insurance documents into understandable, localized language—clarifying fees, terms, and risks.
-
-(A chatbot that informs users of their rights regarding loans, digital payments, and banking services based on country-specific financial regulations.)
-
-
-income = money coming in
-expenses = money going out
-
-Asset = something that puts money in your pocket
-Liability = something that takes money out of your pocket
-
-cash flow = asset -> income
