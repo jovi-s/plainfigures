@@ -5,13 +5,10 @@
 
 The Financial Advisor is a team of specialized AI agents that assists human financial advisors.
 
-1. Data Analyst Agent: This agent is responsible for creating in-depth and current market analysis reports for specific stock tickers. It achieves this by repeatedly using Google Search to find a predetermined amount of unique, recent (within a given timeframe), and insightful information. The agent focuses on gathering both SEC filings and broader market intelligence via Google Search tool, which it then uses to compile a structured report based solely on the collected data.
+1. Cashflow Agent: This agent is responsible for creating in-depth and current market analysis reports for specific stock tickers. It achieves this by repeatedly using Google Search to find a predetermined amount of unique, recent (within a given timeframe), and insightful information. The agent focuses on gathering both SEC filings and broader market intelligence via Google Search tool, which it then uses to compile a structured report based solely on the collected data.
 
-2. Trading Analyst Agent: This agent's task is to develop and describe at least five different trading strategies. It does this by carefully reviewing the comprehensive market analysis provided by the Data Analyst Agent. Each proposed strategy must be customized to match the user's declared risk tolerance and intended investment duration.
+2. Invoice Agent: This agent's task is to develop and describe at least five different trading strategies. It does this by carefully reviewing the comprehensive market analysis provided by the Data Analyst Agent. Each proposed strategy must be customized to match the user's declared risk tolerance and intended investment duration.
 
-3. Execution Agent: This agent creates a thorough and well-justified plan for implementing a given trading strategy. The plan must be carefully adjusted to fit the user's risk tolerance, investment timeframe, and preferred methods of execution. The output will be detailed and fact-based, examining the best approaches and specific timing for initiating, maintaining, adding to, partially selling, and completely exiting investment positions.
-
-4. Risk Evaluation Agent: This agent's role is to produce a detailed and reasoned analysis of the risks associated with a specific trading strategy and its execution plan. This analysis needs to be precisely aligned with the user's stated risk tolerance, investment period, and execution preferences. The output will be rich in factual analysis, clearly outlining all identified risks and suggesting concrete, actionable steps to lessen their impact.
 
 ## Agent Details
 
@@ -58,26 +55,6 @@ to implement this workflow.
     poetry install
     ```
 
-3.  **Configuration**
-
-    *   Set up Google Cloud credentials.
-
-        *   You may set the following environment variables in your shell, or in
-            a `.env` file instead.
-
-        ```bash
-        export GOOGLE_GENAI_USE_VERTEXAI=true
-        export GOOGLE_CLOUD_PROJECT=<your-project-id>
-        export GOOGLE_CLOUD_LOCATION=<your-project-location>
-        export GOOGLE_CLOUD_STORAGE_BUCKET=<your-storage-bucket>  # Only required for deployment on Agent Engine
-        ```
-
-    *   Authenticate your GCloud account.
-
-        ```bash
-        gcloud auth application-default login
-        gcloud auth application-default set-quota-project $GOOGLE_CLOUD_PROJECT
-        ```
 
 ## Running the Agent
 
@@ -165,6 +142,8 @@ To delete the deployed agent, you may run the following command:
 ```bash
 python3 deployment/deploy.py --delete --resource_id=${AGENT_ENGINE_ID}
 ```
+
+# Pan-SEA AI Developer Challenge 2025 FINANCE
 
 https://github.com/google/adk-samples/tree/main/python/agents/financial-advisor
 https://github.com/google/adk-samples/tree/main/python/agents/customer-service

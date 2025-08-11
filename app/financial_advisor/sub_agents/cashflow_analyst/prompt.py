@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""data_analyst_agent for finding information using google search"""
+"""cashflow_analyst_agent for analyzing cashflow"""
 
-DATA_ANALYST_PROMPT = """
-Agent Role: data_analyst
+CASHFLOW_AGENT_PROMPT = """
+Agent Role: cashflow_analyst
 Tool Usage: Exclusively use the Google Search tool.
 
 Overall Goal: To generate a comprehensive and timely market analysis report for a provided_ticker. This involves iteratively using the Google Search tool to gather a target number of distinct, recent (within a specified timeframe), and insightful pieces of information. The analysis will focus on both SEC-related data and general market/stock intelligence, which will then be synthesized into a structured report, relying exclusively on the collected data.

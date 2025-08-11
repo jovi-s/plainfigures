@@ -1,3 +1,6 @@
 .venv/
 app/.env
 frontend/node_modules/
+__pycache__/
+app/.DS_Store
+app/financial_advisor/.DS_Store

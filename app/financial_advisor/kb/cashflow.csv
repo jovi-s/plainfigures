@@ -1,21 +1,6 @@
-date, category, amount, direction(in/out), counterparty
-2024-01-15, sales_revenue, 25000, in, Local Retailer Co
-2024-01-16, raw_materials, 8000, out, Supplier Pte Ltd
-2024-01-17, utilities, 450, out, Singapore Power
-2024-01-20, consulting_income, 3500, in, Tech Startup SG
-2024-01-22, office_rent, 4200, out, CBD Properties
-2024-01-25, employee_meals, 180, out, Catering Services
-2024-01-28, equipment_purchase, 1200, out, IT Solutions Pte
-2024-02-01, sales_revenue, 28000, in, Export Client MY
-2024-02-03, transportation, 320, out, Logistics Partner
-2024-02-05, business_insurance, 850, out, Great Eastern
-2024-02-08, government_grant, 5000, in, Enterprise Singapore
-2024-02-10, office_supplies, 240, out, Stationery Plus
-2024-02-12, client_entertainment, 150, out, Marina Bay Restaurant
-2024-02-15, interest_income, 120, in, DBS Bank
-2024-02-18, telecommunications, 380, out, Singtel Business
-2024-02-20, marketing_expenses, 600, out, Digital Agency
-2024-02-22, office_rent, 4200, out, CBD Properties
-2024-02-25, refund_processing, 180, in, Payment Gateway
-2024-02-28, professional_services, 900, out, Accounting Firm
-2024-03-01, sales_revenue, 31000, in, Regional Distributor
+user_id,date,category,currency,amount,direction,counterparty_id,counterparty_type,transaction_id,description,document_reference,tax_amount,payment_method
+1,11/8/25,Sales Revenue,SGD,1500,IN,CUS-0001,customer,TXN-2025-001,Sale of office supplies to ABC Trading,INV-2025-0811-001,150,Bank Transfer
+1,10/8/25,Office Expenses,MYR,850,OUT,SUP-0001,supplier,TXN-2025-002,Purchase of printer and stationery supplies,RCP-2025-0810-045,51,Credit Card
+1,9/8/25,Professional Services,THB,2400,OUT,SUP-0001,supplier,TXN-2025-003,Legal consultation fees for contract review,INV-BLA-2025-156,168,Bank Transfer
+1,8/8/25,Marketing Expenses,IDR,12500000,OUT,SUP-0001,supplier,TXN-2025-004,Social media advertising campaign Q3 2025,INV-DMS-2025-0808,1375000,Cash
+1,7/8/25,Equipment Purchase,PHP,75000,OUT,SUP-0001,supplier,TXN-2025-005,Purchase of new laptop computers for staff,OR-2025-MTS-0807,9000,Bank Transfer

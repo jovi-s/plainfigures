@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Execution_analyst_agent for finding the ideal execution strategy"""
+"""Invoice_analyst_agent for analyzing invoices"""
 
 from google.adk import Agent
 
 from . import prompt
+from ...tools.finance_tools import process_invoice
 
 MODEL = "gemini-2.5-pro"
 
@@ -25,4 +26,5 @@ invoice_analyst_agent = Agent(
     name="invoice_analyst_agent",
     instruction=prompt.INVOICE_ANALYST_PROMPT,
     output_key="invoice_analysis_output",
+    tools=[process_invoice],
 )

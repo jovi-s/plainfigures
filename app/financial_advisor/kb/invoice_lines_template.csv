@@ -1,0 +1,2 @@
+invoice_id,line_id,description,quantity,unit_price,tax_rate,line_total,currency
+INV-0001,INV-0001-1,Box of widgets,10,20000,11.0,222000.00000000003,IDR

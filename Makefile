@@ -19,3 +19,6 @@ lint:
 	uv run ruff check . --diff
 	uv run ruff format . --check --diff
 	uv run mypy .
+
+streamlit:
+	uv run streamlit run app/streamlit_app.py

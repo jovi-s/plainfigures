@@ -1,0 +1,148 @@
+---
+name: SME Finance Assistant Rules (MVP)
+description: Project-wide rules/spec guiding the AI when coding in this repo. Prioritize multi-agent design, code-does-math, and clear separation between extraction and computation.
+alwaysApply: true
+globs:
+  - "**/*"
+---
+
+SME Finance Assistant (ADK + LLM) — MVP Spec (Multi-Modal)
+
+Goal (MVP in 1 month):  
+A lightweight, multilingual web app for Southeast Asian SMEs to record transactions, categorize expenses, generate invoices (PDF), and summarize cash flow—using multi-agent orchestration (ADK), LLM for local-language understanding, gpt-4o-mini for extracting information from iamges, and gpt-4o-mini for voice transcription. Supports text, image, and voice input. Data is displayed in a modern frontend.
+
+⸻
+
+1) Scope & Success Criteria
+
+In-scope (MVP)
+- Cashflow capture (chat, form, image, or voice):
+	- Natural-language entry (e.g., “Sold 500k IDR to PT Sari on 5 Aug, COD”).
+	- File upload for receipt/invoice photos/PDFs → GPT-4o mini model → auto-extract totals, dates, vendor, line items; user can edit.
+	- Voice input: audio file or real-time stream → gpt-4o-mini-transcribe model → transcript → process as text.
+- Expense management: categorize (COGS, rent, wages, utilities, taxes, misc), export CSV.
+- Invoice generation: create/send branded PDF invoices (sequential IDs, due dates, tax, currency), store & re-issue.
+- Modern UX: Displays cash flow, expenses in a simple, and easy to understand manner.
+- Basic summaries: daily/weekly/monthly net cashflow, top expense categories, upcoming receivables.
+- User profile agent: stores language, preferences, and recent activity.
+
+Success
+- Record a transaction via chat, upload, or voice in <10s; extraction accuracy ≥90% on pilot docs.
+- Generate a PDF invoice with correct totals/taxes/currency in <5s - if the user clicks on the generate invoice button,
+- Low hallucination: numeric calculations executed by code, not LLM.
+- All responses available in user’s chosen SEA language.
+- Data displayed in frontend tables, charts, and summary widgets.
+
+⸻
+
+2) System Overview (Multi-Modal)
+
+Use a local-first method for a database to start the project. 
+No GCP dependency for MVP. Enables rapid iteration and privacy.
+
+High-level
+
+Web (Next.js) ─► FastAPI/ADK backend  
+        ├─► RouterAgent (intent → sub-agent)  
+        ├─► CashflowAgent  
+        │  ├─ Tool: LocalOCR/Image (Tesseract, GPT-4o mini)  
+        │  ├─ Tool: CategorizeExpense  
+        │  └─ Tool: LedgerDB  
+        ├─► InvoiceAgent  
+        │  ├─ Tool: GenerateInvoiceHTML  
+        │  └─ Tool: HtmlToPDF  
+        ├─► ProfileAgent (user profile, prefs)  
+        └─► HelpAgent (optional)
+
+Input modalities:
+- Text: chat/form (LLM, GPT-4o mini)
+- Image/PDF: upload (local OCR, GPT-4o mini for image understanding)
+- Audio: upload/stream (gpt-4o-mini-transcribe, then text pipeline)
+
+All data is displayed in the frontend: tables (transactions, invoices), charts (cashflow), and summaries.
+
+⸻
+
+3) Agents & Tools (ADK)
+
+3.1 RouterAgent
+- Purpose: classify input → CashflowAgent, InvoiceAgent, AudioAgent, ProfileAgent, or HelpAgent.
+- Model: LLM (primary).
+- Signals: keywords (“add expense”, “invoice”, “receipt upload”, “pdf”, “voice”), entities (dates, amounts, vendors).
+
+3.2 CashflowAgent
+- User tasks:
+	- “Record: Sold 2,500 THB to Somchai 5 Aug; paid cash.”
+	- “Upload this receipt; add to expenses.”
+	- “Show July cashflow; what’s my biggest cost?”
+- Tools:
+	1. LLMCall → returns normalized JSON: vendor, issue_date, due_date, currency, line_items[], subtotal, tax, total, doc_uri, confidence. Uses GPT-4o mini for image/PDF.
+	2. CategorizeExpense → maps description/GL to category (COGS, Opex…); code-based rules + LLM fallback.
+	3. LedgerDB → create/read/update transactions table; supports CSV export.
+	4. SummarizeCashflow → code computes rollups; LLM only explains in user’s language.
+
+3.3 InvoiceAgent
+- User tasks:
+	- “Create an invoice for PT Nusantara: 10 boxes @ 200, tax 11%, due in 30 days.”
+	- “Re-issue INV-000231 as PDF in Bahasa Indonesia.”
+- Tools:
+	1. GenerateInvoiceHTML → fills localized template with items/tax/terms.
+	2. HtmlToPDF → render to PDF (WeasyPrint/wkhtmltopdf).
+	3. LedgerDB → persists invoice header + lines + status.
+
+3.5 ProfileAgent
+- Stores user language, preferences, and recent activity.
+- Used for personalization and default settings in UI.
+
+3.6 HelpAgent (optional)
+- Finance basics explanations (budgeting, digital payments) with short, localized answers (LLM).
+
+⸻
+
+4) Models & Integration
+
+- GPT-4o mini: for image and text input, especially for receipts/invoices (via OpenAI API).
+- Audio: gpt-4o-mini-transcribe for voice input.
+
+⸻
+
+5) Data Model (MVP)
+
+transactions  
+id, ts, type(income|expense), amount, currency, category, counterparty, method, notes, source_doc_uri, doc_confidence, created_by
+
+invoices (header)  
+id, invoice_no, issue_date, due_date, currency, customer_name, customer_addr, subtotal, tax, total, status(draft|sent|paid|overdue), pdf_uri
+
+invoice_lines  
+id, invoice_id, description, qty, unit_price, tax_rate, line_total
+
+categories  
+id, name, description, tax_treatment
+
+user_profiles  
+id, user_id, language, preferences, recent_activity
+
+⸻
+
+6) Prompts (initial)
+
+Keep numbers out of LLM math. LLM extracts → backend computes.
+
+Router (classification)  
+“Classify the user request into one of: record_tx, invoice_create, invoice_reissue, summary, help, audio_input. Return JSON with {intent, entities:{amount,currency,date,party,items[]}}.”
+
+Extraction (post-OCR refinement)  
+“You are standardizing parsed invoice fields for accounting. Return a JSON with vendor, issue_date(YYYY-MM-DD), due_date, currency(ISO), line_items[{desc,qty,unit_price,tax_rate}], subtotal, tax, total. If unsure, set null and confidence per field.”
+
+Cashflow explanation  
+“Explain this cashflow summary in {{LANG}} for a small shop owner. Use friendly tone, 3 bullet points, and one practical tip.”
+
+⸻
+
+7) Acceptance Tests
+
+1. Upload receipt (image/PDF) → expense row appears with correct amount/currency/date/vendor; user can edit; CSV export matches UI.
+2. Create invoice via chat or voice → PDF file with accurate totals/tax; stored in DB; status=sent.
+3. Monthly summary with correct arithmetic (double-check totals vs. DB).
+4. Audio input (record/upload) → transcript processed as transaction; accuracy ≥90%.

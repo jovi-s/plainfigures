@@ -16,33 +16,27 @@
 
 from google.adk.agents import LlmAgent
 from google.adk.tools.agent_tool import AgentTool
+from dotenv import load_dotenv
+import os
 
 from . import prompt
 from .sub_agents.cashflow_analyst import cashflow_agent
 from .sub_agents.invoice_analyst import invoice_analyst_agent
-# from .sub_agents.loan_analyst import risk_analyst_agent
-# from .sub_agents.document_analyst import trading_analyst_agent
-from .tools.tools import (
-    send_call_companion_link,
-    approve_discount,
-    sync_ask_for_approval,
-    update_salesforce_crm,
-    access_cart_information,
-    modify_cart,
-    get_product_recommendations,
-    check_product_availability,
-    schedule_planting_service,
-    get_available_planting_times,
-    send_care_instructions,
-    generate_qr_code,
+from .tools.finance_tools import (
+    
 )
 
-MODEL = "gemini-2.5-pro"
+
+load_dotenv()
+
+
+TEXT_IMAGE_MODEL: str = os.getenv("TEXT_IMAGE_MODEL", "gpt-4o-mini")
+TRANSCRIBE_MODEL: str = os.getenv("TRANSCRIBE_MODEL", "gpt-4o-mini-transcribe")
 
 
 financial_coordinator = LlmAgent(
     name="financial_coordinator",
-    model=MODEL,
+    model=TEXT_IMAGE_MODEL,
     description=(
         "assistant that helps small business owners track cash flow, "
         "generate invoices, and manage expenses "
@@ -53,20 +47,7 @@ financial_coordinator = LlmAgent(
     tools=[
         AgentTool(agent=cashflow_agent),
         AgentTool(agent=invoice_analyst_agent),
-        # AgentTool(agent=execution_analyst_agent),
-        # AgentTool(agent=risk_analyst_agent),
-        send_call_companion_link,
-        approve_discount,
-        sync_ask_for_approval,
-        update_salesforce_crm,
-        access_cart_information,
-        modify_cart,
-        get_product_recommendations,
-        check_product_availability,
-        schedule_planting_service,
-        get_available_planting_times,
-        send_care_instructions,
-        generate_qr_code,
+
     ],
 )
 

@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Execution_analyst_agent for finding the ideal execution strategy"""
+"""Invoice_analyst_agent for analyzing invoices"""
 
-EXECUTION_ANALYST_PROMPT = """
+INVOICE_ANALYST_PROMPT = """
 
 To generate a detailed and reasoned execution plan for the provided_trading_strategy.
 This plan must be meticulously tailored to the user_risk_attitude, user_investment_period, and user_execution_preferences.

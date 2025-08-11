@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""data_analyst_agent for finding information using google search"""
+"""cashflow_analyst_agent for analyzing cashflow"""
 
 from google.adk import Agent
-from google.adk.tools import google_search
 
 from . import prompt
+# from ...tools.finance_tools import 
 
 MODEL = "gemini-2.5-pro"
 
@@ -26,5 +26,5 @@ cashflow_agent = Agent(
     name="cashflow_agent",
     instruction=prompt.CASHFLOW_AGENT_PROMPT,
     output_key="cashflow_analysis_output",
-    tools=[google_search],
+    tools=[],
 )
