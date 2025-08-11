@@ -15,6 +15,7 @@
 """CashflowAgent for recording transactions and summarizing cashflow"""
 
 from google.adk import Agent
+from google.adk.models.lite_llm import LiteLlm
 
 from . import prompt
 from ...tools.finance_tools import (
@@ -27,7 +28,7 @@ from ...tools.finance_tools import (
 MODEL = "gpt-4o-mini"
 
 cashflow_agent = Agent(
-    model=MODEL,
+    model=LiteLlm(model=f"openai/{MODEL}"),
     name="cashflow_agent",
     instruction=prompt.CASHFLOW_AGENT_PROMPT,
     output_key="cashflow_agent_output",

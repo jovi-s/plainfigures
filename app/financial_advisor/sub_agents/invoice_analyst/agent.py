@@ -15,6 +15,7 @@
 """InvoiceAgent for creating and managing invoices"""
 
 from google.adk import Agent
+from google.adk.models.lite_llm import LiteLlm
 
 from . import prompt
 from ...tools.finance_tools import (
@@ -26,7 +27,7 @@ from ...tools.finance_tools import (
 MODEL = "gpt-4o-mini"
 
 invoice_analyst_agent = Agent(
-    model=MODEL,
+    model=LiteLlm(model=f"openai/{MODEL}"),
     name="invoice_analyst_agent",
     instruction=prompt.INVOICE_ANALYST_PROMPT,
     output_key="invoice_agent_output",

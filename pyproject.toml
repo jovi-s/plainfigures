@@ -12,6 +12,7 @@ dependencies = [
     "pandas>=2.2.2",
     "pypdf>=4.3.1",
     "openai>=1.99.6",
+    "litellm>=1.75.5.post1",
 ]
 
 requires-python = ">=3.10,<3.13"
@@ -42,7 +43,7 @@ lint = [
 
 [tool.ruff]
 line-length = 88
-target-version = "py310"
+target-version = "py311"
 
 [tool.ruff.lint]
 select = [

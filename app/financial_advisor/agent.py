@@ -15,6 +15,7 @@
 """Financial coordinator: orchestrates CashflowAgent and InvoiceAgent for SME MVP"""
 
 from google.adk.agents import LlmAgent
+from google.adk.models.lite_llm import LiteLlm
 from google.adk.tools.agent_tool import AgentTool
 from dotenv import load_dotenv
 import os
@@ -34,7 +35,7 @@ TRANSCRIBE_MODEL: str = os.getenv("TRANSCRIBE_MODEL", "gpt-4o-mini-transcribe")
 
 financial_coordinator = LlmAgent(
     name="financial_coordinator",
-    model=TEXT_IMAGE_MODEL,
+    model=LiteLlm(model=f"openai/{TEXT_IMAGE_MODEL}"),
     description=(
         "assistant that helps small business owners track cash flow, "
         "generate invoices, and manage expenses "

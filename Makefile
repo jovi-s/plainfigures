@@ -6,13 +6,13 @@ dev:
 	make dev-backend & make dev-frontend
 
 dev-backend:
-	uv run adk api_server app/financial_advisor --allow_origins="*"
+	uv run adk api_server app --allow_origins="*"
 
 dev-frontend:
 	npm --prefix frontend run dev
 
 playground:
-	uv run adk web app/financial_advisor --port 8501
+	uv run adk web app --port 8501
 
 lint:
 	uv run codespell
