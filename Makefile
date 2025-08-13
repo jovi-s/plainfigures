@@ -5,8 +5,14 @@ install:
 dev:
 	make dev-backend & make dev-frontend
 
+dev-finance:
+	make dev-api & make dev-frontend
+
 dev-backend:
 	uv run adk api_server app --allow_origins="*"
+
+dev-api:
+	uv run python app/api_server.py
 
 dev-frontend:
 	npm --prefix frontend run dev

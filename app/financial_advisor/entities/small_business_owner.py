@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Small Business Owner entity module for Southeast Asia SME Finance Assistant."""
+"""Small Business Owner entity module for Southeast Asia plainfigures."""
 
 from typing import List, Dict, Optional
 from pydantic import BaseModel, Field, ConfigDict

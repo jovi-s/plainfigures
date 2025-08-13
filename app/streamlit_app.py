@@ -1,4 +1,4 @@
-"""Streamlit app for the SME Finance Assistant (MVP).
+"""Streamlit app for the plainfigures (MVP).
 
 Features:
 - Upload invoice image (JPEG/PNG) and PDF
@@ -32,18 +32,21 @@ from financial_advisor.tools.finance_tools import (  # noqa: E402
 )
 
 
+# Data file paths - CSV storage in knowledge base directory
 KB_DIR = APP_DIR / "financial_advisor" / "kb"
 CASHFLOW_CSV = KB_DIR / "cashflow.csv"
 INVOICE_CSV = KB_DIR / "invoice.csv"
 
 
 def load_csv(path: Path) -> pd.DataFrame:
+    """Load CSV file or return empty DataFrame if file doesn't exist."""
     if not path.exists():
         return pd.DataFrame()
     return pd.read_csv(path)
 
 
 def save_cashflow_row(row: Dict[str, Any]) -> None:
+    """Append a new transaction row to the cashflow CSV file."""
     df_existing = load_csv(CASHFLOW_CSV)
     df_new = pd.DataFrame([row])
     df_out = pd.concat([df_existing, df_new], ignore_index=True)
@@ -51,6 +54,7 @@ def save_cashflow_row(row: Dict[str, Any]) -> None:
 
 
 def save_invoice_row(row: Dict[str, Any]) -> None:
+    """Append a new invoice row to the invoice CSV file."""
     df_existing = load_csv(INVOICE_CSV)
     df_new = pd.DataFrame([row])
     df_out = pd.concat([df_existing, df_new], ignore_index=True)
@@ -58,10 +62,12 @@ def save_invoice_row(row: Dict[str, Any]) -> None:
 
 
 def generate_txn_id() -> str:
+    """Generate a unique transaction ID with timestamp."""
     return f"TXN-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
 
 
 def generate_invoice_id(existing: Optional[pd.DataFrame]) -> str:
+    """Generate next sequential invoice ID (INV-0001, INV-0002, etc.)."""
     if existing is None or existing.empty:
         return "INV-0001"
     try:
@@ -75,10 +81,12 @@ def generate_invoice_id(existing: Optional[pd.DataFrame]) -> str:
 
 
 def render_upload_tab() -> None:
+    """Render the upload tab for processing invoice images and PDFs."""
     st.subheader("Upload Invoice")
 
     col1, col2 = st.columns(2)
     with col1:
+        # Image upload and processing
         img_file = st.file_uploader(
             "Upload invoice image", type=["jpg", "jpeg", "png"], accept_multiple_files=False
         )
@@ -124,6 +132,7 @@ def render_upload_tab() -> None:
                     st.success("Added to cashflow.")
 
     with col2:
+        # PDF upload and processing
         pdf_file = st.file_uploader(
             "Upload invoice PDF", type=["pdf"], accept_multiple_files=False
         )
@@ -167,6 +176,7 @@ def render_upload_tab() -> None:
 
 
 def render_cashflow_tab() -> None:
+    """Render the cashflow tab showing transactions and manual entry form."""
     st.subheader("Cashflow Ledger")
 
     df = load_csv(CASHFLOW_CSV)
@@ -215,6 +225,7 @@ def render_cashflow_tab() -> None:
 
 
 def render_invoices_tab() -> None:
+    """Render the invoices tab for creating and managing invoices."""
     st.subheader("Generate Invoice")
 
     invoices_df = load_csv(INVOICE_CSV)
@@ -243,6 +254,7 @@ def render_invoices_tab() -> None:
 
         st.markdown("Line Items")
         items: List[Dict[str, Any]] = []
+        # Allow up to 5 line items per invoice
         for i in range(1, 6):
             with st.expander(f"Item {i}"):
                 desc = st.text_input(
@@ -264,6 +276,7 @@ def render_invoices_tab() -> None:
                         }
                     )
 
+        # Calculate totals
         subtotal = sum(it["qty"] * it["unit_price"] for it in items)
         tax_amount = subtotal * tax_rate
         total = subtotal + tax_amount
@@ -310,16 +323,17 @@ def render_invoices_tab() -> None:
 
 
 def render_dashboard_tab() -> None:
+    """Render the dashboard tab with expense summaries and charts."""
     st.subheader("Expenses Dashboard")
     df = load_csv(CASHFLOW_CSV)
     if df.empty:
         st.info("No transactions to summarize.")
         return
-    # Ensure types
+    # Clean and filter data for expenses only
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
     df = df.dropna(subset=["date"])  # remove bad dates
     df["amount"] = pd.to_numeric(df["amount"], errors="coerce").fillna(0.0)
-    df_out = df[df["direction"].str.upper() == "OUT"].copy()
+    df_out = df[df["direction"].str.upper() == "OUT"].copy()  # Expenses only
 
     period = st.selectbox("Group by", ["Week", "Month", "Quarter", "Year"], index=1)
     freq_map = {"Week": "W", "Month": "M", "Quarter": "Q", "Year": "Y"}
@@ -338,8 +352,9 @@ def render_dashboard_tab() -> None:
 
 
 def main() -> None:
-    st.set_page_config(page_title="SME Finance Assistant", layout="wide")
-    st.title("SME Finance Assistant")
+    """Main Streamlit app entry point with tabbed interface."""
+    st.set_page_config(page_title="plainfigures", layout="wide")
+    st.title("plainfigures")
     st.caption("Upload invoices, track cashflow, and generate invoices.")
 
     tabs = st.tabs(["Upload", "Cashflow", "Invoices", "Dashboard"])
