@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # add docstring to this module
-"""Tools module for the finance assistant agent.
+"""Tools module for the dashboard app.
 
 This module provides CSV-backed tools that implement the MVP data flow:
 
