@@ -48,11 +48,6 @@ export default function App() {
     }
   };
 
-  // Handle transaction creation
-  const handleTransactionCreated = () => {
-    setRefreshTrigger(prev => prev + 1);
-  };
-
   // Handle file upload data extraction
   const handleDataExtracted = (data: InvoiceData) => {
     console.log('Extracted invoice data:', data);
@@ -184,14 +179,10 @@ export default function App() {
       {/* Main content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4" />
               Dashboard
-            </TabsTrigger>
-            <TabsTrigger value="transactions" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Transactions
             </TabsTrigger>
             <TabsTrigger value="upload" className="flex items-center gap-2">
               <Upload className="h-4 w-4" />
@@ -208,22 +199,6 @@ export default function App() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <CashflowSummary key={refreshTrigger} />
               <TransactionList key={refreshTrigger} />
-            </div>
-          </TabsContent>
-
-          {/* Transactions Tab */}
-          <TabsContent value="transactions" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-1">
-                <TransactionForm
-                  customers={customers}
-                  suppliers={suppliers}
-                  onTransactionCreated={handleTransactionCreated}
-                />
-              </div>
-              <div className="lg:col-span-2">
-                <TransactionList key={refreshTrigger} />
-              </div>
             </div>
           </TabsContent>
 
