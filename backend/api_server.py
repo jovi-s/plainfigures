@@ -12,7 +12,7 @@ import uvicorn
 import os
 
 # Import the financial tools
-from financial_advisor.tools.finance_tools import (
+from src.tools.finance_tools import (
     record_transaction,
     summarize_cashflow,
     create_invoice,
@@ -166,7 +166,7 @@ async def get_transactions(user_id: Optional[str] = None):
         from pathlib import Path
         
         # Path to cashflow CSV
-        csv_path = Path(__file__).parent / "financial_advisor" / "kb" / "cashflow.csv"
+        csv_path = Path(__file__).parents[1] / "backend" / "database" / "cashflow.csv"
         
         if not csv_path.exists():
             return ApiResponse(success=True, data=[])
@@ -309,10 +309,10 @@ async def send_agent_message(request: AgentMessageRequest):
     """Send message to financial coordinator agent"""
     try:
         # Import the financial coordinator
-        from financial_advisor.agent import financial_coordinator
+        from src.agent import graph
         
         # Process message with the agent
-        response = financial_coordinator.process(request.message)
+        response = graph.process(request.message)
         
         return {
             "action": "agent_response",

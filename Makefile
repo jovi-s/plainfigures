@@ -2,23 +2,23 @@ install:
 	@command -v uv >/dev/null 2>&1 || { echo "uv is not installed. Installing uv..."; curl -LsSf https://astral.sh/uv/0.6.12/install.sh | sh; source $HOME/.local/bin/env; }
 	uv sync && npm --prefix frontend install
 
-dev:
-	make dev-backend & make dev-frontend
+# dev:
+# 	make dev-backend & make dev-frontend
 
-dev-backend:
-	uv run adk api_server app --allow_origins="*"
+# dev-backend:
+# 	uv run adk api_server app --allow_origins="*"
 
 dev-finance:
 	make dev-api & make dev-frontend
 
 dev-api:
-	uv run python app/api_server.py
+	uv run python backend/api_server.py
 
 dev-frontend:
 	npm --prefix frontend run dev
 
-playground:
-	uv run adk web app --port 8501
+# playground:
+# 	uv run adk web app --port 8501
 
 lint:
 	uv run codespell

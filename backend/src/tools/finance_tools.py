@@ -41,7 +41,6 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from dotenv import load_dotenv
-from google.adk.tools import ToolContext
 from openai import OpenAI
 from pypdf import PdfReader
 
@@ -51,7 +50,7 @@ _openai_client = OpenAI()
 
 
 # Filesystem layout (CSV storage under kb/)
-KB_DIR = Path(__file__).resolve().parents[1] / "kb"
+KB_DIR = Path(__file__).resolve().parent.parents[1] / "database"
 INVOICE_CSV = KB_DIR / "invoice.csv"
 INVOICE_LINES_CSV = KB_DIR / "invoice_lines.csv"
 CASHFLOW_CSV = KB_DIR / "cashflow.csv"
@@ -211,7 +210,7 @@ def categorize_expense(expense_description: str) -> str:
     return "Miscellaneous"
 
 
-def process_invoice(context: Optional[ToolContext] = None, invoice_text: str | None = None) -> Dict[str, Any]:
+def process_invoice(context = None, invoice_text: str | None = None) -> Dict[str, Any]:
     """Stub tool for ADK compatibility.
 
     In a full implementation, this would parse `invoice_text` and update the ledger.
@@ -225,7 +224,7 @@ def process_invoice(context: Optional[ToolContext] = None, invoice_text: str | N
 # =========================
 
 
-def load_customers(context: Optional[ToolContext] = None) -> Dict[str, Any]:
+def load_customers(context = None) -> Dict[str, Any]:
     """Loads customers from `customers.csv` or falls back to `customers_template.csv`.
 
     Returns a dict with `customers` as a list of row dicts.
@@ -234,7 +233,7 @@ def load_customers(context: Optional[ToolContext] = None) -> Dict[str, Any]:
     return {"source": str(source), "customers": _read_csv_dicts(source)}
 
 
-def load_suppliers(context: Optional[ToolContext] = None) -> Dict[str, Any]:
+def load_suppliers(context = None) -> Dict[str, Any]:
     """Loads suppliers from `suppliers.csv` or falls back to `suppliers_template.csv`.
 
     Returns a dict with `suppliers` as a list of row dicts.
@@ -244,7 +243,7 @@ def load_suppliers(context: Optional[ToolContext] = None) -> Dict[str, Any]:
 
 
 def record_transaction(
-    context: Optional[ToolContext] = None,
+    context = None,
     *,
     user_id: str,
     date: str,
@@ -308,7 +307,7 @@ def record_transaction(
 
 
 def summarize_cashflow(
-    context: Optional[ToolContext] = None,
+    context = None,
     *,
     user_id: Optional[str] = None,
     lookback_days: int = 30,
@@ -363,7 +362,7 @@ def summarize_cashflow(
 
 
 def create_invoice(
-    context: Optional[ToolContext] = None,
+    context = None,
     *,
     user_id: str,
     invoice_type: str,  # AR or AP
@@ -487,7 +486,7 @@ def create_invoice(
 
 
 def render_invoice_pdf(
-    context: Optional[ToolContext] = None,
+    context = None,
     *,
     invoice_id: str,
     output_dir: Optional[str] = None,
@@ -541,7 +540,7 @@ def render_invoice_pdf(
 
 
 def mark_invoice_paid(
-    context: Optional[ToolContext] = None,
+    context = None,
     *,
     user_id: str,
     invoice_id: str,

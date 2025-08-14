@@ -1,24 +1,29 @@
 [project]
-name = "gemini-fullstack"
+name = "plainfigures"
 version = "0.1.0"
 description = ""
 authors = [
     {name = "Jovinder Singh", email = "jovinder@yahoo.com"},
 ]
+readme = "README.md"
+license = { text = "MIT" }
 dependencies = [
-    "google-adk==1.4.2",
     "pydantic>=2.10.6",
     "python-dotenv>=1.0.1",
     "pandas>=2.2.2",
     "pypdf>=4.3.1",
     "openai>=1.99.6",
-    "litellm>=1.75.5.post1",
-    "fastapi>=0.104.1",
     "uvicorn>=0.24.0",
     "python-multipart>=0.0.6",
+    "langgraph>=0.2.6",
+    "langchain>=0.3.19",
+    "langgraph-sdk>=0.1.57",
+    "langgraph-cli",
+    "langgraph-api",
+    "fastapi",
 ]
 
-requires-python = ">=3.10,<3.13"
+requires-python = ">=3.11,<3.13"
 
 [dependency-groups]
 dev = [
@@ -26,7 +31,6 @@ dev = [
     "pytest-asyncio~=0.23.7",
     "nest-asyncio>=1.6.0",
     "ipykernel>=6.30.0",
-    "streamlit>=1.48.0",
     "easyocr>=1.7.2",
 ]
 
@@ -62,7 +66,7 @@ select = [
 ignore = ["E501", "C901"] # ignore line too long, too complex
 
 [tool.ruff.lint.isort]
-known-first-party = ["app", "frontend"]
+known-first-party = ["backend", "frontend"]
 
 [tool.mypy]
 disallow_untyped_calls = true
