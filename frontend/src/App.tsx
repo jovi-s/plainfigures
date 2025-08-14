@@ -48,6 +48,11 @@ export default function App() {
     }
   };
 
+  // Handle transaction creation
+  const handleTransactionCreated = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
+
   // Handle file upload data extraction
   const handleDataExtracted = (data: InvoiceData) => {
     console.log('Extracted invoice data:', data);
@@ -58,11 +63,9 @@ export default function App() {
   useEffect(() => {
     const initializeApp = async () => {
       setIsCheckingBackend(true);
-      
       // Check if backend is ready with retry logic
       const maxAttempts = 30; // 1 minute with 2-second intervals
       let attempts = 0;
-      
       while (attempts < maxAttempts) {
         const isReady = await checkBackendHealth();
         if (isReady) {
@@ -71,15 +74,12 @@ export default function App() {
           await loadData();
           return;
         }
-        
         attempts++;
         await new Promise(resolve => setTimeout(resolve, 2000));
       }
-      
       setIsCheckingBackend(false);
       console.error("Backend failed to start within 1 minute");
     };
-    
     initializeApp();
   }, []);
 
@@ -94,12 +94,10 @@ export default function App() {
               plainfigures
             </h1>
           </div>
-          
           <div className="flex flex-col items-center space-y-4">
             <div className="relative">
               <div className="w-12 h-12 border-4 border-neutral-300 border-t-blue-500 rounded-full animate-spin"></div>
             </div>
-            
             <div className="space-y-2">
               <p className="text-lg text-neutral-600">
                 Connecting to backend services...
@@ -168,7 +166,6 @@ export default function App() {
                 </p>
               </div>
             </div>
-            
             <div className="text-sm text-neutral-500">
               Backend: <span className="text-green-600 font-medium">Connected</span>
             </div>
@@ -179,18 +176,22 @@ export default function App() {
       {/* Main content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4" />
               Dashboard
             </TabsTrigger>
+            <TabsTrigger value="transactions" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Record Transactions
+            </TabsTrigger>
             <TabsTrigger value="upload" className="flex items-center gap-2">
               <Upload className="h-4 w-4" />
-              Upload
+              Upload Invoice
             </TabsTrigger>
             <TabsTrigger value="invoices" className="flex items-center gap-2">
               <Building2 className="h-4 w-4" />
-              Invoices
+              Generate A Invoice
             </TabsTrigger>
           </TabsList>
 
@@ -199,6 +200,22 @@ export default function App() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <CashflowSummary key={refreshTrigger} />
               <TransactionList key={refreshTrigger} />
+            </div>
+          </TabsContent>
+
+          {/* Transactions Tab */}
+          <TabsContent value="transactions" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-1">
+                <TransactionForm
+                  customers={customers}
+                  suppliers={suppliers}
+                  onTransactionCreated={handleTransactionCreated}
+                />
+              </div>
+              <div className="lg:col-span-2">
+                <TransactionList key={refreshTrigger} />
+              </div>
             </div>
           </TabsContent>
 
