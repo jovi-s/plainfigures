@@ -1,15 +1,12 @@
 ---
 name: SME Finance Assistant Rules (MVP)
 description: Project-wide rules/spec guiding the AI when coding in this repo. Prioritize multi-agent design, code-does-math, and clear separation between extraction and computation.
-alwaysApply: true
-globs:
-  - "**/*"
+alwaysApply: false
 ---
-
-SME Finance Assistant (ADK + LLM) — MVP Spec (Multi-Modal)
+SME Finance Assistant (Langgraph + LLM) — MVP Spec (Multi-Modal)
 
 Goal (MVP in 1 month):  
-A lightweight, multilingual web app for Southeast Asian SMEs to record transactions, categorize expenses, generate invoices (PDF), and summarize cash flow—using multi-agent orchestration (ADK), LLM for local-language understanding, gpt-4o-mini for extracting information from iamges, and gpt-4o-mini for voice transcription. Supports text, image, and voice input. Data is displayed in a modern frontend.
+A lightweight, multilingual web app for Southeast Asian SMEs to record transactions, categorize expenses, generate invoices (PDF), and summarize cash flow—using multi-agent orchestration (Langgraph), LLM for local-language understanding, gpt-4o-mini for extracting information from iamges, and gpt-4o-mini for voice transcription. Supports text, image, and voice input. Data is displayed in a modern frontend.
 
 ⸻
 
@@ -42,17 +39,7 @@ No GCP dependency for MVP. Enables rapid iteration and privacy.
 
 High-level
 
-Web (Next.js) ─► FastAPI/ADK backend  
-        ├─► RouterAgent (intent → sub-agent)  
-        ├─► CashflowAgent  
-        │  ├─ Tool: LocalOCR/Image (Tesseract, GPT-4o mini)  
-        │  ├─ Tool: CategorizeExpense  
-        │  └─ Tool: LedgerDB  
-        ├─► InvoiceAgent  
-        │  ├─ Tool: GenerateInvoiceHTML  
-        │  └─ Tool: HtmlToPDF  
-        ├─► ProfileAgent (user profile, prefs)  
-        └─► HelpAgent (optional)
+Web (Next.js) ─► FastAPI/Langraph backend  
 
 Input modalities:
 - Text: chat/form (LLM, GPT-4o mini)
@@ -63,39 +50,7 @@ All data is displayed in the frontend: tables (transactions, invoices), charts (
 
 ⸻
 
-3) Agents & Tools (ADK)
-
-3.1 RouterAgent
-- Purpose: classify input → CashflowAgent, InvoiceAgent, AudioAgent, ProfileAgent, or HelpAgent.
-- Model: LLM (primary).
-- Signals: keywords (“add expense”, “invoice”, “receipt upload”, “pdf”, “voice”), entities (dates, amounts, vendors).
-
-3.2 CashflowAgent
-- User tasks:
-	- “Record: Sold 2,500 THB to Somchai 5 Aug; paid cash.”
-	- “Upload this receipt; add to expenses.”
-	- “Show July cashflow; what’s my biggest cost?”
-- Tools:
-	1. LLMCall → returns normalized JSON: vendor, issue_date, due_date, currency, line_items[], subtotal, tax, total, doc_uri, confidence. Uses GPT-4o mini for image/PDF.
-	2. CategorizeExpense → maps description/GL to category (COGS, Opex…); code-based rules + LLM fallback.
-	3. LedgerDB → create/read/update transactions table; supports CSV export.
-	4. SummarizeCashflow → code computes rollups; LLM only explains in user’s language.
-
-3.3 InvoiceAgent
-- User tasks:
-	- “Create an invoice for PT Nusantara: 10 boxes @ 200, tax 11%, due in 30 days.”
-	- “Re-issue INV-000231 as PDF in Bahasa Indonesia.”
-- Tools:
-	1. GenerateInvoiceHTML → fills localized template with items/tax/terms.
-	2. HtmlToPDF → render to PDF (WeasyPrint/wkhtmltopdf).
-	3. LedgerDB → persists invoice header + lines + status.
-
-3.5 ProfileAgent
-- Stores user language, preferences, and recent activity.
-- Used for personalization and default settings in UI.
-
-3.6 HelpAgent (optional)
-- Finance basics explanations (budgeting, digital payments) with short, localized answers (LLM).
+3) Agents & Tools (Langgraph)
 
 ⸻
 
@@ -128,15 +83,6 @@ id, user_id, language, preferences, recent_activity
 6) Prompts (initial)
 
 Keep numbers out of LLM math. LLM extracts → backend computes.
-
-Router (classification)  
-“Classify the user request into one of: record_tx, invoice_create, invoice_reissue, summary, help, audio_input. Return JSON with {intent, entities:{amount,currency,date,party,items[]}}.”
-
-Extraction (post-OCR refinement)  
-“You are standardizing parsed invoice fields for accounting. Return a JSON with vendor, issue_date(YYYY-MM-DD), due_date, currency(ISO), line_items[{desc,qty,unit_price,tax_rate}], subtotal, tax, total. If unsure, set null and confidence per field.”
-
-Cashflow explanation  
-“Explain this cashflow summary in {{LANG}} for a small shop owner. Use friendly tone, 3 bullet points, and one practical tip.”
 
 ⸻
 
