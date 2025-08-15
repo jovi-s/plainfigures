@@ -147,6 +147,34 @@ export interface AgentResponse {
   message?: string;
 }
 
+// AI Recommendations types
+export interface Recommendation {
+  type: 'AP_REDUCTION' | 'AR_INCREASE' | 'CASHFLOW_PROJECTION';
+  title: string;
+  description: string;
+  priority: 'high' | 'medium' | 'low';
+  actionItems: string[];
+}
+
+export interface AIRecommendationsResponse {
+  recommendations: Recommendation[];
+  generated_at: string;
+  context_summary: string;
+}
+
+// User Profile types
+export interface UserProfile {
+  user_id: number;
+  company_name: string;
+  owner_name: string;
+  industry: string;
+  country: string;
+  employees: number;
+  annual_revenue_usd: number;
+  years_in_business: number;
+  primary_business_activity: string;
+}
+
 // File upload types
 export interface FileUploadRequest {
   file: File;

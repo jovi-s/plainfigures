@@ -322,6 +322,205 @@ async def send_agent_message(request: AgentMessageRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# AI Recommendations endpoint
+@app.get("/ai/recommendations")
+async def get_ai_recommendations(user_id: Optional[str] = "1"):
+    """Generate AI-powered financial recommendations using LangGraph agent"""
+    try:
+        # Import the AI recommendation generator
+        from src.ai_recommendations import generate_financial_recommendations
+        
+        # Generate recommendations using the LangGraph agent
+        recommendations = await generate_financial_recommendations(user_id)
+        
+        return ApiResponse(success=True, data=recommendations)
+    except Exception as e:
+        return ApiResponse(success=False, error=str(e))
+
+# User Profile endpoint
+@app.get("/users/{user_id}/profile")
+async def get_user_profile(user_id: str):
+    """Get user profile from CSV"""
+    try:
+        import pandas as pd
+        from pathlib import Path
+        
+        # Path to user profile CSV
+        csv_path = Path(__file__).parent / "database" / "user_sme_profile.csv"
+        
+        if not csv_path.exists():
+            raise HTTPException(status_code=404, detail="User profile data not found")
+        
+        # Read CSV file
+        df = pd.read_csv(csv_path)
+        
+        # Find user by ID
+        user_row = df[df['user_id'].astype(str) == str(user_id)]
+        
+        if user_row.empty:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Convert to dictionary
+        profile = user_row.iloc[0].to_dict()
+        
+        return ApiResponse(success=True, data=profile)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Simple AI Recommendations endpoint using OpenAI GPT-4o
+@app.get("/ai/simple-recommendations")
+async def get_simple_ai_recommendations():
+    """Generate simple AI recommendations using GPT-4o"""
+    try:
+        import openai
+        import os
+        
+        # Get OpenAI API key
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            return ApiResponse(success=False, error="OpenAI API key not configured")
+        
+        # Load user profile and financial data
+        user_data = {}
+        try:
+            csv_path = Path(__file__).parent / "database" / "user_sme_profile.csv"
+            if csv_path.exists():
+                import pandas as pd
+                df = pd.read_csv(csv_path)
+                if not df.empty:
+                    user_data = df.iloc[0].to_dict()
+        except:
+            pass
+        
+        # Load cashflow data using the same function as /cashflow/summary endpoint
+        financial_data = {}
+        try:
+            from src.tools.finance_tools import summarize_cashflow
+            cashflow_summary = summarize_cashflow()
+            print(f"Cashflow summary loaded: {cashflow_summary}")
+            if cashflow_summary:
+                # Extract the totals for easier access
+                totals = cashflow_summary.get('totals', {})
+                financial_data["cashflow"] = {
+                    "total_income": totals.get('in', 0),
+                    "total_expenses": totals.get('out', 0), 
+                    "net_cashflow": totals.get('net', 0)
+                }
+        except Exception as e:
+            print(f"Error loading cashflow: {e}")
+            pass
+        
+        print(f"Final financial_data: {financial_data}")
+        
+        # Create prompt for GPT-4o
+        cashflow = financial_data.get('cashflow', {})
+        total_income = cashflow.get('total_income', 0)
+        total_expenses = cashflow.get('total_expenses', 0)
+        net_cashflow = cashflow.get('net_cashflow', 0)
+        
+        prompt = f"""You are a financial advisor analyzing real business data. Based on the following ACTUAL financial data, provide 3 data-driven recommendations with specific reasoning:
+
+BUSINESS PROFILE:
+- Company: {user_data.get('company_name', 'Small Business')}
+- Industry: {user_data.get('industry', 'General Business')}
+- Employees: {user_data.get('employees', 'Unknown')}
+- Annual Revenue Target: ${user_data.get('annual_revenue_usd', 0):,}
+
+CURRENT FINANCIAL REALITY (Last 30 days):
+- Total Income: ${total_income:,}
+- Total Expenses: ${total_expenses:,}
+- Net Cashflow: ${net_cashflow:,}
+- Cash Burn Rate: ${abs(net_cashflow):,}/month {"(NEGATIVE - losing money)" if net_cashflow < 0 else "(POSITIVE - making profit)"}
+
+CRITICAL ANALYSIS:
+{"- WARNING: Company is losing money at " + f"${abs(net_cashflow):,}/month" if net_cashflow < 0 else "- Good: Company is profitable"}
+{"- Expense-to-income ratio is " + f"{(total_expenses/total_income*100):.1f}%" if total_income > 0 else "- No income recorded in last 30 days"}
+
+Your recommendations MUST:
+1. Reference the actual numbers above
+2. Address the specific financial situation (negative/positive cashflow)
+3. Be based on the industry context
+4. Include data-driven reasoning
+
+Provide 3 recommendations in this JSON format:
+{{
+  "recommendations": [
+    {{
+      "title": "Address Immediate Cashflow Issue",
+      "description": "Based on your ${net_cashflow:,} monthly loss, here's what to do...",
+      "priority": "high|medium|low",
+      "action_items": ["Specific action referencing the data", "Another specific action"],
+      "data_reasoning": "Because your expenses (${total_expenses:,}) exceed income (${total_income:,}) by ${abs(net_cashflow):,}"
+    }},
+    {{
+      "title": "Revenue Growth Strategy",
+      "description": "Given your current ${total_income:,} monthly income...",
+      "priority": "high|medium|low",
+      "action_items": ["Data-driven action", "Industry-specific action"],
+      "data_reasoning": "Your current income needs to increase to match your expense level"
+    }},
+    {{
+      "title": "Expense Optimization",
+      "description": "With ${total_expenses:,} in monthly expenses...",
+      "priority": "high|medium|low",
+      "action_items": ["Specific cost-cutting measure", "Efficiency improvement"],
+      "data_reasoning": "Reducing the expense ratio from current levels"
+    }}
+  ]
+}}
+
+Be specific, reference the actual numbers, and provide reasoning based on the data."""
+
+        # Call OpenAI API
+        client = openai.OpenAI(api_key=api_key)
+        
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are a helpful financial advisor. Always respond with valid JSON."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=1000
+        )
+        
+        # Parse response
+        recommendations_text = response.choices[0].message.content
+        
+        # Try to parse as JSON
+        import json
+        try:
+            recommendations_data = json.loads(recommendations_text)
+        except:
+            # Fallback if JSON parsing fails
+            recommendations_data = {
+                "recommendations": [
+                    {
+                        "title": "Optimize Cash Flow",
+                        "description": "Review and optimize your payment terms",
+                        "priority": "high",
+                        "action_items": ["Review payment terms", "Contact customers about early payments"]
+                    },
+                    {
+                        "title": "Reduce Expenses",
+                        "description": "Identify areas to cut unnecessary costs",
+                        "priority": "medium", 
+                        "action_items": ["Audit monthly subscriptions", "Negotiate with suppliers"]
+                    },
+                    {
+                        "title": "Plan for Next Month",
+                        "description": "Prepare for upcoming financial needs",
+                        "priority": "medium",
+                        "action_items": ["Create monthly budget", "Set aside emergency funds"]
+                    }
+                ]
+            }
+        
+        return ApiResponse(success=True, data=recommendations_data)
+        
+    except Exception as e:
+        return ApiResponse(success=False, error=f"Failed to generate recommendations: {str(e)}")
+
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)

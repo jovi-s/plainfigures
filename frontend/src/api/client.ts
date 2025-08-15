@@ -12,7 +12,8 @@ import {
   Supplier,
   UploadResponse,
   AgentResponse,
-  FileUploadRequest,
+  AIRecommendationsResponse,
+  UserProfile,
 } from './types';
 import { FinanceRoutes } from './routes';
 
@@ -70,28 +71,7 @@ async function apiRequest<T>(
   }
 }
 
-/**
- * File upload wrapper
- */
-async function uploadFile(endpoint: string, file: File): Promise<UploadResponse> {
-  const formData = new FormData();
-  formData.append('file', file);
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    method: 'POST',
-    body: formData,
-  });
-
-  if (!response.ok) {
-    throw new ApiError(
-      `Upload failed: ${response.status} ${response.statusText}`,
-      response.status,
-      response
-    );
-  }
-
-  return await response.json();
-}
 
 /**
  * API client class - delegates to FinanceRoutes for backend communication
@@ -103,7 +83,7 @@ export class FinanceApiClient {
       const result = await FinanceRoutes.createTransaction(data);
       return {
         success: true,
-        data: result,
+        data: result as Transaction,
       };
     } catch (error) {
       return {
@@ -117,11 +97,11 @@ export class FinanceApiClient {
     try {
       const params = userId ? `?user_id=${encodeURIComponent(userId)}` : '';
       console.log('FinanceApiClient: Making request to /transactions' + params);
-      const result = await apiRequest(`/transactions${params}`);
+      const result = await apiRequest(`/transactions${params}`) as any;
       console.log('FinanceApiClient: Raw API result:', result);
       return {
         success: true,
-        data: result.data || [],
+        data: (result.data || []) as Transaction[],
       };
     } catch (error) {
       console.error('FinanceApiClient: Error in getTransactions:', error);
@@ -140,7 +120,7 @@ export class FinanceApiClient {
       const result = await FinanceRoutes.getCashflowSummary(userId, lookbackDays);
       return {
         success: true,
-        data: result,
+        data: result as CashflowSummary,
       };
     } catch (error) {
       return {
@@ -156,7 +136,7 @@ export class FinanceApiClient {
       const result = await FinanceRoutes.createInvoice(data);
       return {
         success: true,
-        data: result,
+        data: result as Invoice,
       };
     } catch (error) {
       return {
@@ -166,7 +146,7 @@ export class FinanceApiClient {
     }
   }
 
-  static async getInvoices(userId?: string): Promise<ApiResponse<Invoice[]>> {
+  static async getInvoices(): Promise<ApiResponse<Invoice[]>> {
     try {
       // Will need to implement invoice list endpoint
       return {
@@ -212,7 +192,7 @@ export class FinanceApiClient {
       const result = await FinanceRoutes.generateInvoicePDF(invoiceId, locale);
       return {
         success: true,
-        data: result,
+        data: result as { pdf_uri: string; html_uri: string; },
       };
     } catch (error) {
       return {
@@ -225,10 +205,10 @@ export class FinanceApiClient {
   // Customer/Supplier operations
   static async getCustomers(): Promise<ApiResponse<Customer[]>> {
     try {
-      const result = await FinanceRoutes.getCustomers();
+      const result = await FinanceRoutes.getCustomers() as any;
       return {
         success: true,
-        data: result.customers || [],
+        data: (result.customers || []) as Customer[],
       };
     } catch (error) {
       return {
@@ -240,10 +220,10 @@ export class FinanceApiClient {
 
   static async getSuppliers(): Promise<ApiResponse<Supplier[]>> {
     try {
-      const result = await FinanceRoutes.getSuppliers();
+      const result = await FinanceRoutes.getSuppliers() as any;
       return {
         success: true,
-        data: result.suppliers || [],
+        data: (result.suppliers || []) as Supplier[],
       };
     } catch (error) {
       return {
@@ -274,6 +254,37 @@ export class FinanceApiClient {
   static async healthCheck(): Promise<{ status: string }> {
     const result = await FinanceRoutes.healthCheck();
     return result as { status: string };
+  }
+
+  // AI Recommendations
+  static async getAIRecommendations(userId?: string): Promise<ApiResponse<AIRecommendationsResponse>> {
+    try {
+      const result = await FinanceRoutes.getAIRecommendations(userId);
+      return { success: true, data: result as AIRecommendationsResponse };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to get AI recommendations' };
+    }
+  }
+
+  // User Profile
+  static async getUserProfile(userId: string): Promise<ApiResponse<UserProfile>> {
+    try {
+      const result = await FinanceRoutes.getUserProfile(userId);
+      return { success: true, data: result as UserProfile };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to get user profile' };
+    }
+  }
+
+  // Simple AI Recommendations (using GPT-4o directly)
+  static async getSimpleAIRecommendations(): Promise<ApiResponse<any>> {
+    try {
+      const result = await FinanceRoutes.getSimpleAIRecommendations();
+      // Backend already returns wrapped response {success, data, message, error}
+      return result as ApiResponse<any>;
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to get AI recommendations' };
+    }
   }
 }
 

@@ -5,8 +5,7 @@
 
 import { 
   TransactionCreateRequest, 
-  InvoiceCreateRequest,
-  ApiResponse 
+  InvoiceCreateRequest
 } from './types';
 
 const BACKEND_URL = 'http://127.0.0.1:8000';
@@ -248,5 +247,21 @@ export const FinanceRoutes = {
       method: 'POST',
       body: JSON.stringify(payload),
     });
+  },
+
+  // AI Recommendations
+  async getAIRecommendations(userId?: string) {
+    const params = userId ? `?user_id=${userId}` : '';
+    return backendRequest(`/ai/recommendations${params}`);
+  },
+
+  // User Profile
+  async getUserProfile(userId: string) {
+    return backendRequest(`/users/${userId}/profile`);
+  },
+
+  // Simple AI Recommendations (using GPT-4o directly)
+  async getSimpleAIRecommendations() {
+    return backendRequest('/ai/simple-recommendations');
   },
 };

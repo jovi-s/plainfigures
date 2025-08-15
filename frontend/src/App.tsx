@@ -3,6 +3,9 @@ import { TransactionForm } from "@/components/TransactionForm";
 import { TransactionList } from "@/components/TransactionList";
 import { CashflowSummary } from "@/components/CashflowSummary";
 import { FileUpload } from "@/components/FileUpload";
+// import { AIRecommendations } from "@/components/AIRecommendations";
+// import { UserProfile } from "@/components/UserProfile";
+import { SimpleAIRecommendations } from "@/components/SimpleAIRecommendations";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -197,6 +200,17 @@ export default function App() {
 
           {/* Dashboard Tab */}
           <TabsContent value="dashboard" className="space-y-6">
+
+            
+            {/* User Profile - DISABLED - causing crashes */}
+            {/* <div className="mb-6">
+              <UserProfile userId="1" />
+            </div> */}
+            
+            {/* Simple AI Recommendations - NEW: GPT-4o powered */}
+            <SimpleAIRecommendations />
+            
+            {/* Financial Overview */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <CashflowSummary key={refreshTrigger} />
               <TransactionList key={refreshTrigger} />
