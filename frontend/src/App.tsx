@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { CashflowSummary } from "@/components/CashflowSummary";
 import { FileUpload } from "@/components/FileUpload";
 // import { AIRecommendations } from "@/components/AIRecommendations";
@@ -7,6 +8,7 @@ import { OpenAIRecommendations } from "@/components/OpenAIRecommendations";
 import { RecordTransactions } from "@/components/RecordTransactions";
 import { TransactionList } from "@/components/TransactionList";
 import { GenerateInvoice } from "@/components/GenerateInvoice";
+import { LanguagePicker } from "@/components/LanguagePicker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,6 +17,7 @@ import { Customer, Supplier, InvoiceData } from "@/api/types";
 import { Building2, TrendingUp, Upload, FileText, RefreshCw } from "lucide-react";
 
 export default function App() {
+  const { t } = useTranslation();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [isBackendReady, setIsBackendReady] = useState(false);
@@ -161,7 +164,7 @@ export default function App() {
           <div className="flex items-center justify-center gap-3">
             <Building2 className="h-8 w-8 text-blue-600" />
             <h1 className="text-3xl font-bold text-neutral-800">
-              plainfigures
+              {t('header.title')}
             </h1>
           </div>
           <div className="flex flex-col items-center space-y-4">
@@ -170,10 +173,10 @@ export default function App() {
             </div>
             <div className="space-y-2">
               <p className="text-lg text-neutral-600">
-                Connecting to backend services...
+                {t('loading.connecting')}
               </p>
               <p className="text-sm text-neutral-500">
-                This may take a moment on first startup
+                {t('loading.first_startup')}
               </p>
             </div>
           </div>
@@ -186,16 +189,16 @@ export default function App() {
   const BackendErrorScreen = () => (
     <div className="flex-1 flex flex-col items-center justify-center p-4">
       <div className="text-center space-y-4">
-        <h2 className="text-2xl font-bold text-red-600">Backend Unavailable</h2>
+        <h2 className="text-2xl font-bold text-red-600">{t('error.backend_unavailable')}</h2>
         <p className="text-neutral-600">
-          Unable to connect to backend services at localhost:8000
+          {t('error.unable_connect')}
         </p>
         <Button 
           onClick={() => window.location.reload()} 
           className="px-6 py-2"
         >
           <RefreshCw className="h-4 w-4 mr-2" />
-          Retry Connection
+          {t('button.retry_connection')}
         </Button>
       </div>
     </div>
@@ -229,15 +232,18 @@ export default function App() {
               <Building2 className="h-8 w-8 text-blue-600" />
               <div>
                 <h1 className="text-xl font-bold text-neutral-800">
-                  plainfigures
+                  {t('header.title')}
                 </h1>
                 <p className="text-sm text-neutral-500">
-                  Manage your business finances with AI assistance
+                  {t('header.subtitle')}
                 </p>
               </div>
             </div>
-            <div className="text-sm text-neutral-500">
-              Backend: <span className="text-green-600 font-medium">Connected</span>
+            <div className="flex items-center gap-4">
+              <LanguagePicker />
+              <div className="text-sm text-neutral-500">
+                {t('header.backend_status')}: <span className="text-green-600 font-medium">{t('header.connected')}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -247,26 +253,26 @@ export default function App() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-4">
           <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-2 rounded text-sm">
-            <strong>Note:</strong> For development purposes, we are using <span className="font-semibold">SGD</span> as the primary currency.
+            <strong>Note:</strong> {t('note.currency')}
           </div>
         </div>
         <Tabs defaultValue="dashboard" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4" />
-              Dashboard
+              {t('nav.dashboard')}
             </TabsTrigger>
             <TabsTrigger value="transactions" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
-              Record Transactions
+              {t('nav.transactions')}
             </TabsTrigger>
             <TabsTrigger value="upload" className="flex items-center gap-2">
               <Upload className="h-4 w-4" />
-              Upload Invoice
+              {t('nav.upload')}
             </TabsTrigger>
             <TabsTrigger value="invoices" className="flex items-center gap-2">
               <Building2 className="h-4 w-4" />
-              Generate An Invoice
+              {t('nav.invoices')}
             </TabsTrigger>
           </TabsList>
 
@@ -282,17 +288,17 @@ export default function App() {
             {/* Simple AI Recommendations - NEW: GPT-4o powered with caching */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">AI Financial Recommendations</h2>
+                <h2 className="text-lg font-semibold">{t('dashboard.ai_recommendations')}</h2>
                 <div className="flex items-center gap-3">
                   {cachedRecommendations.length > 0 && (
                     <div className="flex items-center gap-2 text-sm text-neutral-500">
-                      <span>Cache:</span>
+                      <span>{t('dashboard.cache')}:</span>
                       <span className={`px-2 py-1 rounded-full text-xs ${
                         Date.now() - recommendationsCacheTime < CACHE_DURATION 
                           ? 'bg-green-100 text-green-700' 
                           : 'bg-yellow-100 text-yellow-700'
                       }`}>
-                        {Math.round((Date.now() - recommendationsCacheTime) / 60000)}m ago
+                        {Math.round((Date.now() - recommendationsCacheTime) / 60000)}{t('dashboard.minutes_ago')}
                       </span>
                     </div>
                   )}
@@ -303,7 +309,7 @@ export default function App() {
                     className="text-xs"
                   >
                     <RefreshCw className="h-3 w-3 mr-1" />
-                    Refresh
+                    {t('dashboard.refresh')}
                   </Button>
                 </div>
               </div>
@@ -339,36 +345,35 @@ export default function App() {
               <Card>
                 <div className="mb-4">
                   <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-2 rounded text-sm">
-                    <strong>Note:</strong> For development purposes, only <span className="font-semibold">image uploads</span> are supported.
+                    <strong>Note:</strong> {t('note.image_uploads')}
                   </div>
                 </div>
                 <CardHeader>
-                  <CardTitle>Instructions</CardTitle>
+                  <CardTitle>{t('upload.instructions')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <h3 className="font-semibold text-sm">Supported Formats</h3>
+                    <h3 className="font-semibold text-sm">{t('upload.supported_formats')}</h3>
                     <ul className="text-sm text-neutral-600 space-y-1">
-                      <li>• Images: JPG, PNG</li>
-                      <li>• Documents: PDF</li>
+                      <li>• {t('upload.formats.images')}</li>
+                      <li>• {t('upload.formats.documents')}</li>
                     </ul>
                   </div>
 
                   <div className="space-y-2">
-                    <h3 className="font-semibold text-sm">What We Extract</h3>
+                    <h3 className="font-semibold text-sm">{t('upload.what_extract')}</h3>
                     <ul className="text-sm text-neutral-600 space-y-1">
-                      <li>• Vendor/supplier information</li>
-                      <li>• Invoice dates and amounts</li>
-                      <li>• Line items and descriptions</li>
-                      <li>• Tax amounts and totals</li>
+                      <li>• {t('upload.extract.vendor')}</li>
+                      <li>• {t('upload.extract.dates')}</li>
+                      <li>• {t('upload.extract.items')}</li>
+                      <li>• {t('upload.extract.tax')}</li>
                     </ul>
                   </div>
 
                   <div className="space-y-2">
-                    <h3 className="font-semibold text-sm">Processing</h3>
+                    <h3 className="font-semibold text-sm">{t('upload.processing')}</h3>
                     <p className="text-sm text-neutral-600">
-                      Files are processed using OCR and AI to extract structured data.
-                      You can review and edit the extracted information before saving.
+                      {t('upload.processing_desc')}
                     </p>
                   </div>
                 </CardContent>

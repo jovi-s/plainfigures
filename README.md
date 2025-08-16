@@ -1,8 +1,6 @@
 # Pan-SEA AI Developer Challenge 2025 FINANCE
 
-- https://github.com/google/adk-samples/tree/main/python/agents/financial-advisor
-- https://github.com/google/adk-samples/tree/main/python/agents/customer-service
-- https://github.com/google/adk-samples/tree/main/python/agents/gemini-fullstack
+- https://github.com/google-gemini/gemini-fullstack-langgraph-quickstart
 
 Financial Inclusion:
 
