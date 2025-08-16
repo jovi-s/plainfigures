@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,6 +23,7 @@ export function RecordTransactions({
   onTransactionCreated, 
   refreshTrigger 
 }: RecordTransactionsProps) {
+  const { t } = useTranslation();
   const [isRecording, setIsRecording] = useState(false);
   const [transcriptionText, setTranscriptionText] = useState("");
   const [formData, setFormData] = useState<Partial<TransactionCreateRequest>>({
@@ -31,7 +33,7 @@ export function RecordTransactions({
     currency: 'SGD',
     amount: 0,
     category: '',
-    payment_method: 'Bank Transfer',
+    payment_method: t('payment.bank_transfer'),
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +64,7 @@ export function RecordTransactions({
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.category || !formData.amount || formData.amount <= 0) {
-      setError('Please fill in all required fields');
+      setError(t('record.fill_required'));
       return;
     }
 
@@ -92,7 +94,7 @@ export function RecordTransactions({
       setTransactionToSubmit(null);
       onTransactionCreated();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create transaction');
+      setError(err instanceof Error ? err.message : t('record.creating'));
     } finally {
       setIsSubmitting(false);
     }
@@ -115,12 +117,12 @@ export function RecordTransactions({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Mic className="h-5 w-5" />
-            Voice Transaction Entry
+            {t('record.voice_title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-neutral-600 mb-4">
-            Record transactions using voice input. Click the microphone to start recording your transaction details.
+            {t('record.voice_description')}
           </p>
           
           <div className="space-y-4">
@@ -139,10 +141,10 @@ export function RecordTransactions({
               </Button>
               <div>
                 <p className="font-medium">
-                  {isRecording ? "Recording..." : "Click to start recording"}
+                  {isRecording ? t('record.recording') : t('record.click_to_start')}
                 </p>
                 <p className="text-sm text-neutral-500">
-                  {isRecording ? "Click again to stop" : "Speak your transaction details"}
+                  {isRecording ? t('record.click_again_stop') : t('record.speak_details')}
                 </p>
               </div>
             </div>
@@ -159,7 +161,7 @@ export function RecordTransactions({
                     className="flex-1"
                   >
                     <Send className="h-4 w-4 mr-2" />
-                    Process Voice Input
+                    {t('record.process_voice')}
                   </Button>
                 </div>
               </div>
@@ -173,7 +175,7 @@ export function RecordTransactions({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            Manual Transaction Entry
+            {t('record.manual_title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -186,7 +188,7 @@ export function RecordTransactions({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Date</label>
+                <label className="block text-sm font-medium mb-1">{t('record.date')}</label>
                 <Input
                   type="date"
                   value={formData.date}
@@ -196,7 +198,7 @@ export function RecordTransactions({
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Direction</label>
+                <label className="block text-sm font-medium mb-1">{t('record.direction')}</label>
                 <Select 
                   value={formData.direction} 
                   onValueChange={(value) => updateFormData('direction', value)}
@@ -205,14 +207,14 @@ export function RecordTransactions({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="IN">Income (IN)</SelectItem>
-                    <SelectItem value="OUT">Expense (OUT)</SelectItem>
+                    <SelectItem value="IN">{t('record.income')}</SelectItem>
+                    <SelectItem value="OUT">{t('record.expense')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Amount</label>
+                <label className="block text-sm font-medium mb-1">{t('record.amount')}</label>
                 <Input
                   type="number"
                   step="0.01"
@@ -224,7 +226,7 @@ export function RecordTransactions({
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Currency</label>
+                <label className="block text-sm font-medium mb-1">{t('record.currency')}</label>
                 <Select 
                   value={formData.currency} 
                   onValueChange={(value) => updateFormData('currency', value)}
@@ -233,57 +235,57 @@ export function RecordTransactions({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="SGD">SGD - Singapore Dollar</SelectItem>
-                    <SelectItem value="IDR">IDR - Indonesian Rupiah</SelectItem>
-                    <SelectItem value="THB">THB - Thai Baht</SelectItem>
-                    <SelectItem value="MYR">MYR - Malaysian Ringgit</SelectItem>
-                    <SelectItem value="PHP">PHP - Philippine Peso</SelectItem>
-                    <SelectItem value="MMK">MMK - Myanmar Kyat</SelectItem>
+                    <SelectItem value="SGD">{t('currency.sgd')}</SelectItem>
+                    <SelectItem value="IDR">{t('currency.idr')}</SelectItem>
+                    <SelectItem value="THB">{t('currency.thb')}</SelectItem>
+                    <SelectItem value="MYR">{t('currency.myr')}</SelectItem>
+                    <SelectItem value="PHP">{t('currency.php')}</SelectItem>
+                    <SelectItem value="MMK">{t('currency.mmk')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Category</label>
+                <label className="block text-sm font-medium mb-1">{t('record.category')}</label>
                 <Select 
                   value={formData.category} 
                   onValueChange={(value) => updateFormData('category', value)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder={t('record.select_category')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Sales Revenue">Sales Revenue</SelectItem>
-                    <SelectItem value="Office Expenses">Office Expenses</SelectItem>
-                    <SelectItem value="Professional Services">Professional Services</SelectItem>
-                    <SelectItem value="Marketing Expenses">Marketing Expenses</SelectItem>
-                    <SelectItem value="Equipment Purchase">Equipment Purchase</SelectItem>
-                    <SelectItem value="Staff Salaries">Staff Salaries</SelectItem>
-                    <SelectItem value="Utilities">Utilities</SelectItem>
-                    <SelectItem value="Office Rent">Office Rent</SelectItem>
-                    <SelectItem value="Miscellaneous">Miscellaneous</SelectItem>
+                    <SelectItem value="Sales Revenue">{t('category.sales_revenue')}</SelectItem>
+                    <SelectItem value="Office Expenses">{t('category.office_expenses')}</SelectItem>
+                    <SelectItem value="Professional Services">{t('category.professional_services')}</SelectItem>
+                    <SelectItem value="Marketing Expenses">{t('category.marketing_expenses')}</SelectItem>
+                    <SelectItem value="Equipment Purchase">{t('category.equipment_purchase')}</SelectItem>
+                    <SelectItem value="Staff Salaries">{t('category.staff_salaries')}</SelectItem>
+                    <SelectItem value="Utilities">{t('category.utilities')}</SelectItem>
+                    <SelectItem value="Office Rent">{t('category.office_rent')}</SelectItem>
+                    <SelectItem value="Miscellaneous">{t('category.miscellaneous')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Counterparty</label>
+                <label className="block text-sm font-medium mb-1">{t('record.counterparty')}</label>
                 <Select 
                   value={formData.counterparty_id || undefined} 
                   onValueChange={(value) => updateFormData('counterparty_id', value)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select counterparty (optional)" />
+                    <SelectValue placeholder={t('record.select_counterparty')} />
                   </SelectTrigger>
                   <SelectContent>
                     {customers.map((customer) => (
                       <SelectItem key={customer.id} value={customer.id}>
-                        {customer.name} (Customer)
+                        {customer.name} ({t('record.customer')})
                       </SelectItem>
                     ))}
                     {suppliers.map((supplier) => (
                       <SelectItem key={supplier.id} value={supplier.id}>
-                        {supplier.name} (Supplier)
+                        {supplier.name} ({t('record.supplier')})
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -291,7 +293,7 @@ export function RecordTransactions({
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Payment Method</label>
+                <label className="block text-sm font-medium mb-1">{t('record.payment_method')}</label>
                 <Select 
                   value={formData.payment_method} 
                   onValueChange={(value) => updateFormData('payment_method', value)}
@@ -300,17 +302,17 @@ export function RecordTransactions({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
-                    <SelectItem value="Credit Card">Credit Card</SelectItem>
-                    <SelectItem value="Cash">Cash</SelectItem>
-                    <SelectItem value="Cheque">Cheque</SelectItem>
-                    <SelectItem value="Digital Wallet">Digital Wallet</SelectItem>
+                    <SelectItem value="Bank Transfer">{t('payment.bank_transfer')}</SelectItem>
+                    <SelectItem value="Credit Card">{t('payment.credit_card')}</SelectItem>
+                    <SelectItem value="Cash">{t('payment.cash')}</SelectItem>
+                    <SelectItem value="Cheque">{t('payment.cheque')}</SelectItem>
+                    <SelectItem value="Digital Wallet">{t('payment.digital_wallet')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Tax Amount</label>
+                <label className="block text-sm font-medium mb-1">{t('record.tax_amount')}</label>
                 <Input
                   type="number"
                   step="0.01"
@@ -322,26 +324,26 @@ export function RecordTransactions({
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Description</label>
+              <label className="block text-sm font-medium mb-1">{t('record.description')}</label>
               <Textarea
                 value={formData.description || ''}
                 onChange={(e) => updateFormData('description', e.target.value)}
-                placeholder="Transaction description..."
+                placeholder={t('record.description_placeholder')}
                 rows={3}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Document Reference</label>
+              <label className="block text-sm font-medium mb-1">{t('record.document_reference')}</label>
               <Input
                 value={formData.document_reference || ''}
                 onChange={(e) => updateFormData('document_reference', e.target.value)}
-                placeholder="Invoice number, receipt ID, etc."
+                placeholder={t('record.document_placeholder')}
               />
             </div>
 
             <Button type="submit" disabled={isSubmitting || showConfirmation} className="w-full">
-              {isSubmitting ? 'Creating...' : 'Preview Transaction'}
+              {isSubmitting ? t('record.creating') : t('record.preview_transaction')}
             </Button>
           </form>
         </CardContent>
@@ -351,46 +353,46 @@ export function RecordTransactions({
       {showConfirmation && transactionToSubmit && (
         <Card className="border-blue-200 bg-blue-50">
           <CardHeader>
-            <CardTitle className="text-blue-800">Confirm Transaction</CardTitle>
+            <CardTitle className="text-blue-800">{t('record.confirm_transaction')}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-blue-700 mb-4">
-              Please review the transaction details below and confirm to submit:
+              {t('record.review_details')}
             </p>
             
             <div className="space-y-3 bg-white p-4 rounded-lg border">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="font-medium text-neutral-600">Date:</span>
+                  <span className="font-medium text-neutral-600">{t('record.date')}:</span>
                   <span className="ml-2">{transactionToSubmit.date}</span>
                 </div>
                 <div>
-                  <span className="font-medium text-neutral-600">Direction:</span>
+                  <span className="font-medium text-neutral-600">{t('record.direction')}:</span>
                   <span className={`ml-2 px-2 py-1 rounded text-xs ${
                     transactionToSubmit.direction === 'IN' 
                       ? 'bg-green-100 text-green-700' 
                       : 'bg-red-100 text-red-700'
                   }`}>
-                    {transactionToSubmit.direction === 'IN' ? 'Income' : 'Expense'}
+                    {transactionToSubmit.direction === 'IN' ? t('record.income') : t('record.expense')}
                   </span>
                 </div>
                 <div>
-                  <span className="font-medium text-neutral-600">Amount:</span>
+                  <span className="font-medium text-neutral-600">{t('record.amount')}:</span>
                   <span className="ml-2 font-semibold">
                     {transactionToSubmit.currency} {transactionToSubmit.amount.toFixed(2)}
                   </span>
                 </div>
                 <div>
-                  <span className="font-medium text-neutral-600">Category:</span>
+                  <span className="font-medium text-neutral-600">{t('record.category')}:</span>
                   <span className="ml-2">{transactionToSubmit.category}</span>
                 </div>
                 <div>
-                  <span className="font-medium text-neutral-600">Payment Method:</span>
+                  <span className="font-medium text-neutral-600">{t('record.payment_method')}:</span>
                   <span className="ml-2">{transactionToSubmit.payment_method}</span>
                 </div>
                 {transactionToSubmit.counterparty_id && (
                   <div>
-                    <span className="font-medium text-neutral-600">Counterparty:</span>
+                    <span className="font-medium text-neutral-600">{t('record.counterparty')}:</span>
                     <span className="ml-2">
                       {customers.find(c => c.id === transactionToSubmit.counterparty_id)?.name ||
                        suppliers.find(s => s.id === transactionToSubmit.counterparty_id)?.name ||
@@ -400,7 +402,7 @@ export function RecordTransactions({
                 )}
                 {transactionToSubmit.tax_amount && transactionToSubmit.tax_amount > 0 && (
                   <div>
-                    <span className="font-medium text-neutral-600">Tax Amount:</span>
+                    <span className="font-medium text-neutral-600">{t('record.tax_amount')}:</span>
                     <span className="ml-2">
                       {transactionToSubmit.currency} {transactionToSubmit.tax_amount.toFixed(2)}
                     </span>
@@ -410,14 +412,14 @@ export function RecordTransactions({
               
               {transactionToSubmit.description && (
                 <div className="mt-3 pt-3 border-t">
-                  <span className="font-medium text-neutral-600">Description:</span>
+                  <span className="font-medium text-neutral-600">{t('record.description')}:</span>
                   <p className="mt-1 text-sm text-neutral-700">{transactionToSubmit.description}</p>
                 </div>
               )}
               
               {transactionToSubmit.document_reference && (
                 <div className="mt-2">
-                  <span className="font-medium text-neutral-600">Document Reference:</span>
+                  <span className="font-medium text-neutral-600">{t('record.document_reference')}:</span>
                   <span className="ml-2 text-sm">{transactionToSubmit.document_reference}</span>
                 </div>
               )}
@@ -429,7 +431,7 @@ export function RecordTransactions({
                 disabled={isSubmitting}
                 className="flex-1 bg-green-600 hover:bg-green-700"
               >
-                {isSubmitting ? 'Creating...' : 'Confirm & Create Transaction'}
+                {isSubmitting ? t('record.creating') : t('record.confirm_create')}
               </Button>
               <Button 
                 onClick={handleCancelSubmit}
@@ -437,7 +439,7 @@ export function RecordTransactions({
                 disabled={isSubmitting}
                 className="flex-1"
               >
-                Cancel
+                {t('record.cancel')}
               </Button>
             </div>
           </CardContent>
@@ -447,7 +449,7 @@ export function RecordTransactions({
       {/* Recent Transactions List */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Transactions</CardTitle>
+          <CardTitle>{t('transactions.title')}</CardTitle>
         </CardHeader>
         <CardContent>
           <TransactionList key={`record-transactions-${refreshTrigger}`} />

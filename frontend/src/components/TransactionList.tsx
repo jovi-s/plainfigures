@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import { Transaction } from '@/api/types';
 import { ArrowUpCircle, ArrowDownCircle, RefreshCw } from 'lucide-react';
 
 export function TransactionList() {
+  const { t } = useTranslation();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,11 +30,11 @@ export function TransactionList() {
         setTransactions(sorted);
       } else {
         console.log('TransactionList: API response not successful or no data');
-        setError('No transaction data received');
+        setError(t('transactions.no_transactions'));
       }
     } catch (err) {
       console.error('TransactionList: Error loading transactions:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load transactions');
+      setError(err instanceof Error ? err.message : t('transactions.try_again'));
     } finally {
       setIsLoading(false);
     }
@@ -62,12 +64,12 @@ export function TransactionList() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Recent Transactions</CardTitle>
+          <CardTitle>{t('transactions.title')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center p-8">
             <RefreshCw className="h-6 w-6 animate-spin text-neutral-500" />
-            <span className="ml-2 text-neutral-500">Loading transactions...</span>
+            <span className="ml-2 text-neutral-500">{t('transactions.loading')}</span>
           </div>
         </CardContent>
       </Card>
@@ -78,13 +80,13 @@ export function TransactionList() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Recent Transactions</CardTitle>
+          <CardTitle>{t('transactions.title')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center p-8">
             <p className="text-red-600 mb-4">{error}</p>
             <Button onClick={loadTransactions} variant="outline">
-              Try Again
+              {t('transactions.try_again')}
             </Button>
           </div>
         </CardContent>
@@ -95,7 +97,7 @@ export function TransactionList() {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Recent Transactions</CardTitle>
+        <CardTitle>{t('transactions.title')}</CardTitle>
         <Button onClick={loadTransactions} variant="outline" size="sm">
           <RefreshCw className="h-4 w-4" />
         </Button>
@@ -103,8 +105,8 @@ export function TransactionList() {
       <CardContent>
         {transactions.length === 0 ? (
           <div className="text-center p-8 text-neutral-500">
-            <p>No transactions found</p>
-            <p className="text-sm mt-2">Add your first transaction to get started</p>
+            <p>{t('transactions.no_transactions')}</p>
+            <p className="text-sm mt-2">{t('transactions.add_first')}</p>
           </div>
         ) : (
           <ScrollArea className="h-[400px]">
@@ -133,7 +135,7 @@ export function TransactionList() {
                           {transaction.category}
                         </span>
                         <Badge variant="outline" className="text-xs">
-                          {transaction.direction}
+                          {t(`transactions.${transaction.direction.toLowerCase()}`)}
                         </Badge>
                       </div>
                       
@@ -161,7 +163,7 @@ export function TransactionList() {
                     
                     {transaction.tax_amount && transaction.tax_amount > 0 && (
                       <div className="text-xs text-neutral-500">
-                        Tax: {formatAmount(transaction.tax_amount, transaction.currency)}
+                        {t('transactions.tax')}: {formatAmount(transaction.tax_amount, transaction.currency)}
                       </div>
                     )}
                   </div>
