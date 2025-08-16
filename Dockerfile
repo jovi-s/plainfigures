@@ -24,6 +24,7 @@ WORKDIR /app
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     curl \
+    supervisor \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -37,14 +38,28 @@ COPY backend/ ./backend/
 # Copy built frontend from builder stage
 COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 
+# Install Node.js for running frontend in development mode
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs
+
 # Install Python dependencies
 RUN cd backend && uv pip install --system -e .
+
+# Install frontend dependencies for development mode
+COPY frontend/package.json frontend/package-lock.json ./frontend/
+RUN cd frontend && npm install
+
+# Copy frontend source files
+COPY frontend/ ./frontend/
 
 # Set Python path to include backend directory
 ENV PYTHONPATH=/app/backend:/app
 
-# Expose port
-EXPOSE 8000
+# Create supervisor configuration
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Command to run the application
-CMD ["python", "backend/api_server.py"]
+# Expose ports (8000 for backend, 5173 for frontend dev server)
+EXPOSE 8000 5173
+
+# Command to run both services
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
