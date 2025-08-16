@@ -31,28 +31,7 @@ export default function App() {
   // Cache management functions
   const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes in milliseconds
   
-  const getCachedRecommendations = () => {
-    try {
-      const cached = localStorage.getItem('aiRecommendations');
-      const timestamp = localStorage.getItem('aiRecommendationsTimestamp');
-      
-      if (cached && timestamp) {
-        const parsedCache = JSON.parse(cached);
-        const cacheTime = parseInt(timestamp);
-        const now = Date.now();
-        
-        // Check if cache is still valid
-        if (now - cacheTime < CACHE_DURATION) {
-          setCachedRecommendations(parsedCache);
-          setRecommendationsCacheTime(cacheTime);
-          return parsedCache;
-        }
-      }
-    } catch (error) {
-      console.error('Error reading cached recommendations:', error);
-    }
-    return null;
-  };
+
 
   const setCachedRecommendationsData = (recommendations: any[]) => {
     try {

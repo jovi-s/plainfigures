@@ -60,76 +60,22 @@ The Financial Advisor is a team of specialized AI agents that assists human fina
 
 ## Running the Agent
 
-**Using `adk`**
-
-ADK provides convenient ways to bring up agents locally and interact with them.
-You may talk to the agent using the CLI:
-
-```bash
-adk run financial_advisor
-```
-
-Or on a web interface:
-
-```bash
- adk web
-```
-
-The command `adk web` will start a web server on your machine and print the URL.
-You may open the URL, select "financial_advisor" in the top-left drop-down menu, and
-a chatbot interface will appear on the right. The conversation is initially
-blank. Here are some example requests you may ask the Financial Advisor to verify:
-
-```
-who are you
-```
-
 ## Running Tests [NOT IMPLEMENTED]
-
-For running tests and evaluation, install the extra dependencies:
-
-```bash
-poetry install --with dev
-```
-
-Then the tests and evaluation can be run from the `financial-advisor` directory using
-the `pytest` module:
-
-```bash
-python3 -m pytest tests
-python3 -m pytest eval
-```
-
-`tests` runs the agent on a sample request, and makes sure that every component
-is functional. `eval` is a demonstration of how to evaluate the agent, using the
-`AgentEvaluator` in ADK. It sends a couple requests to the agent and expects
-that the agent's responses match a pre-defined response reasonably well.
-
 
 ## Deployment [NOT IMPLEMENTED]
 
-The Financial Advisor can be deployed to Vertex AI Agent Engine using the following
-commands:
+### Database Configuration
 
-```bash
-poetry install --with deployment
-python3 deployment/deploy.py --create
-```
+This application uses CSV files stored in the `backend/database/` directory. No additional database credentials are needed.
 
-When the deployment finishes, it will print a line like this:
+### Running with Docker
 
-```
-Created remote agent: projects/<PROJECT_NUMBER>/locations/<PROJECT_LOCATION>/reasoningEngines/<AGENT_ENGINE_ID>
-```
+1. Create the `.env` file
+2. Run: `docker-compose up --build`
+3. The application will be available at `http://localhost:8000`
 
-If you forgot the AGENT_ENGINE_ID, you can list existing agents using:
+### Running Locally
 
-```bash
-python3 deployment/deploy.py --list
-```
-
-To delete the deployed agent, you may run the following command:
-
-```bash
-python3 deployment/deploy.py --delete --resource_id=${AGENT_ENGINE_ID}
-```
+1. Create the `.env` file
+2. Install dependencies: `uv pip install -e .`
+3. Run: `python backend/api_server.py`

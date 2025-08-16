@@ -50,9 +50,9 @@ export function OpenAIRecommendations({
           setRecommendations(newRecommendations);
           
           // Only cache if recommendations are data-driven (not generic fallback)
-          const hasDataReasoning = newRecommendations.some(rec => rec.data_reasoning);
-          const hasFallbackFlag = newRecommendations.some(rec => rec.is_fallback);
-          const hasFinancialData = newRecommendations.some(rec => 
+          const hasDataReasoning = newRecommendations.some((rec: Recommendation) => rec.data_reasoning);
+          const hasFallbackFlag = newRecommendations.some((rec: Recommendation) => rec.is_fallback);
+          const hasFinancialData = newRecommendations.some((rec: Recommendation) => 
             rec.description.includes('$') || rec.title.includes('Current')
           );
           

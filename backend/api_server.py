@@ -252,39 +252,24 @@ async def upload_invoice_pdf(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Agent messaging endpoint
+# Agent messaging endpoint (disabled - LangGraph removed)
 @app.post("/agent/message")
 async def send_agent_message(request: AgentMessageRequest):
-    """Send message to financial coordinator agent"""
-    try:
-        # Import the financial coordinator
-        from src.agent import graph
-        
-        # Process message with the agent
-        response = graph.process(request.message)
-        
-        return {
-            "action": "agent_response",
-            "result": response,
-            "message": "Message processed successfully"
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    """Send message to financial coordinator agent (disabled)"""
+    return {
+        "action": "agent_response",
+        "result": "Agent functionality has been disabled. LangGraph dependencies removed for simplified deployment.",
+        "message": "Agent not available"
+    }
 
-# AI Recommendations endpoint
+# AI Recommendations endpoint (disabled - LangGraph removed)
 @app.get("/ai/recommendations")
 async def get_ai_recommendations(user_id: Optional[str] = "1"):
-    """Generate AI-powered financial recommendations using LangGraph agent"""
-    try:
-        # Import the AI recommendation generator
-        from src.ai_recommendations import generate_financial_recommendations
-        
-        # Generate recommendations using the LangGraph agent
-        recommendations = await generate_financial_recommendations(user_id)
-        
-        return ApiResponse(success=True, data=recommendations)
-    except Exception as e:
-        return ApiResponse(success=False, error=str(e))
+    """Generate AI-powered financial recommendations (disabled)"""
+    return ApiResponse(
+        success=False, 
+        error="Advanced AI recommendations disabled. LangGraph dependencies removed for simplified deployment. Use /ai/openai-recommendations for basic recommendations."
+    )
 
 # User Profile endpoint
 @app.get("/users/{user_id}/profile")

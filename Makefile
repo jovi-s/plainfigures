@@ -16,3 +16,12 @@ lint:
 	uv run ruff check . --diff
 	uv run ruff format . --check --diff
 	uv run mypy .
+
+frontend-build:
+	npm --prefix frontend run build
+
+docker-build:
+	docker build -t plainfigures .
+
+docker-run:
+	docker run -p 8000:8000 plainfigures
