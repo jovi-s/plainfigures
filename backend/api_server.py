@@ -429,32 +429,39 @@ Be specific, reference the actual numbers, and provide reasoning based on the da
         
         # Parse response
         recommendations_text = response.choices[0].message.content
+        print(f"OpenAI response: {recommendations_text}")
         
         # Try to parse as JSON
         import json
         try:
             recommendations_data = json.loads(recommendations_text)
-        except:
-            # Fallback if JSON parsing fails
+            print("Successfully parsed OpenAI response as JSON")
+        except Exception as parse_error:
+            print(f"Failed to parse OpenAI response as JSON: {parse_error}")
+            print(f"Raw response: {recommendations_text}")
+            # Fallback if JSON parsing fails - mark as generic
             recommendations_data = {
                 "recommendations": [
                     {
                         "title": "Optimize Cash Flow",
                         "description": "Review and optimize your payment terms",
                         "priority": "high",
-                        "action_items": ["Review payment terms", "Contact customers about early payments"]
+                        "action_items": ["Review payment terms", "Contact customers about early payments"],
+                        "is_fallback": True
                     },
                     {
-                        "title": "Reduce Expenses",
+                        "title": "Reduce Expenses", 
                         "description": "Identify areas to cut unnecessary costs",
                         "priority": "medium", 
-                        "action_items": ["Audit monthly subscriptions", "Negotiate with suppliers"]
+                        "action_items": ["Audit monthly subscriptions", "Negotiate with suppliers"],
+                        "is_fallback": True
                     },
                     {
                         "title": "Plan for Next Month",
                         "description": "Prepare for upcoming financial needs",
                         "priority": "medium",
-                        "action_items": ["Create monthly budget", "Set aside emergency funds"]
+                        "action_items": ["Create monthly budget", "Set aside emergency funds"],
+                        "is_fallback": True
                     }
                 ]
             }

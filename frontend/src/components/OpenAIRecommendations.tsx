@@ -10,6 +10,7 @@ interface Recommendation {
   priority: 'high' | 'medium' | 'low';
   action_items: string[];
   data_reasoning?: string;
+  is_fallback?: boolean;
 }
 
 interface OpenAIRecommendationsProps {
@@ -48,9 +49,24 @@ export function OpenAIRecommendations({
           const newRecommendations = response.data.recommendations;
           setRecommendations(newRecommendations);
           
-          // Cache the new recommendations if callback is provided
-          if (onRecommendationsReceived) {
+          // Only cache if recommendations are data-driven (not generic fallback)
+          const hasDataReasoning = newRecommendations.some(rec => rec.data_reasoning);
+          const hasFallbackFlag = newRecommendations.some(rec => rec.is_fallback);
+          const hasFinancialData = newRecommendations.some(rec => 
+            rec.description.includes('$') || rec.title.includes('Current')
+          );
+          
+          const isDataDriven = hasDataReasoning || (hasFinancialData && !hasFallbackFlag);
+          
+          if (onRecommendationsReceived && isDataDriven) {
             onRecommendationsReceived(newRecommendations);
+            console.log('Cached data-driven recommendations');
+          } else {
+            console.warn('Received generic/fallback recommendations, not caching', {
+              hasDataReasoning,
+              hasFallbackFlag,
+              hasFinancialData
+            });
           }
         } else {
           setError(response.error || 'Failed to load recommendations');
@@ -149,7 +165,9 @@ export function OpenAIRecommendations({
           AI Financial Recommendations
         </CardTitle>
         <p className="text-xs text-purple-700">
-          Powered by GPT-4o • Based on your current financial data
+          Powered by GPT-4o • {recommendations.some(rec => rec.is_fallback) 
+            ? 'Generic recommendations (API issue)' 
+            : 'Based on your current financial data'}
         </p>
       </CardHeader>
       <CardContent className="pt-0">

@@ -82,7 +82,9 @@ export default function App() {
 
   // Load cached recommendations on app initialization
   useEffect(() => {
-    getCachedRecommendations();
+    // Clear any existing cache on app start to prevent stale generic recommendations
+    clearRecommendationsCache();
+    // Note: Recommendations will be fetched fresh when the component mounts
   }, []);
 
   // Load customers and suppliers data
