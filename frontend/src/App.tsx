@@ -23,7 +23,6 @@ export default function App() {
   // AI Recommendations caching
   const [cachedRecommendations, setCachedRecommendations] = useState<any[]>([]);
   const [recommendationsCacheTime, setRecommendationsCacheTime] = useState<number>(0);
-  const [isRecommendationsLoading, setIsRecommendationsLoading] = useState(false);
 
   // Cache management functions
   const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes in milliseconds
@@ -312,8 +311,8 @@ export default function App() {
             
             {/* Financial Overview */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <CashflowSummary key={refreshTrigger} />
-              <TransactionList key={refreshTrigger} />
+              <CashflowSummary key={`cashflow-${refreshTrigger}`} />
+              <TransactionList key={`dashboard-transactions-${refreshTrigger}`} />
             </div>
           </TabsContent>
 

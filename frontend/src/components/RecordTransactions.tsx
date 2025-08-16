@@ -35,6 +35,8 @@ export function RecordTransactions({
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [transactionToSubmit, setTransactionToSubmit] = useState<TransactionCreateRequest | null>(null);
 
   // Handle voice recording toggle
   const handleVoiceToggle = () => {
@@ -56,7 +58,7 @@ export function RecordTransactions({
     setTranscriptionText("");
   };
 
-  // Handle manual form submission
+  // Handle manual form submission - show confirmation dialog
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.category || !formData.amount || formData.amount <= 0) {
@@ -64,11 +66,20 @@ export function RecordTransactions({
       return;
     }
 
-    setIsSubmitting(true);
     setError(null);
+    setTransactionToSubmit(formData as TransactionCreateRequest);
+    setShowConfirmation(true);
+  };
+
+  // Handle confirmed transaction submission
+  const handleConfirmSubmit = async () => {
+    if (!transactionToSubmit) return;
+
+    setIsSubmitting(true);
+    setShowConfirmation(false);
 
     try {
-      await FinanceApiClient.createTransaction(formData as TransactionCreateRequest);
+      await FinanceApiClient.createTransaction(transactionToSubmit);
       setFormData({
         ...formData,
         amount: 0,
@@ -78,12 +89,19 @@ export function RecordTransactions({
         document_reference: '',
         tax_amount: 0,
       });
+      setTransactionToSubmit(null);
       onTransactionCreated();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create transaction');
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Handle cancelling the confirmation
+  const handleCancelSubmit = () => {
+    setShowConfirmation(false);
+    setTransactionToSubmit(null);
   };
 
   const updateFormData = (field: keyof TransactionCreateRequest, value: any) => {
@@ -251,14 +269,13 @@ export function RecordTransactions({
               <div>
                 <label className="block text-sm font-medium mb-1">Counterparty</label>
                 <Select 
-                  value={formData.counterparty_id} 
+                  value={formData.counterparty_id || undefined} 
                   onValueChange={(value) => updateFormData('counterparty_id', value)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select counterparty" />
+                    <SelectValue placeholder="Select counterparty (optional)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
                     {customers.map((customer) => (
                       <SelectItem key={customer.id} value={customer.id}>
                         {customer.name} (Customer)
@@ -323,12 +340,109 @@ export function RecordTransactions({
               />
             </div>
 
-            <Button type="submit" disabled={isSubmitting} className="w-full">
-              {isSubmitting ? 'Creating...' : 'Add Transaction'}
+            <Button type="submit" disabled={isSubmitting || showConfirmation} className="w-full">
+              {isSubmitting ? 'Creating...' : 'Preview Transaction'}
             </Button>
           </form>
         </CardContent>
       </Card>
+
+      {/* Confirmation Dialog */}
+      {showConfirmation && transactionToSubmit && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardHeader>
+            <CardTitle className="text-blue-800">Confirm Transaction</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-blue-700 mb-4">
+              Please review the transaction details below and confirm to submit:
+            </p>
+            
+            <div className="space-y-3 bg-white p-4 rounded-lg border">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="font-medium text-neutral-600">Date:</span>
+                  <span className="ml-2">{transactionToSubmit.date}</span>
+                </div>
+                <div>
+                  <span className="font-medium text-neutral-600">Direction:</span>
+                  <span className={`ml-2 px-2 py-1 rounded text-xs ${
+                    transactionToSubmit.direction === 'IN' 
+                      ? 'bg-green-100 text-green-700' 
+                      : 'bg-red-100 text-red-700'
+                  }`}>
+                    {transactionToSubmit.direction === 'IN' ? 'Income' : 'Expense'}
+                  </span>
+                </div>
+                <div>
+                  <span className="font-medium text-neutral-600">Amount:</span>
+                  <span className="ml-2 font-semibold">
+                    {transactionToSubmit.currency} {transactionToSubmit.amount.toFixed(2)}
+                  </span>
+                </div>
+                <div>
+                  <span className="font-medium text-neutral-600">Category:</span>
+                  <span className="ml-2">{transactionToSubmit.category}</span>
+                </div>
+                <div>
+                  <span className="font-medium text-neutral-600">Payment Method:</span>
+                  <span className="ml-2">{transactionToSubmit.payment_method}</span>
+                </div>
+                {transactionToSubmit.counterparty_id && (
+                  <div>
+                    <span className="font-medium text-neutral-600">Counterparty:</span>
+                    <span className="ml-2">
+                      {customers.find(c => c.id === transactionToSubmit.counterparty_id)?.name ||
+                       suppliers.find(s => s.id === transactionToSubmit.counterparty_id)?.name ||
+                       'Unknown'}
+                    </span>
+                  </div>
+                )}
+                {transactionToSubmit.tax_amount && transactionToSubmit.tax_amount > 0 && (
+                  <div>
+                    <span className="font-medium text-neutral-600">Tax Amount:</span>
+                    <span className="ml-2">
+                      {transactionToSubmit.currency} {transactionToSubmit.tax_amount.toFixed(2)}
+                    </span>
+                  </div>
+                )}
+              </div>
+              
+              {transactionToSubmit.description && (
+                <div className="mt-3 pt-3 border-t">
+                  <span className="font-medium text-neutral-600">Description:</span>
+                  <p className="mt-1 text-sm text-neutral-700">{transactionToSubmit.description}</p>
+                </div>
+              )}
+              
+              {transactionToSubmit.document_reference && (
+                <div className="mt-2">
+                  <span className="font-medium text-neutral-600">Document Reference:</span>
+                  <span className="ml-2 text-sm">{transactionToSubmit.document_reference}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <Button 
+                onClick={handleConfirmSubmit}
+                disabled={isSubmitting}
+                className="flex-1 bg-green-600 hover:bg-green-700"
+              >
+                {isSubmitting ? 'Creating...' : 'Confirm & Create Transaction'}
+              </Button>
+              <Button 
+                onClick={handleCancelSubmit}
+                variant="outline"
+                disabled={isSubmitting}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Recent Transactions List */}
       <Card>
@@ -336,7 +450,7 @@ export function RecordTransactions({
           <CardTitle>Recent Transactions</CardTitle>
         </CardHeader>
         <CardContent>
-          <TransactionList key={refreshTrigger} />
+          <TransactionList key={`record-transactions-${refreshTrigger}`} />
         </CardContent>
       </Card>
     </div>
