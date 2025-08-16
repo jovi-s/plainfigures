@@ -12,7 +12,19 @@ interface Recommendation {
   data_reasoning?: string;
 }
 
-export function SimpleAIRecommendations() {
+interface SimpleAIRecommendationsProps {
+  cachedRecommendations?: Recommendation[];
+  onRecommendationsReceived?: (recommendations: Recommendation[]) => void;
+  isCacheValid?: boolean;
+  refreshTrigger?: number;
+}
+
+export function SimpleAIRecommendations({ 
+  cachedRecommendations = [], 
+  onRecommendationsReceived, 
+  isCacheValid = false,
+  refreshTrigger = 0 
+}: SimpleAIRecommendationsProps) {
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,13 +32,26 @@ export function SimpleAIRecommendations() {
   useEffect(() => {
     const loadRecommendations = async () => {
       try {
+        // If we have valid cached recommendations, use them
+        if (isCacheValid && cachedRecommendations.length > 0) {
+          setRecommendations(cachedRecommendations);
+          setIsLoading(false);
+          return;
+        }
+
         setIsLoading(true);
         setError(null);
         
         const response = await FinanceApiClient.getSimpleAIRecommendations();
         
         if (response.success && response.data && response.data.recommendations) {
-          setRecommendations(response.data.recommendations);
+          const newRecommendations = response.data.recommendations;
+          setRecommendations(newRecommendations);
+          
+          // Cache the new recommendations if callback is provided
+          if (onRecommendationsReceived) {
+            onRecommendationsReceived(newRecommendations);
+          }
         } else {
           setError(response.error || 'Failed to load recommendations');
         }
@@ -38,7 +63,7 @@ export function SimpleAIRecommendations() {
     };
 
     loadRecommendations();
-  }, []);
+  }, [cachedRecommendations, isCacheValid, onRecommendationsReceived, refreshTrigger]);
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {

@@ -9,9 +9,11 @@ import { SimpleAIRecommendations } from "@/components/SimpleAIRecommendations";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { FinanceApiClient } from "@/api/client";
 import { Customer, Supplier, InvoiceData } from "@/api/types";
-import { Building2, TrendingUp, Upload, FileText, RefreshCw } from "lucide-react";
+import { Building2, TrendingUp, Upload, FileText, RefreshCw, Mic, MicOff, Send } from "lucide-react";
 
 export default function App() {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -19,6 +21,73 @@ export default function App() {
   const [isBackendReady, setIsBackendReady] = useState(false);
   const [isCheckingBackend, setIsCheckingBackend] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [isRecording, setIsRecording] = useState(false);
+  const [transcriptionText, setTranscriptionText] = useState("");
+  
+  // AI Recommendations caching
+  const [cachedRecommendations, setCachedRecommendations] = useState<any[]>([]);
+  const [recommendationsCacheTime, setRecommendationsCacheTime] = useState<number>(0);
+  const [isRecommendationsLoading, setIsRecommendationsLoading] = useState(false);
+
+  // Cache management functions
+  const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes in milliseconds
+  
+  const getCachedRecommendations = () => {
+    try {
+      const cached = localStorage.getItem('aiRecommendations');
+      const timestamp = localStorage.getItem('aiRecommendationsTimestamp');
+      
+      if (cached && timestamp) {
+        const parsedCache = JSON.parse(cached);
+        const cacheTime = parseInt(timestamp);
+        const now = Date.now();
+        
+        // Check if cache is still valid
+        if (now - cacheTime < CACHE_DURATION) {
+          setCachedRecommendations(parsedCache);
+          setRecommendationsCacheTime(cacheTime);
+          return parsedCache;
+        }
+      }
+    } catch (error) {
+      console.error('Error reading cached recommendations:', error);
+    }
+    return null;
+  };
+
+  const setCachedRecommendationsData = (recommendations: any[]) => {
+    try {
+      const now = Date.now();
+      localStorage.setItem('aiRecommendations', JSON.stringify(recommendations));
+      localStorage.setItem('aiRecommendationsTimestamp', now.toString());
+      setCachedRecommendations(recommendations);
+      setRecommendationsCacheTime(now);
+    } catch (error) {
+      console.error('Error caching recommendations:', error);
+    }
+  };
+
+  const clearRecommendationsCache = () => {
+    try {
+      localStorage.removeItem('aiRecommendations');
+      localStorage.removeItem('aiRecommendationsTimestamp');
+      setCachedRecommendations([]);
+      setRecommendationsCacheTime(0);
+    } catch (error) {
+      console.error('Error clearing cache:', error);
+    }
+  };
+
+  const refreshRecommendations = () => {
+    clearRecommendationsCache();
+    // This will trigger a fresh fetch in the SimpleAIRecommendations component
+    setRefreshTrigger(prev => prev + 1);
+  };
+
+  // Load cached recommendations on app initialization
+  useEffect(() => {
+    getCachedRecommendations();
+  }, []);
 
   // Load customers and suppliers data
   const loadData = async () => {
@@ -60,6 +129,25 @@ export default function App() {
   const handleDataExtracted = (data: InvoiceData) => {
     console.log('Extracted invoice data:', data);
     // Could open a modal or form to review and confirm the extracted data
+  };
+
+  // Handle voice recording toggle
+  const handleVoiceToggle = () => {
+    setIsRecording(!isRecording);
+    if (isRecording) {
+      // Stop recording logic will go here
+      console.log("Stopping voice recording...");
+    } else {
+      // Start recording logic will go here
+      console.log("Starting voice recording...");
+    }
+  };
+
+  // Handle transcription submission
+  const handleTranscriptionSubmit = () => {
+    console.log("Submitting transcription:", transcriptionText);
+    // Backend processing logic will go here
+    setTranscriptionText("");
   };
 
   // Initialize app
@@ -207,8 +295,41 @@ export default function App() {
               <UserProfile userId="1" />
             </div> */}
             
-            {/* Simple AI Recommendations - NEW: GPT-4o powered */}
-            <SimpleAIRecommendations />
+            {/* Simple AI Recommendations - NEW: GPT-4o powered with caching */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">AI Financial Recommendations</h2>
+                <div className="flex items-center gap-3">
+                  {cachedRecommendations.length > 0 && (
+                    <div className="flex items-center gap-2 text-sm text-neutral-500">
+                      <span>Cache:</span>
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        Date.now() - recommendationsCacheTime < CACHE_DURATION 
+                          ? 'bg-green-100 text-green-700' 
+                          : 'bg-yellow-100 text-yellow-700'
+                      }`}>
+                        {Math.round((Date.now() - recommendationsCacheTime) / 60000)}m ago
+                      </span>
+                    </div>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={refreshRecommendations}
+                    className="text-xs"
+                  >
+                    <RefreshCw className="h-3 w-3 mr-1" />
+                    Refresh
+                  </Button>
+                </div>
+              </div>
+              <SimpleAIRecommendations 
+                cachedRecommendations={cachedRecommendations}
+                onRecommendationsReceived={setCachedRecommendationsData}
+                isCacheValid={Date.now() - recommendationsCacheTime < CACHE_DURATION}
+                refreshTrigger={refreshTrigger}
+              />
+            </div>
             
             {/* Financial Overview */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -219,17 +340,79 @@ export default function App() {
 
           {/* Transactions Tab */}
           <TabsContent value="transactions" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-1">
-                <TransactionForm
-                  customers={customers}
-                  suppliers={suppliers}
-                  onTransactionCreated={handleTransactionCreated}
-                />
-              </div>
-              <div className="lg:col-span-2">
-                <TransactionList key={refreshTrigger} />
-              </div>
+            <div className="space-y-6">
+              {/* Simple test content */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Record Transactions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-neutral-600 mb-4">
+                    This tab is working! You can record transactions using voice input or text input below.
+                  </p>
+                  
+                  {/* Voice Input Section */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <Button
+                        onClick={handleVoiceToggle}
+                        variant={isRecording ? "destructive" : "default"}
+                        size="lg"
+                        className="w-16 h-16 rounded-full"
+                      >
+                        {isRecording ? (
+                          <MicOff className="h-6 w-6" />
+                        ) : (
+                          <Mic className="h-6 w-6" />
+                        )}
+                      </Button>
+                      <div>
+                        <p className="font-medium">
+                          {isRecording ? "Recording..." : "Click to start recording"}
+                        </p>
+                        <p className="text-sm text-neutral-500">
+                          {isRecording ? "Click again to stop" : "Speak your transaction details"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <Button
+                        onClick={handleTranscriptionSubmit}
+                        disabled={!transcriptionText.trim()}
+                        className="flex-1"
+                      >
+                        <Send className="h-4 w-4 mr-2" />
+                        Process Transaction
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Transaction Form */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Manual Transaction Entry</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <TransactionForm
+                    customers={customers}
+                    suppliers={suppliers}
+                    onTransactionCreated={handleTransactionCreated}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Transaction List */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent Transactions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <TransactionList key={refreshTrigger} />
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 
