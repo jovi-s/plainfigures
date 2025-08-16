@@ -6,6 +6,7 @@ import { FileUpload } from "@/components/FileUpload";
 import { OpenAIRecommendations } from "@/components/OpenAIRecommendations";
 import { RecordTransactions } from "@/components/RecordTransactions";
 import { TransactionList } from "@/components/TransactionList";
+import { GenerateInvoice } from "@/components/GenerateInvoice";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -260,7 +261,7 @@ export default function App() {
             </TabsTrigger>
             <TabsTrigger value="invoices" className="flex items-center gap-2">
               <Building2 className="h-4 w-4" />
-              Generate A Invoice
+              Generate An Invoice
             </TabsTrigger>
           </TabsList>
 
@@ -367,16 +368,7 @@ export default function App() {
 
           {/* Invoices Tab */}
           <TabsContent value="invoices" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Invoice Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-neutral-600">
-                  Invoice creation and management features coming soon...
-                </p>
-              </CardContent>
-            </Card>
+            <GenerateInvoice customers={customers} />
           </TabsContent>
         </Tabs>
       </main>
