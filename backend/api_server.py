@@ -24,6 +24,14 @@ from src.tools.finance_tools import (
     extract_invoice_data_from_pdf,
 )
 
+currency_conversion_rates = {
+    "SGD": 1.0,
+    "MYR": 3.3,
+    "THB": 24,
+    "IDR": 12633,
+    "PHP": 44,
+}
+
 app = FastAPI(
     title="plainfigures API",
     description="REST API for SME Finance Management",
@@ -173,7 +181,7 @@ async def get_transactions(user_id: Optional[str] = None):
         # Filter by user_id if provided
         if user_id:
             df = df[df['user_id'].astype(str) == str(user_id)]
-        
+
         # Convert to list of dictionaries
         transactions = df.to_dict('records')
         
@@ -185,7 +193,12 @@ async def get_transactions(user_id: Optional[str] = None):
 async def get_cashflow_summary(user_id: Optional[str] = None, lookback_days: int = 30):
     """Get cashflow summary"""
     try:
-        result = summarize_cashflow(
+        # Force fresh import to ensure we get the latest code
+        import importlib
+        from src.tools import finance_tools
+        importlib.reload(finance_tools)
+        
+        result = finance_tools.summarize_cashflow(
             user_id=user_id,
             lookback_days=lookback_days,
         )
@@ -377,21 +390,21 @@ Provide 3 recommendations in this JSON format:
   "recommendations": [
     {{
       "title": "Address Immediate Cashflow Issue",
-      "description": "Based on your ${net_cashflow:,} monthly loss, here's what to do...",
+      "description": "Based on your ${net_cashflow:,.2f} monthly loss, here's what to do...",
       "priority": "high|medium|low",
       "action_items": ["Specific action referencing the data", "Another specific action"],
-      "data_reasoning": "Because your expenses (${total_expenses:,}) exceed income (${total_income:,}) by ${abs(net_cashflow):,}"
+      "data_reasoning": "Because your expenses (${total_expenses:,.2f}) exceed income (${total_income:,.2f}) by ${abs(net_cashflow):,.2f}"
     }},
     {{
       "title": "Revenue Growth Strategy",
-      "description": "Given your current ${total_income:,} monthly income...",
+      "description": "Given your current ${total_income:,.2f} monthly income...",
       "priority": "high|medium|low",
       "action_items": ["Data-driven action", "Industry-specific action"],
       "data_reasoning": "Your current income needs to increase to match your expense level"
     }},
     {{
       "title": "Expense Optimization",
-      "description": "With ${total_expenses:,} in monthly expenses...",
+      "description": "With ${total_expenses:,.2f} in monthly expenses...",
       "priority": "high|medium|low",
       "action_items": ["Specific cost-cutting measure", "Efficiency improvement"],
       "data_reasoning": "Reducing the expense ratio from current levels"

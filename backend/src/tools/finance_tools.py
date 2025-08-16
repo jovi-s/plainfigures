@@ -47,6 +47,15 @@ load_dotenv()
 _openai_client = OpenAI()
 
 
+# Currency conversion rates (all to SGD)
+CURRENCY_RATES = {
+    "SGD": 1.0,
+    "MYR": 1/3.3,  # 1 MYR = 1/3.3 SGD
+    "THB": 1/24,   # 1 THB = 1/24 SGD
+    "IDR": 1/12633, # 1 IDR = 1/12633 SGD
+    "PHP": 1/44,   # 1 PHP = 1/44 SGD
+}
+
 # Filesystem layout (CSV storage under kb/)
 KB_DIR = Path(__file__).resolve().parent.parents[1] / "database"
 INVOICE_CSV = KB_DIR / "invoice.csv"
@@ -103,6 +112,12 @@ def _parse_date(date_str: str) -> Optional[datetime]:
 def _generate_id(prefix: str) -> str:
     # Timestamp-based unique-ish id suitable for CSV MVP
     return f"{prefix}-{datetime.utcnow().strftime('%Y%m%d%H%M%S%f')[:-3]}"
+
+
+def _convert_to_sgd(amount: float, currency: str) -> float:
+    """Convert amount from given currency to SGD, rounded to 2 decimal places."""
+    rate = CURRENCY_RATES.get(currency.upper(), 1.0)
+    return round(amount * rate, 2)
 
 
 def _next_invoice_no(existing: List[Dict[str, str]]) -> str:
@@ -312,6 +327,7 @@ def summarize_cashflow(
 ) -> Dict[str, Any]:
     """Computes basic rollups: totals IN/OUT and net, and top expense categories.
 
+    All amounts are converted to SGD for totals. Also includes breakdown by original currency.
     Returns a dictionary with numeric totals and category aggregates. The LLM
     should generate any natural-language explanation separately.
     """
@@ -320,13 +336,15 @@ def summarize_cashflow(
         return {
             "totals": {"in": 0.0, "out": 0.0, "net": 0.0},
             "by_category": {},
+            "by_currency": {},
             "rows_considered": 0,
         }
 
     cutoff = datetime.utcnow().timestamp() - lookback_days * 86400
-    total_in = 0.0
-    total_out = 0.0
+    total_in_sgd = 0.0
+    total_out_sgd = 0.0
     by_category: Dict[str, float] = {}
+    by_currency: Dict[str, Dict[str, float]] = {}
     considered = 0
 
     for r in rows:
@@ -342,18 +360,30 @@ def summarize_cashflow(
             amount = float(amt_str)
         except Exception:
             continue
+        
+        currency = r.get("currency", "SGD") or "SGD"
         direction = (r.get("direction", "").upper())
+        amount_sgd = _convert_to_sgd(amount, currency)
+        
+        # Track by currency
+        if currency not in by_currency:
+            by_currency[currency] = {"in": 0.0, "out": 0.0}
+        
         if direction == "IN":
-            total_in += amount
+            total_in_sgd += amount_sgd
+            by_currency[currency]["in"] += amount
         elif direction == "OUT":
-            total_out += amount
+            total_out_sgd += amount_sgd
+            by_currency[currency]["out"] += amount
+            
         cat = r.get("category", "Uncategorized") or "Uncategorized"
         if direction == "OUT":
-            by_category[cat] = by_category.get(cat, 0.0) + amount
+            by_category[cat] = by_category.get(cat, 0.0) + amount_sgd
         considered += 1
 
     return {
-        "totals": {"in": total_in, "out": total_out, "net": total_in - total_out},
+        "totals": {"in": total_in_sgd, "out": total_out_sgd, "net": total_in_sgd - total_out_sgd},
         "by_category": by_category,
+        "by_currency": by_currency,
         "rows_considered": considered,
     }

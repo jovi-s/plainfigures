@@ -50,6 +50,7 @@ export interface CashflowSummary {
     net: number;
   };
   by_category: Record<string, number>;
+  by_currency: Record<string, { in: number; out: number }>;
   rows_considered: number;
 }
 

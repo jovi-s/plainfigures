@@ -127,8 +127,6 @@ export default function App() {
     // Could open a modal or form to review and confirm the extracted data
   };
 
-
-
   // Initialize app
   useEffect(() => {
     const initializeApp = async () => {

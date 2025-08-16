@@ -17,6 +17,9 @@ from langchain_core.messages import HumanMessage
 # Import the LangGraph agent
 from .agent.graph import graph
 
+# Import currency conversion utilities
+from .tools.finance_tools import CURRENCY_RATES, _convert_to_sgd
+
 
 async def generate_financial_recommendations(user_id: str = "1") -> Dict[str, Any]:
     """
@@ -82,18 +85,33 @@ async def gather_financial_context(user_id: str) -> Dict[str, Any]:
         
         transactions = recent_transactions.to_dict('records')
         
-        # Calculate cashflow summary
-        income = recent_transactions[recent_transactions['direction'] == 'IN']['amount'].sum()
-        expenses = recent_transactions[recent_transactions['direction'] == 'OUT']['amount'].sum()
-        net_cashflow = income - expenses
+        # Calculate cashflow summary (convert all currencies to SGD)
+        income_sgd = 0.0
+        expenses_sgd = 0.0
+        expense_by_category = {}
         
-        # Categorize expenses
-        expense_by_category = recent_transactions[recent_transactions['direction'] == 'OUT'].groupby('category')['amount'].sum().to_dict()
+        for _, transaction in recent_transactions.iterrows():
+            amount = transaction.get('amount', 0)
+            currency = transaction.get('currency', 'SGD') or 'SGD'
+            direction = transaction.get('direction', '')
+            category = transaction.get('category', 'Uncategorized') or 'Uncategorized'
+            
+            # Convert amount to SGD
+            amount_sgd = _convert_to_sgd(float(amount), currency)
+            
+            if direction == 'IN':
+                income_sgd += round(amount_sgd, 2)
+            elif direction == 'OUT':
+                expenses_sgd += round(amount_sgd, 2)
+                # Categorize expenses in SGD
+                expense_by_category[category] = expense_by_category.get(category, 0) + amount_sgd
+        
+        net_cashflow = income_sgd - expenses_sgd
         
         cashflow_summary = {
-            "total_income": float(income) if not pd.isna(income) else 0,
-            "total_expenses": float(expenses) if not pd.isna(expenses) else 0,
-            "net_cashflow": float(net_cashflow) if not pd.isna(net_cashflow) else 0,
+            "total_income": float(income_sgd),
+            "total_expenses": float(expenses_sgd),
+            "net_cashflow": float(net_cashflow),
             "expense_by_category": expense_by_category,
             "transaction_count": len(recent_transactions),
             "avg_transaction_amount": float(recent_transactions['amount'].mean()) if len(recent_transactions) > 0 else 0
@@ -108,10 +126,10 @@ async def gather_financial_context(user_id: str) -> Dict[str, Any]:
     context_summary = f"""
     Company: {company_name} ({industry})
     Location: {country}, Employees: {employees}
-    Recent Financial Performance (Last 90 days):
-    - Total Income: ${cashflow_summary.get('total_income', 0):,.2f}
-    - Total Expenses: ${cashflow_summary.get('total_expenses', 0):,.2f}
-    - Net Cashflow: ${cashflow_summary.get('net_cashflow', 0):,.2f}
+    Recent Financial Performance (Last 90 days, all amounts in SGD):
+    - Total Income: ${cashflow_summary.get('total_income', 0):,.2f} SGD
+    - Total Expenses: ${cashflow_summary.get('total_expenses', 0):,.2f} SGD
+    - Net Cashflow: ${cashflow_summary.get('net_cashflow', 0):,.2f} SGD
     - Transaction Volume: {cashflow_summary.get('transaction_count', 0)} transactions
     """
     

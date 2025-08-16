@@ -4,13 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FinanceApiClient } from '@/api/client';
 import { CashflowSummary as ICashflowSummary } from '@/api/types';
-import { TrendingUp, TrendingDown, DollarSign, RefreshCw } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, RefreshCw, Info } from 'lucide-react';
 
 export function CashflowSummary() {
   const [summary, setSummary] = useState<ICashflowSummary | null>(null);
   const [lookbackDays, setLookbackDays] = useState(30);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showCurrencyBreakdown, setShowCurrencyBreakdown] = useState(false);
 
   const loadSummary = async () => {
     setIsLoading(true);
@@ -31,12 +32,12 @@ export function CashflowSummary() {
     loadSummary();
   }, [lookbackDays]);
 
-  const formatAmount = (amount: number) => {
+  const formatAmount = (amount: number, currency: string = 'SGD') => {
     // For very large numbers in summary cards, use compact notation
     if (Math.abs(amount) >= 1000000) {
       return new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: 'SGD',
+        currency: currency,
         notation: 'compact',
         maximumFractionDigits: 1,
       }).format(amount);
@@ -44,9 +45,30 @@ export function CashflowSummary() {
     
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'SGD',
+      currency: currency,
       minimumFractionDigits: 2,
     }).format(amount);
+  };
+
+  const renderCurrencyBreakdown = (type: 'in' | 'out') => {
+    if (!summary?.by_currency || !showCurrencyBreakdown) return null;
+    
+    const currencies = Object.entries(summary.by_currency)
+      .filter(([, amounts]) => amounts[type] > 0)
+      .sort(([,a], [,b]) => b[type] - a[type]);
+    
+    if (currencies.length === 0) return null;
+    
+    return (
+      <div className="mt-2 space-y-1">
+        {currencies.map(([currency, amounts]) => (
+          <div key={currency} className="text-xs text-neutral-600 flex justify-between">
+            <span>{currency}:</span>
+            <span>{formatAmount(amounts[type], currency)}</span>
+          </div>
+        ))}
+      </div>
+    );
   };
 
   const getNetTrendIcon = (net: number) => {
@@ -117,8 +139,20 @@ export function CashflowSummary() {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Cashflow Summary</CardTitle>
+        <div>
+          <CardTitle>Cashflow Summary</CardTitle>
+          <p className="text-sm text-neutral-500 mt-1">All amounts converted to SGD</p>
+        </div>
         <div className="flex items-center gap-2">
+          <Button 
+            onClick={() => setShowCurrencyBreakdown(!showCurrencyBreakdown)} 
+            variant="outline" 
+            size="sm"
+            className="text-xs"
+          >
+            <Info className="h-3 w-3 mr-1" />
+            {showCurrencyBreakdown ? 'Hide' : 'Show'} Breakdown
+          </Button>
           <Select value={lookbackDays.toString()} onValueChange={(value) => setLookbackDays(parseInt(value))}>
             <SelectTrigger className="w-32">
               <SelectValue />
@@ -141,10 +175,11 @@ export function CashflowSummary() {
           <div className="bg-green-50 p-4 rounded-lg border border-green-200">
             <div className="flex items-center justify-between gap-2">
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-green-800">Income</p>
+                <p className="text-sm font-medium text-green-800">Income (SGD)</p>
                 <p className="text-lg font-bold text-green-600">
                   {formatAmount(summary.totals.in)}
                 </p>
+                {renderCurrencyBreakdown('in')}
               </div>
               <TrendingUp className="h-6 w-6 text-green-600 flex-shrink-0" />
             </div>
@@ -153,10 +188,11 @@ export function CashflowSummary() {
           <div className="bg-red-50 p-4 rounded-lg border border-red-200">
             <div className="flex items-center justify-between gap-2">
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-red-800">Expenses</p>
+                <p className="text-sm font-medium text-red-800">Expenses (SGD)</p>
                 <p className="text-lg font-bold text-red-600">
                   {formatAmount(summary.totals.out)}
                 </p>
+                {renderCurrencyBreakdown('out')}
               </div>
               <TrendingDown className="h-6 w-6 text-red-600 flex-shrink-0" />
             </div>
@@ -165,7 +201,7 @@ export function CashflowSummary() {
           <div className="bg-neutral-50 p-4 rounded-lg border border-neutral-200">
             <div className="flex items-center justify-between gap-2">
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-neutral-800">Net</p>
+                <p className="text-sm font-medium text-neutral-800">Net (SGD)</p>
                 <p className={`text-lg font-bold ${getNetColor(summary.totals.net)}`}>
                   {formatAmount(summary.totals.net)}
                 </p>
