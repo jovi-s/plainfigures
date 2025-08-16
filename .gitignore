@@ -1,9 +1,10 @@
 .venv/
-backend/.env
-frontend/node_modules/
-__pycache__/
-backend/.DS_Store
-backend/financial_advisor/.DS_Store
+.pytest_cache/
 .env
 .DS_Store
+__pycache__/
+backend/.env
+backend/.DS_Store
 backend/data/.$plainfigures.drawio.bkp
+frontend/dist/
+frontend/node_modules/
