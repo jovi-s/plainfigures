@@ -85,6 +85,11 @@ export function FileUpload({ onDataExtracted }: FileUploadProps) {
 
   return (
     <Card>
+      <div className="mb-4">
+        <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-2 rounded text-sm">
+          <strong>Note:</strong> For development purposes, extracted data is not sent to the backend yet.
+        </div>
+      </div>
       <CardHeader>
         <CardTitle>Upload Invoice</CardTitle>
       </CardHeader>

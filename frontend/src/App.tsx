@@ -243,6 +243,11 @@ export default function App() {
 
       {/* Main content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-4">
+          <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-2 rounded text-sm">
+            <strong>Note:</strong> For development purposes, we are using <span className="font-semibold">SGD</span> as the primary currency.
+          </div>
+        </div>
         <Tabs defaultValue="dashboard" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
@@ -330,6 +335,11 @@ export default function App() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <FileUpload onDataExtracted={handleDataExtracted} />
               <Card>
+                <div className="mb-4">
+                  <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-2 rounded text-sm">
+                    <strong>Note:</strong> For development purposes, only <span className="font-semibold">image uploads</span> are supported.
+                  </div>
+                </div>
                 <CardHeader>
                   <CardTitle>Instructions</CardTitle>
                 </CardHeader>
