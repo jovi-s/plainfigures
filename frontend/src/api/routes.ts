@@ -261,7 +261,7 @@ export const FinanceRoutes = {
   },
 
   // Simple AI Recommendations (using GPT-4o directly)
-  async getSimpleAIRecommendations() {
-    return backendRequest('/ai/simple-recommendations');
+  async getOpenAIRecommendations() {
+    return backendRequest('/ai/openai-recommendations');
   },
 };

@@ -12,19 +12,19 @@ interface Recommendation {
   data_reasoning?: string;
 }
 
-interface SimpleAIRecommendationsProps {
+interface OpenAIRecommendationsProps {
   cachedRecommendations?: Recommendation[];
   onRecommendationsReceived?: (recommendations: Recommendation[]) => void;
   isCacheValid?: boolean;
   refreshTrigger?: number;
 }
 
-export function SimpleAIRecommendations({ 
+export function OpenAIRecommendations({ 
   cachedRecommendations = [], 
   onRecommendationsReceived, 
   isCacheValid = false,
   refreshTrigger = 0 
-}: SimpleAIRecommendationsProps) {
+}: OpenAIRecommendationsProps) {
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +42,7 @@ export function SimpleAIRecommendations({
         setIsLoading(true);
         setError(null);
         
-        const response = await FinanceApiClient.getSimpleAIRecommendations();
+        const response = await FinanceApiClient.getOpenAIRecommendations();
         
         if (response.success && response.data && response.data.recommendations) {
           const newRecommendations = response.data.recommendations;

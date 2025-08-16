@@ -277,9 +277,9 @@ export class FinanceApiClient {
   }
 
   // Simple AI Recommendations (using GPT-4o directly)
-  static async getSimpleAIRecommendations(): Promise<ApiResponse<any>> {
+  static async getOpenAIRecommendations(): Promise<ApiResponse<any>> {
     try {
-      const result = await FinanceRoutes.getSimpleAIRecommendations();
+      const result = await FinanceRoutes.getOpenAIRecommendations();
       // Backend already returns wrapped response {success, data, message, error}
       return result as ApiResponse<any>;
     } catch (error) {

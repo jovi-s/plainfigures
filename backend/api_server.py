@@ -6,7 +6,10 @@ Provides REST API endpoints for the frontend to communicate with the backend
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from pathlib import Path
 from typing import Optional, List, Dict, Any
+import pandas as pd
+import openai
 import base64
 import uvicorn
 import os
@@ -162,8 +165,7 @@ async def get_transactions(user_id: Optional[str] = None):
     """Get all transactions"""
     try:
         # Import pandas to read the CSV file
-        import pandas as pd
-        from pathlib import Path
+
         
         # Path to cashflow CSV
         csv_path = Path(__file__).parents[1] / "backend" / "database" / "cashflow.csv"
@@ -342,9 +344,6 @@ async def get_ai_recommendations(user_id: Optional[str] = "1"):
 async def get_user_profile(user_id: str):
     """Get user profile from CSV"""
     try:
-        import pandas as pd
-        from pathlib import Path
-        
         # Path to user profile CSV
         csv_path = Path(__file__).parent / "database" / "user_sme_profile.csv"
         
@@ -368,13 +367,11 @@ async def get_user_profile(user_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 # Simple AI Recommendations endpoint using OpenAI GPT-4o
-@app.get("/ai/simple-recommendations")
-async def get_simple_ai_recommendations():
+@app.get("/ai/openai-recommendations")
+async def get_openai_recommendations():
     """Generate simple AI recommendations using GPT-4o"""
     try:
-        import openai
-        import os
-        
+
         # Get OpenAI API key
         api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
@@ -385,7 +382,6 @@ async def get_simple_ai_recommendations():
         try:
             csv_path = Path(__file__).parent / "database" / "user_sme_profile.csv"
             if csv_path.exists():
-                import pandas as pd
                 df = pd.read_csv(csv_path)
                 if not df.empty:
                     user_data = df.iloc[0].to_dict()
