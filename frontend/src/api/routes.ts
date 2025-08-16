@@ -97,59 +97,6 @@ export const FinanceRoutes = {
     });
   },
 
-  // Invoice operations
-  async createInvoice(data: InvoiceCreateRequest) {
-    const payload = {
-      function_name: 'create_invoice',
-      parameters: {
-        user_id: data.user_id,
-        invoice_type: data.invoice_type,
-        counterparty_id: data.counterparty_id,
-        issue_date: data.issue_date,
-        due_date: data.due_date,
-        currency: data.currency,
-        line_items: data.line_items,
-        payment_terms: data.payment_terms,
-        notes: data.notes,
-      }
-    };
-
-    return backendRequest('/functions/call', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
-  },
-
-  async markInvoicePaid(invoiceId: string, data: any) {
-    const payload = {
-      function_name: 'mark_invoice_paid',
-      parameters: {
-        invoice_id: invoiceId,
-        ...data,
-      }
-    };
-
-    return backendRequest('/functions/call', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
-  },
-
-  async generateInvoicePDF(invoiceId: string, locale?: string) {
-    const payload = {
-      function_name: 'render_invoice_pdf',
-      parameters: {
-        invoice_id: invoiceId,
-        locale: locale,
-      }
-    };
-
-    return backendRequest('/functions/call', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
-  },
-
   // Customer/Supplier operations
   async getCustomers() {
     const payload = {

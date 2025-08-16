@@ -130,69 +130,12 @@ export class FinanceApiClient {
     }
   }
 
-  // Invoice operations
-  static async createInvoice(data: InvoiceCreateRequest): Promise<ApiResponse<Invoice>> {
-    try {
-      const result = await FinanceRoutes.createInvoice(data);
-      return {
-        success: true,
-        data: result as Invoice,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
-    }
-  }
-
   static async getInvoices(): Promise<ApiResponse<Invoice[]>> {
     try {
       // Will need to implement invoice list endpoint
       return {
         success: true,
         data: [],
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
-    }
-  }
-
-  static async markInvoicePaid(
-    invoiceId: string,
-    data: {
-      user_id: string;
-      amount: number;
-      date: string;
-      payment_method?: string;
-    }
-  ): Promise<ApiResponse> {
-    try {
-      const result = await FinanceRoutes.markInvoicePaid(invoiceId, data);
-      return {
-        success: true,
-        data: result,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
-    }
-  }
-
-  static async generateInvoicePDF(
-    invoiceId: string,
-    locale?: string
-  ): Promise<ApiResponse<{ pdf_uri: string; html_uri: string }>> {
-    try {
-      const result = await FinanceRoutes.generateInvoicePDF(invoiceId, locale);
-      return {
-        success: true,
-        data: result as { pdf_uri: string; html_uri: string; },
       };
     } catch (error) {
       return {

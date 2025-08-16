@@ -18,9 +18,6 @@ import os
 from src.tools.finance_tools import (
     record_transaction,
     summarize_cashflow,
-    create_invoice,
-    mark_invoice_paid,
-    render_invoice_pdf,
     load_customers,
     load_suppliers,
     extract_invoice_data_from_image,
@@ -111,9 +108,6 @@ async def call_function(request: FunctionCallRequest):
         function_map = {
             "record_transaction": record_transaction,
             "summarize_cashflow": summarize_cashflow,
-            "create_invoice": create_invoice,
-            "mark_invoice_paid": mark_invoice_paid,
-            "render_invoice_pdf": render_invoice_pdf,
             "load_customers": load_customers,
             "load_suppliers": load_suppliers,
             "extract_invoice_data_from_image": extract_invoice_data_from_image,
@@ -194,66 +188,6 @@ async def get_cashflow_summary(user_id: Optional[str] = None, lookback_days: int
         result = summarize_cashflow(
             user_id=user_id,
             lookback_days=lookback_days,
-        )
-        
-        return ApiResponse(success=True, data=result)
-    except Exception as e:
-        return ApiResponse(success=False, error=str(e))
-
-# Invoice endpoints
-@app.post("/invoices")
-async def create_invoice_endpoint(request: InvoiceRequest):
-    """Create a new invoice"""
-    try:
-        # Convert line items to the expected format
-        line_items = []
-        for item in request.line_items:
-            line_items.append({
-                "description": item.description,
-                "qty": item.quantity,
-                "unit_price": item.unit_price,
-                "tax_rate": item.tax_rate,
-            })
-
-        result = create_invoice(
-            user_id=request.user_id,
-            invoice_type=request.invoice_type,
-            counterparty_id=request.counterparty_id,
-            issue_date=request.issue_date,
-            due_date=request.due_date,
-            currency=request.currency,
-            line_items=line_items,
-            payment_terms=request.payment_terms,
-            notes=request.notes,
-        )
-        
-        return ApiResponse(success=True, data=result)
-    except Exception as e:
-        return ApiResponse(success=False, error=str(e))
-
-@app.post("/invoices/{invoice_id}/pay")
-async def mark_invoice_paid_endpoint(invoice_id: str, request: PaymentRequest):
-    """Mark an invoice as paid"""
-    try:
-        result = mark_invoice_paid(
-            user_id=request.user_id,
-            invoice_id=invoice_id,
-            amount=request.amount,
-            date=request.date,
-            payment_method=request.payment_method,
-        )
-        
-        return ApiResponse(success=True, data=result)
-    except Exception as e:
-        return ApiResponse(success=False, error=str(e))
-
-@app.post("/invoices/{invoice_id}/pdf")
-async def generate_invoice_pdf_endpoint(invoice_id: str, locale: Optional[str] = None):
-    """Generate PDF for an invoice"""
-    try:
-        result = render_invoice_pdf(
-            invoice_id=invoice_id,
-            locale=locale,
         )
         
         return ApiResponse(success=True, data=result)
