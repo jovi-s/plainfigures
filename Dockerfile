@@ -33,13 +33,12 @@ ENV PATH="/root/.local/bin:$PATH"
 
 # Copy backend code
 COPY backend/ ./backend/
-COPY pyproject.toml ./
 
 # Copy built frontend from builder stage
 COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 
 # Install Python dependencies
-RUN cd backend && uv pip install --system -e ..
+RUN cd backend && uv pip install --system -e .
 
 # Set Python path to include backend directory
 ENV PYTHONPATH=/app/backend:/app
