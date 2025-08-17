@@ -24,4 +24,15 @@ docker-build:
 	docker build -t plainfigures .
 
 docker-run:
-	docker run -p 8000:8000 plainfigures
+	docker run -p 8000:8000 -p 5173:5173 plainfigures
+
+# http://localhost:5173 (frontend)
+# http://localhost:8000 (API endpoints)
+
+prod:
+	docker-compose up
+
+# 1. gcloud auth application-default login
+deploy:
+	gcloud config set project plainfigures
+	gcloud run deploy plainfigures --memory 2G --max-instances 1 --source .

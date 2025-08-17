@@ -1,0 +1,7 @@
+.venv/
+.pytest_cache/
+.DS_Store
+__pycache__/
+backend/.DS_Store
+backend/data/.$plainfigures.drawio.bkp
+frontend/node_modules/
