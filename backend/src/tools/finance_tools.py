@@ -101,7 +101,7 @@ def _append_csv_row(path: Path, fieldnames: List[str], row: Dict[str, Any]) -> N
 def _parse_date(date_str: str) -> Optional[datetime]:
     if not date_str:
         return None
-    for fmt in ("%Y-%m-%d", "%d/%m/%y", "%d/%m/%Y", "%m/%d/%y", "%m/%d/%Y"):
+    for fmt in ("%Y-%m-%d", "%d-%m-%Y", "%d/%m/%y", "%d/%m/%Y", "%m/%d/%y", "%m/%d/%Y"):
         try:
             return datetime.strptime(date_str, fmt)
         except Exception:
@@ -118,24 +118,6 @@ def _convert_to_sgd(amount: float, currency: str) -> float:
     """Convert amount from given currency to SGD, rounded to 2 decimal places."""
     rate = CURRENCY_RATES.get(currency.upper(), 1.0)
     return round(amount * rate, 2)
-
-
-def _next_invoice_no(existing: List[Dict[str, str]]) -> str:
-    # If existing invoice numbers are present, try to increment; else use timestamp
-    max_num = 0
-    for row in existing:
-        inv = row.get("invoice_id") or row.get("invoice_no") or ""
-        if inv.startswith("INV-"):
-            suffix = inv.replace("INV-", "").replace("-", "")
-            try:
-                num = int("".join(ch for ch in suffix if ch.isdigit()))
-                if num > max_num:
-                    max_num = num
-            except Exception:
-                continue
-    if max_num > 0:
-        return f"INV-{max_num + 1:04d}"
-    return f"INV-{datetime.utcnow().strftime('%Y%m%d%H%M%S')[8:]}"  # e.g., INV-123456
 
 
 def extract_invoice_data_from_image(invoice_base64_image: str) -> Dict[str, Any]:

@@ -5,10 +5,9 @@ Provides REST API endpoints for the frontend to communicate with the backend
 
 import pandas as pd
 import openai
-import base64
 import os
 
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, File
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 from typing import Optional
@@ -16,7 +15,6 @@ from typing import Optional
 from src.types.request_types import (
     TransactionRequest,
     FunctionCallRequest,
-    AgentMessageRequest,
     ApiResponse,
 )
 
@@ -29,6 +27,8 @@ from src.tools.finance_tools import (
     extract_invoice_data_from_image,
     extract_invoice_data_from_pdf,
 )
+
+from src.utils.format_model_response import extract_json_from_response
 
 # Global variables for DataFrames and their paths
 CASHFLOW_CSV_PATH = Path(__file__).parent / "database" / "cashflow.csv"
@@ -93,19 +93,6 @@ def load_dataframes():
     except Exception as e:
         print(f"Error loading suppliers data: {e}")
         suppliers_df = pd.DataFrame()
-
-def refresh_cashflow_data():
-    """Refresh cashflow DataFrame when new transactions are added"""
-    global cashflow_df
-    try:
-        if CASHFLOW_CSV_PATH.exists():
-            cashflow_df = pd.read_csv(CASHFLOW_CSV_PATH)
-            print(f"Refreshed cashflow data: {len(cashflow_df)} records")
-        else:
-            cashflow_df = pd.DataFrame()
-    except Exception as e:
-        print(f"Error refreshing cashflow data: {e}")
-        cashflow_df = pd.DataFrame()
 
 app = FastAPI(
     title="plainfigures API",
@@ -189,9 +176,6 @@ async def create_transaction(request: TransactionRequest):
             payment_method=request.payment_method,
         )
         
-        # Refresh cashflow data after adding new transaction
-        refresh_cashflow_data()
-        
         return ApiResponse(success=True, data=result)
     except Exception as e:
         return ApiResponse(success=False, error=str(e))
@@ -228,79 +212,6 @@ async def get_transactions(user_id: Optional[str] = None):
     except Exception as e:
         print(f"Error in get_transactions: {e}")
         return ApiResponse(success=False, error=str(e))
-
-@app.get("/cashflow/summary")
-async def get_cashflow_summary(user_id: Optional[str] = None, lookback_days: int = 30):
-    """Get cashflow summary"""
-    try:
-        # Force fresh import to ensure we get the latest code
-        import importlib
-        from src.tools import finance_tools
-        importlib.reload(finance_tools)
-        
-        result = finance_tools.summarize_cashflow(
-            user_id=user_id,
-            lookback_days=lookback_days,
-        )
-        
-        return ApiResponse(success=True, data=result)
-    except Exception as e:
-        return ApiResponse(success=False, error=str(e))
-
-# Customer/Supplier endpoints
-@app.get("/customers")
-async def get_customers():
-    """Get all customers"""
-    try:
-        result = load_customers()
-        return ApiResponse(success=True, data=result.get("customers", []))
-    except Exception as e:
-        return ApiResponse(success=False, error=str(e))
-
-@app.get("/suppliers")
-async def get_suppliers():
-    """Get all suppliers"""
-    try:
-        result = load_suppliers()
-        return ApiResponse(success=True, data=result.get("suppliers", []))
-    except Exception as e:
-        return ApiResponse(success=False, error=str(e))
-
-# File upload endpoints
-@app.post("/upload/image")
-async def upload_invoice_image(file: UploadFile = File(...)):
-    """Upload and process invoice image"""
-    try:
-        # Read file content and convert to base64
-        file_content = await file.read()
-        b64_image = base64.b64encode(file_content).decode('utf-8')
-        
-        result = extract_invoice_data_from_image(b64_image)
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/upload/pdf")
-async def upload_invoice_pdf(file: UploadFile = File(...)):
-    """Upload and process invoice PDF"""
-    try:
-        # Read file content as bytes
-        file_content = await file.read()
-        
-        result = extract_invoice_data_from_pdf(file_content)
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-# Agent messaging endpoint (disabled - LangGraph removed)
-@app.post("/agent/message")
-async def send_agent_message(request: AgentMessageRequest):
-    """Send message to financial coordinator agent (disabled)"""
-    return {
-        "action": "agent_response",
-        "result": "Agent functionality has been disabled. LangGraph dependencies removed for simplified deployment.",
-        "message": "Agent not available"
-    }
 
 # AI Recommendations endpoint (disabled - LangGraph removed)
 @app.get("/ai/recommendations")
@@ -359,7 +270,6 @@ async def get_openai_recommendations():
         # Load cashflow data using the same function as /cashflow/summary endpoint
         financial_data = {}
         try:
-            from src.tools.finance_tools import summarize_cashflow
             cashflow_summary = summarize_cashflow()
             print(f"Cashflow summary loaded: {cashflow_summary}")
             if cashflow_summary:
@@ -452,37 +362,78 @@ Be specific, reference the actual numbers, and provide reasoning based on the da
         recommendations_text = response.choices[0].message.content
         print(f"OpenAI response: {recommendations_text}")
         
-        # Try to parse as JSON
-        import json
+        # Try to parse as JSON with robust error handling        
         try:
-            recommendations_data = json.loads(recommendations_text)
-            print("Successfully parsed OpenAI response as JSON")
+            recommendations_data = extract_json_from_response(recommendations_text)
+            
+            if recommendations_data:
+                print("Successfully parsed OpenAI response as JSON")
+                # Validate the structure
+                if "recommendations" not in recommendations_data:
+                    print("Invalid JSON structure: missing 'recommendations' key")
+                    recommendations_data = None
+                elif not isinstance(recommendations_data["recommendations"], list):
+                    print("Invalid JSON structure: 'recommendations' is not a list")
+                    recommendations_data = None
+            
+            if not recommendations_data:
+                print(f"Failed to parse OpenAI response as JSON. Raw response: {recommendations_text}")
+                # Enhanced fallback using actual financial data
+                recommendations_data = {
+                    "recommendations": [
+                        {
+                            "title": "Optimize Cash Flow",
+                            "description": f"Based on your current financial position (Net: ${net_cashflow:,.2f}), focus on improving cash flow management",
+                            "priority": "high",
+                            "action_items": [
+                                "Review payment terms with customers", 
+                                "Implement faster invoicing processes",
+                                "Consider offering early payment discounts"
+                            ],
+                            "data_reasoning": f"Current net cashflow of ${net_cashflow:,.2f} indicates immediate attention needed",
+                            "is_fallback": True
+                        },
+                        {
+                            "title": "Expense Management", 
+                            "description": f"With ${total_expenses:,.2f} in monthly expenses, identify optimization opportunities",
+                            "priority": "high" if net_cashflow < 0 else "medium", 
+                            "action_items": [
+                                "Audit all recurring subscriptions and services",
+                                "Negotiate better rates with suppliers",
+                                "Implement cost tracking for better visibility"
+                            ],
+                            "data_reasoning": f"Total expenses of ${total_expenses:,.2f} need optimization to improve profitability",
+                            "is_fallback": True
+                        },
+                        {
+                            "title": "Revenue Growth Strategy",
+                            "description": f"Current income of ${total_income:,.2f} needs strategic enhancement",
+                            "priority": "medium",
+                            "action_items": [
+                                "Analyze top revenue sources for scaling opportunities",
+                                "Develop new service offerings or products",
+                                "Improve customer retention and upselling"
+                            ],
+                            "data_reasoning": f"Monthly income of ${total_income:,.2f} provides foundation for growth initiatives",
+                            "is_fallback": True
+                        }
+                    ]
+                }
+                
         except Exception as parse_error:
-            print(f"Failed to parse OpenAI response as JSON: {parse_error}")
+            print(f"Unexpected error in JSON processing: {parse_error}")
             print(f"Raw response: {recommendations_text}")
-            # Fallback if JSON parsing fails - mark as generic
+            # Final fallback with actual data
             recommendations_data = {
                 "recommendations": [
                     {
-                        "title": "Optimize Cash Flow",
-                        "description": "Review and optimize your payment terms",
+                        "title": "Financial Health Check",
+                        "description": f"Review your current financial position: ${net_cashflow:,.2f} net cashflow",
                         "priority": "high",
-                        "action_items": ["Review payment terms", "Contact customers about early payments"],
-                        "is_fallback": True
-                    },
-                    {
-                        "title": "Reduce Expenses", 
-                        "description": "Identify areas to cut unnecessary costs",
-                        "priority": "medium", 
-                        "action_items": ["Audit monthly subscriptions", "Negotiate with suppliers"],
-                        "is_fallback": True
-                    },
-                    {
-                        "title": "Plan for Next Month",
-                        "description": "Prepare for upcoming financial needs",
-                        "priority": "medium",
-                        "action_items": ["Create monthly budget", "Set aside emergency funds"],
-                        "is_fallback": True
+                        "action_items": ["Schedule financial review", "Analyze cash flow patterns"],
+                        "data_reasoning": f"Based on current data: Income ${total_income:,.2f}, Expenses ${total_expenses:,.2f}",
+                        "is_fallback": True,
+                        "error_note": "Generated due to AI response parsing error"
                     }
                 ]
             }
