@@ -20,7 +20,7 @@ export default defineConfig({
     proxy: {
       // Proxy API requests to the backend server
       "/api": {
-        target: "http://127.0.0.1:8000", // Default backend address
+        target: process.env.VITE_BACKEND_URL || "http://127.0.0.1:8000", // Backend address from env or default
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, ''),
