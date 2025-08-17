@@ -16,8 +16,6 @@ import {
 } from './types';
 import { FinanceRoutes } from './routes';
 
-const API_BASE_URL = '/api';
-
 class ApiError extends Error {
   constructor(
     message: string,
@@ -29,46 +27,7 @@ class ApiError extends Error {
   }
 }
 
-/**
- * Base fetch wrapper with error handling
- */
-async function apiRequest<T>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
-  
-  const defaultHeaders = {
-    'Content-Type': 'application/json',
-  };
-
-  const config: RequestInit = {
-    ...options,
-    headers: {
-      ...defaultHeaders,
-      ...options.headers,
-    },
-  };
-
-  try {
-    const response = await fetch(url, config);
-    
-    if (!response.ok) {
-      throw new ApiError(
-        `API request failed: ${response.status} ${response.statusText}`,
-        response.status,
-        response
-      );
-    }
-
-    return await response.json();
-  } catch (error) {
-    if (error instanceof ApiError) {
-      throw error;
-    }
-    throw new ApiError(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-}
+// Note: apiRequest function removed as it's replaced by FinanceRoutes.* methods
 
 
 
@@ -94,9 +53,7 @@ export class FinanceApiClient {
 
   static async getTransactions(userId?: string): Promise<ApiResponse<Transaction[]>> {
     try {
-      const params = userId ? `?user_id=${encodeURIComponent(userId)}` : '';
-      console.log('FinanceApiClient: Making request to /transactions' + params);
-      const result = await apiRequest(`/transactions${params}`) as any;
+      const result = await FinanceRoutes.getTransactions(userId) as any;
       console.log('FinanceApiClient: Raw API result:', result);
       return {
         success: true,

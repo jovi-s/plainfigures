@@ -1,6 +1,6 @@
 user_id,date,category,currency,amount,direction,counterparty_id,counterparty_type,transaction_id,description,document_reference,tax_amount,payment_method
-1,11/8/25,Sales Revenue,SGD,1500,IN,CUS-0001,customer,TXN-2025-001,Sale of office supplies to ABC Trading,INV-2025-0811-001,150,Bank Transfer
-1,10/8/25,Office Expenses,MYR,850,OUT,SUP-0001,supplier,TXN-2025-002,Purchase of printer and stationery supplies,RCP-2025-0810-045,51,Credit Card
-1,9/8/25,Professional Services,THB,2400,OUT,SUP-0001,supplier,TXN-2025-003,Legal consultation fees for contract review,INV-BLA-2025-156,168,Bank Transfer
-1,8/8/25,Marketing Expenses,IDR,12500000,OUT,SUP-0001,supplier,TXN-2025-004,Social media advertising campaign Q3 2025,INV-DMS-2025-0808,1375000,Cash
-1,7/8/25,Equipment Purchase,PHP,75000,OUT,SUP-0001,supplier,TXN-2025-005,Purchase of new laptop computers for staff,OR-2025-MTS-0807,9000,Bank Transfer
+1,11-08-2025,Sales Revenue,SGD,1500,IN,CUS-0001,customer,TXN-2025-001,Sale of office supplies to ABC Trading,INV-2025-0811-001,150,Bank Transfer
+1,10-08-2025,Office Expenses,MYR,850,OUT,SUP-0001,supplier,TXN-2025-002,Purchase of printer and stationery supplies,RCP-2025-0810-045,51,Credit Card
+1,09-08-2025,Professional Services,THB,2400,OUT,SUP-0001,supplier,TXN-2025-003,Legal consultation fees for contract review,INV-BLA-2025-156,168,Bank Transfer
+1,08-08-2025,Marketing Expenses,IDR,12500000,OUT,SUP-0001,supplier,TXN-2025-004,Social media advertising campaign Q3 2025,INV-DMS-2025-0808,1375000,Cash
+1,07-08-2025,Equipment Purchase,PHP,75000,OUT,SUP-0001,supplier,TXN-2025-005,Purchase of new laptop computers for staff,OR-2025-MTS-0807,9000,Bank Transfer

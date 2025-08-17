@@ -19,18 +19,44 @@ export function TransactionList() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await FinanceApiClient.getTransactions();
+      const response = await FinanceApiClient.getTransactions("1");
       console.log('TransactionList: API response:', response);
+      console.log('TransactionList: Response success:', response.success);
+      console.log('TransactionList: Response data:', response.data);
+      console.log('TransactionList: Response error:', response.error);
+      
       if (response.success && response.data) {
+        console.log('TransactionList: Data is array:', Array.isArray(response.data));
+        console.log('TransactionList: Data length:', response.data.length);
+        
         // Sort by date descending (newest first)
-        const sorted = response.data.sort((a, b) => 
-          new Date(b.date).getTime() - new Date(a.date).getTime()
-        );
+        const parseDate = (dateString: string): Date => {
+          // Handle dd-mm-yyyy format
+          if (dateString.match(/^\d{1,2}-\d{1,2}-\d{4}$/)) {
+            const [day, month, year] = dateString.split('-');
+            return new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
+          }
+          // Legacy support for M/D/YY format
+          if (dateString.match(/^\d{1,2}\/\d{1,2}\/\d{2}$/)) {
+            const [month, day, year] = dateString.split('/');
+            const fullYear = `20${year}`;
+            return new Date(`${fullYear}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
+          }
+          return new Date(dateString);
+        };
+        
+        const sorted = response.data.sort((a, b) => {
+          const dateA = parseDate(a.date);
+          const dateB = parseDate(b.date);
+          console.log('Sorting dates:', a.date, '->', dateA, 'vs', b.date, '->', dateB);
+          return dateB.getTime() - dateA.getTime();
+        });
         console.log('TransactionList: Setting transactions:', sorted);
         setTransactions(sorted);
       } else {
         console.log('TransactionList: API response not successful or no data');
-        setError(t('transactions.no_transactions'));
+        console.log('TransactionList: Setting error message');
+        setError(response.error || t('transactions.no_transactions'));
       }
     } catch (err) {
       console.error('TransactionList: Error loading transactions:', err);
@@ -53,7 +79,29 @@ export function TransactionList() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    // Handle various date formats from CSV
+    let date: Date;
+    
+    // Check if it's in dd-mm-yyyy format (like 11-08-2025)
+    if (dateString.match(/^\d{1,2}-\d{1,2}-\d{4}$/)) {
+      const [day, month, year] = dateString.split('-');
+      date = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
+    } else if (dateString.match(/^\d{1,2}\/\d{1,2}\/\d{2}$/)) {
+      // Legacy support for M/D/YY format (like 11/8/25)
+      const [month, day, year] = dateString.split('/');
+      // Assume 20xx for 2-digit years
+      const fullYear = `20${year}`;
+      date = new Date(`${fullYear}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
+    } else {
+      date = new Date(dateString);
+    }
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return dateString; // Return original string if parsing fails
+    }
+    
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
