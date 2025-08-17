@@ -46,6 +46,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Root endpoint
+@app.get("/")
+async def root():
+    return {"status": "healthy", "message": "plainfigures API is up and running", "version": "1.0.0"}
+
 # Health check endpoint
 @app.get("/health")
 async def health_check():
