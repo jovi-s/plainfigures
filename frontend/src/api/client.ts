@@ -6,12 +6,9 @@ import {
   Transaction,
   TransactionCreateRequest,
   CashflowSummary,
-  Invoice,
   Customer,
   Supplier,
   UploadResponse,
-  AgentResponse,
-  AIRecommendationsResponse,
   UserProfile,
 } from './types';
 import { FinanceRoutes } from './routes';
