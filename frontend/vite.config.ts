@@ -20,9 +20,9 @@ export default defineConfig({
     proxy: {
       // Proxy API requests to the backend server
       "/api": {
-        target: process.env.VITE_BACKEND_URL, // Backend address from env or default
+        target: process.env.VITE_BACKEND_URL, // Backend address from env
         changeOrigin: true,
-        secure: false,
+        secure: true, // Set to true for HTTPS backends
         rewrite: (path) => path.replace(/^\/api/, ''),
         configure: (proxy, _options) => {
           proxy.on('error', (err, _req, _res) => {

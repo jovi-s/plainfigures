@@ -9,6 +9,11 @@ import {
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
+// Add debug logging for production
+if (import.meta.env.PROD) {
+  console.log('Production backend URL:', BACKEND_URL);
+}
+
 /**
  * Base request wrapper for backend communication
  */
@@ -30,13 +35,24 @@ async function backendRequest<T>(
     },
   };
 
-  const response = await fetch(url, config);
-  
-  if (!response.ok) {
-    throw new Error(`Backend request failed: ${response.status} ${response.statusText}`);
-  }
+  try {
+    console.log(`Making request to: ${url}`);
+    const response = await fetch(url, config);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Backend request failed: ${response.status} ${response.statusText}`, errorText);
+      throw new Error(`Backend request failed: ${response.status} ${response.statusText} - ${errorText}`);
+    }
 
-  return await response.json();
+    return await response.json();
+  } catch (error) {
+    console.error(`Network error for ${url}:`, error);
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw new Error(`Network connection failed: Unable to reach backend at ${BACKEND_URL}. Check CORS settings and network connectivity.`);
+    }
+    throw error;
+  }
 }
 
 /**
