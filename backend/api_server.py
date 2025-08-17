@@ -6,7 +6,6 @@ Provides REST API endpoints for the frontend to communicate with the backend
 import pandas as pd
 import openai
 import base64
-import uvicorn
 import os
 
 from fastapi import FastAPI, HTTPException, UploadFile, File
@@ -31,11 +30,91 @@ from src.tools.finance_tools import (
     extract_invoice_data_from_pdf,
 )
 
+# Global variables for DataFrames and their paths
+CASHFLOW_CSV_PATH = Path(__file__).parent / "database" / "cashflow.csv"
+USER_PROFILE_CSV_PATH = Path(__file__).parent / "database" / "user_sme_profile.csv"
+CUSTOMERS_CSV_PATH = Path(__file__).parent / "database" / "customers_template.csv"
+SUPPLIERS_CSV_PATH = Path(__file__).parent / "database" / "suppliers_template.csv"
+
+# Global DataFrames - will be loaded at startup
+cashflow_df = None
+user_profile_df = None
+customers_df = None
+suppliers_df = None
+
+def load_dataframes():
+    """Load all DataFrames from CSV files at startup"""
+    global cashflow_df, user_profile_df, customers_df, suppliers_df
+    
+    try:
+        # Load cashflow data
+        if CASHFLOW_CSV_PATH.exists():
+            cashflow_df = pd.read_csv(CASHFLOW_CSV_PATH)
+            print(f"Loaded cashflow data: {len(cashflow_df)} records")
+        else:
+            cashflow_df = pd.DataFrame()
+            print("Cashflow CSV not found, using empty DataFrame")
+    except Exception as e:
+        print(f"Error loading cashflow data: {e}")
+        cashflow_df = pd.DataFrame()
+    
+    try:
+        # Load user profile data
+        if USER_PROFILE_CSV_PATH.exists():
+            user_profile_df = pd.read_csv(USER_PROFILE_CSV_PATH)
+            print(f"Loaded user profile data: {len(user_profile_df)} records")
+        else:
+            user_profile_df = pd.DataFrame()
+            print("User profile CSV not found, using empty DataFrame")
+    except Exception as e:
+        print(f"Error loading user profile data: {e}")
+        user_profile_df = pd.DataFrame()
+    
+    try:
+        # Load customers data
+        if CUSTOMERS_CSV_PATH.exists():
+            customers_df = pd.read_csv(CUSTOMERS_CSV_PATH)
+            print(f"Loaded customers data: {len(customers_df)} records")
+        else:
+            customers_df = pd.DataFrame()
+            print("Customers CSV not found, using empty DataFrame")
+    except Exception as e:
+        print(f"Error loading customers data: {e}")
+        customers_df = pd.DataFrame()
+    
+    try:
+        # Load suppliers data
+        if SUPPLIERS_CSV_PATH.exists():
+            suppliers_df = pd.read_csv(SUPPLIERS_CSV_PATH)
+            print(f"Loaded suppliers data: {len(suppliers_df)} records")
+        else:
+            suppliers_df = pd.DataFrame()
+            print("Suppliers CSV not found, using empty DataFrame")
+    except Exception as e:
+        print(f"Error loading suppliers data: {e}")
+        suppliers_df = pd.DataFrame()
+
+def refresh_cashflow_data():
+    """Refresh cashflow DataFrame when new transactions are added"""
+    global cashflow_df
+    try:
+        if CASHFLOW_CSV_PATH.exists():
+            cashflow_df = pd.read_csv(CASHFLOW_CSV_PATH)
+            print(f"Refreshed cashflow data: {len(cashflow_df)} records")
+        else:
+            cashflow_df = pd.DataFrame()
+    except Exception as e:
+        print(f"Error refreshing cashflow data: {e}")
+        cashflow_df = pd.DataFrame()
+
 app = FastAPI(
     title="plainfigures API",
     description="REST API for SME Finance Management",
     version="1.0.0"
 )
+
+# Load DataFrames at startup
+load_dataframes()
 
 # Enable CORS for frontend communication
 app.add_middleware(
@@ -110,6 +189,9 @@ async def create_transaction(request: TransactionRequest):
             payment_method=request.payment_method,
         )
         
+        # Refresh cashflow data after adding new transaction
+        refresh_cashflow_data()
+        
         return ApiResponse(success=True, data=result)
     except Exception as e:
         return ApiResponse(success=False, error=str(e))
@@ -118,27 +200,33 @@ async def create_transaction(request: TransactionRequest):
 async def get_transactions(user_id: Optional[str] = None):
     """Get all transactions"""
     try:
-        # Import pandas to read the CSV file
-
+        global cashflow_df
         
-        # Path to cashflow CSV - database folder is always relative to this file
-        csv_path = Path(__file__).parent / "database" / "cashflow.csv"
+        print(f"GET /transactions called with user_id: {user_id}")
+        print(f"cashflow_df is None: {cashflow_df is None}")
         
-        if not csv_path.exists():
+        # Use preloaded DataFrame
+        if cashflow_df is None or cashflow_df.empty:
+            print("No cashflow data available, returning empty list")
             return ApiResponse(success=True, data=[])
         
-        # Read CSV file
-        df = pd.read_csv(csv_path)
+        print(f"cashflow_df shape: {cashflow_df.shape}")
+        print(f"cashflow_df columns: {list(cashflow_df.columns)}")
+        
+        df = cashflow_df.copy()
         
         # Filter by user_id if provided
         if user_id:
             df = df[df['user_id'].astype(str) == str(user_id)]
+            print(f"Filtered df shape: {df.shape}")
 
         # Convert to list of dictionaries
         transactions = df.to_dict('records')
+        print(f"Returning {len(transactions)} transactions")
         
         return ApiResponse(success=True, data=transactions)
     except Exception as e:
+        print(f"Error in get_transactions: {e}")
         return ApiResponse(success=False, error=str(e))
 
 @app.get("/cashflow/summary")
@@ -228,17 +316,14 @@ async def get_ai_recommendations(user_id: Optional[str] = "1"):
 async def get_user_profile(user_id: str):
     """Get user profile from CSV"""
     try:
-        # Path to user profile CSV - database folder is always relative to this file
-        csv_path = Path(__file__).parent / "database" / "user_sme_profile.csv"
+        global user_profile_df
         
-        if not csv_path.exists():
+        # Use preloaded DataFrame
+        if user_profile_df is None or user_profile_df.empty:
             raise HTTPException(status_code=404, detail="User profile data not found")
         
-        # Read CSV file
-        df = pd.read_csv(csv_path)
-        
         # Find user by ID
-        user_row = df[df['user_id'].astype(str) == str(user_id)]
+        user_row = user_profile_df[user_profile_df['user_id'].astype(str) == str(user_id)]
         
         if user_row.empty:
             raise HTTPException(status_code=404, detail="User not found")
@@ -264,12 +349,10 @@ async def get_openai_recommendations():
         # Load user profile and financial data
         user_data = {}
         try:
-            # Path to user profile CSV - database folder is always relative to this file
-            csv_path = Path(__file__).parent / "database" / "user_sme_profile.csv"
-            if csv_path.exists():
-                df = pd.read_csv(csv_path)
-                if not df.empty:
-                    user_data = df.iloc[0].to_dict()
+            global user_profile_df
+            # Use preloaded DataFrame
+            if user_profile_df is not None and not user_profile_df.empty:
+                user_data = user_profile_df.iloc[0].to_dict()
         except:
             pass
         
@@ -408,7 +491,3 @@ Be specific, reference the actual numbers, and provide reasoning based on the da
         
     except Exception as e:
         return ApiResponse(success=False, error=f"Failed to generate recommendations: {str(e)}")
-
-if __name__ == "__main__":
-    port = int(os.getenv("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
