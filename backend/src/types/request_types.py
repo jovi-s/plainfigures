@@ -44,10 +44,6 @@ class FunctionCallRequest(BaseModel):
     function_name: str
     parameters: Dict[str, Any]
 
-class AgentMessageRequest(BaseModel):
-    message: str
-    user_id: Optional[str] = "user_1"
-
 class ApiResponse(BaseModel):
     success: bool
     data: Optional[Any] = None

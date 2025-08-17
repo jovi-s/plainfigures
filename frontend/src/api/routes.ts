@@ -198,25 +198,6 @@ export const FinanceRoutes = {
     });
   },
 
-  // Agent messaging
-  async sendMessage(message: string) {
-    const payload = {
-      message: message,
-      user_id: 'user_1', // Default user
-    };
-
-    return backendRequest('/agent/message', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
-  },
-
-  // AI Recommendations
-  async getAIRecommendations(userId?: string) {
-    const params = userId ? `?user_id=${userId}` : '';
-    return backendRequest(`/ai/recommendations${params}`);
-  },
-
   // User Profile
   async getUserProfile(userId: string) {
     return backendRequest(`/users/${userId}/profile`);
