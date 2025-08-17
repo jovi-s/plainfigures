@@ -121,8 +121,8 @@ async def get_transactions(user_id: Optional[str] = None):
         # Import pandas to read the CSV file
 
         
-        # Path to cashflow CSV
-        csv_path = Path(__file__).parents[1] / "backend" / "database" / "cashflow.csv"
+        # Path to cashflow CSV - database folder is always relative to this file
+        csv_path = Path(__file__).parent / "database" / "cashflow.csv"
         
         if not csv_path.exists():
             return ApiResponse(success=True, data=[])
@@ -228,7 +228,7 @@ async def get_ai_recommendations(user_id: Optional[str] = "1"):
 async def get_user_profile(user_id: str):
     """Get user profile from CSV"""
     try:
-        # Path to user profile CSV
+        # Path to user profile CSV - database folder is always relative to this file
         csv_path = Path(__file__).parent / "database" / "user_sme_profile.csv"
         
         if not csv_path.exists():
@@ -264,6 +264,7 @@ async def get_openai_recommendations():
         # Load user profile and financial data
         user_data = {}
         try:
+            # Path to user profile CSV - database folder is always relative to this file
             csv_path = Path(__file__).parent / "database" / "user_sme_profile.csv"
             if csv_path.exists():
                 df = pd.read_csv(csv_path)
