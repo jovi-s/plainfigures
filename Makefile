@@ -2,20 +2,39 @@ install:
 	@command -v uv >/dev/null 2>&1 || { echo "uv is not installed. Installing uv..."; curl -LsSf https://astral.sh/uv/0.6.12/install.sh | sh; source $HOME/.local/bin/env; }
 	uv sync && npm --prefix frontend install
 
-dev:
-	make dev-backend & make dev-frontend
+dev-finance:
+	make dev-api & make dev-frontend
 
-dev-backend:
-	uv run adk api_server app/financial_advisor --allow_origins="*"
+dev-api:
+	uv run python backend/api_server.py
 
 dev-frontend:
 	npm --prefix frontend run dev
-
-playground:
-	uv run adk web app/financial_advisor --port 8501
 
 lint:
 	uv run codespell
 	uv run ruff check . --diff
 	uv run ruff format . --check --diff
 	uv run mypy .
+
+frontend-build:
+	npm --prefix frontend run build
+
+docker-dev-build:
+	docker build -f Dockerfile.local -t plainfigures .
+
+docker-dev-run:
+	docker run -p 8000:8000 -p 5173:5173 plainfigures
+
+# http://localhost:5173 (frontend)
+# http://localhost:8000 (API endpoints)
+
+# prod:
+# 	docker-compose up
+
+# 1. gcloud auth application-default login
+deploy-python-backend:
+	gcloud config set project plainfigures
+	gcloud run deploy plainfigures --memory 1G --max-instances 1 --source . \
+		--region=asia-southeast1 \
+		--allow-unauthenticated

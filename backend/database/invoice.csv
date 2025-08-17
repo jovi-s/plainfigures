@@ -1,0 +1,6 @@
+user_id,invoice_id,invoice_type,counterparty_id,issue_date,due_date,status,currency,subtotal,tax_rate,tax_amount,total,payment_terms,fx_rate_to_base,notes
+1,INV-0001,AR,CUS-0001,1/6/24,30/6/24,paid,IDR,5000000,0.11,550000,5550000,30 days,,"COD, cash"
+1,INV-0002,AP,SUP-0001,3/6/24,3/7/24,draft,THB,15000,0.07,1050,16050,Net 30,,Support included for 1 month
+1,INV-0003,AR,CUS-0001,5/6/24,20/6/24,sent,IDR,320000,0.11,35200,355200,15 days,,Urgent delivery
+1,INV-0004,AR,CUS-0001,7/6/24,7/7/24,overdue,MMK,160000,0.05,8000,168000,30 days,,Discount applied
+1,INV-0005,AP,SUP-0001,10/6/24,25/6/24,cancelled,SDG,120,0.08,9.6,129.6,15 days,,GST included

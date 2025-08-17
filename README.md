@@ -1,233 +1,182 @@
-# Gemini Fullstack Agent Development Kit (ADK) Quickstart
+# Pan-SEA AI Developer Challenge 2025 FINANCE
 
-The **Gemini Fullstack Agent Development Kit (ADK) Quickstart** is a production-ready blueprint for building a sophisticated, fullstack research agent with Gemini. It's built to demonstrate how the ADK helps structure complex agentic workflows, build modular agents, and incorporate critical Human-in-the-Loop (HITL) steps.
+- https://github.com/google-gemini/gemini-fullstack-langgraph-quickstart
 
-<table>
-  <thead>
-    <tr>
-      <th colspan="2">Key Features</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>🏗️</td>
-      <td><strong>Fullstack & Production-Ready:</strong> A complete React frontend and ADK-powered FastAPI backend, with deployment options for <a href="https://cloud.google.com/run">Google Cloud Run</a> and <a href="https://cloud.google.com/vertex-ai/generative-ai/docs/agent-engine/overview">Vertex AI Agent Engine</a>.</td>
-    </tr>
-    <tr>
-      <td>🧠</td>
-      <td><strong>Advanced Agentic Workflow:</strong> The agent uses Gemini to <strong>strategize</strong> a multi-step plan, <strong>reflect</strong> on findings to identify gaps, and <strong>synthesize</strong> a final, comprehensive report.</td>
-    </tr>
-    <tr>
-      <td>🔄</td>
-      <td><strong>Iterative & Human-in-the-Loop Research:</strong> Involves the user for plan approval, then autonomously loops through searching (via Gemini function calling) and refining its results until it has gathered sufficient information.</td>
-    </tr>
-  </tbody>
-</table>
+Financial Inclusion:
 
-Here is the agent in action:
+A lightweight, LLM-driven assistant that helps small business owners track cash flow, generate invoices, manage expenses, ... and explore microfinancing options.
 
-<img src="https://github.com/GoogleCloudPlatform/agent-starter-pack/blob/main/docs/images/adk_gemini_fullstack.gif?raw=true" width="80%" alt="Gemini Fullstack ADK Preview">
+A conversational chatbot powered by SEA-LION that explains fundamental financial concepts (e.g. budgeting, saving, digital payments, interest rates) in local Southeast Asian languages and dialects.
 
-This project adapts concepts from the [Gemini FullStack LangGraph Quickstart](https://github.com/google-gemini/gemini-fullstack-langgraph-quickstart) for the frontend app. 
+An LLM-related solution that explains loan application criteria (and recommends suitable financial products based on user profile)—all in regional languages.
 
-## 🚀 Getting Started: From Zero to Running Agent in 1 Minute
-**Prerequisites:** **[Python 3.10+](https://www.python.org/downloads/)**, **[Node.js](https://nodejs.org/)**, **[uv](https://github.com/astral-sh/uv)**
+Financial Trust:
 
-You have two options to get started. Choose the one that best fits your setup:
+An LLM-related solution that reads and summarizes complex bank or insurance documents into understandable, localized language—clarifying fees, terms, and risks.
 
-*   A. **[Google AI Studio](#a-google-ai-studio)**: Choose this path if you want to use a **Google AI Studio API key**. This method involves cloning the sample repository.
-*   B. **[Google Cloud Vertex AI](#b-google-cloud-vertex-ai)**: Choose this path if you want to use an existing **Google Cloud project** for authentication. This method generates a new, prod-ready project using the [agent-starter-pack](https://goo.gle/agent-starter-pack) including all the deployment scripts required.
+(A chatbot that informs users of their rights regarding loans, digital payments, and banking services based on country-specific financial regulations.)
 
----
+income = money coming in
 
-### A. Google AI Studio
+expenses = money going out
 
-You'll need a **[Google AI Studio API Key](https://aistudio.google.com/app/apikey)**.
+Asset = something that puts money in your pocket
 
-#### Step 1: Clone Repository
-Clone the repository and `cd` into the project directory.
+Liability = something that takes money out of your pocket
 
+cash flow = asset -> income
+
+## Overview
+
+The Financial Advisor is a team of specialized AI agents that assists human financial advisors.
+
+1. Cashflow Agent: 
+
+2. Invoice Agent: 
+
+## Setup and Installation
+
+1.  **Prerequisites**
+
+    *   Python 3.11+
+    *   uv
+
+        ```bash
+        pip install uv
+        ```
+
+    * A project on Google Cloud Platform
+    * Google Cloud CLI
+        *   For installation, please follow the instruction on the official
+            [Google Cloud website](https://cloud.google.com/sdk/docs/install).
+
+2.  **Installation**
+
+    ```bash
+    # Install the package and dependencies.
+    uv install
+    ```
+
+
+## Running the Agent
+
+## Running Tests [NOT IMPLEMENTED]
+
+## Deployment Guide
+
+### Database Configuration
+
+This application uses CSV files stored in the `backend/database/` directory. No additional database credentials are needed.
+
+### Running with Docker
+
+1. Create the `.env` file
+2. Run: `docker-compose up --build`
+3. The application will be available at `http://localhost:8000`
+
+### Running Locally
+
+1. Create the `.env` file
+2. Install dependencies: `uv pip install -e .`
+3. Run: `python backend/api_server.py`
+
+This guide covers deploying the backend on Google Cloud and the frontend on Vercel.
+
+### Backend Deployment (Google Cloud)
+
+#### Prerequisites
+- Google Cloud account with billing enabled
+- `gcloud` CLI installed and configured
+- Backend application ready in the `backend/` directory
+
+#### Steps
+1. **Build and deploy to Cloud Run** (recommended for FastAPI):
+   ```bash
+   cd backend
+   gcloud run deploy plainfigures-backend \
+     --source . \
+     --platform managed \
+     --region us-central1 \
+     --allow-unauthenticated
+   ```
+
+2. **Note the deployed URL** (e.g., `https://plainfigures-backend-xxx-uc.a.run.app`)
+
+#### Alternative: Cloud Functions
+If deploying as Cloud Functions, update the URL accordingly.
+
+### Frontend Deployment (Vercel)
+
+#### Prerequisites
+- Vercel account
+- GitHub repository (recommended for automatic deployments)
+
+#### Method 2: Vercel Dashboard (Recommended)
+1. **Connect your GitHub repository** to Vercel
+2. **Set the project root** to `frontend/`
+3. **Configure environment variables**:
+   - Go to Project Settings → Environment Variables
+   - Add `VITE_BACKEND_URL` with your backend URL
+   - Apply to Production (and Preview if needed)
+
+4. **Deploy**:
+   - Push to your main branch for automatic deployment
+   - Or trigger manual deployment from Vercel dashboard
+
+### Environment Variables Setup
+
+#### Development
+Create `/frontend/.env.local`:
 ```bash
-git clone https://github.com/google/adk-samples.git
-cd adk-samples/python/agents/gemini-fullstack
+VITE_BACKEND_URL=http://127.0.0.1:8000
 ```
 
-#### Step 2: Set Environment Variables
-Create a `.env` file in the `app` folder by running the following command (replace YOUR_AI_STUDIO_API_KEY with your actual API key):
+#### Production (Vercel)
+Set in Vercel dashboard:
+- **Variable**: `VITE_BACKEND_URL`
+- **Value**: Your Google Cloud backend URL
+- **Environment**: Production
 
+### Quick Setup Commands
+
+#### For Development:
 ```bash
-echo "GOOGLE_GENAI_USE_VERTEXAI=FALSE" >> app/.env
-echo "GOOGLE_API_KEY=YOUR_AI_STUDIO_API_KEY" >> app/.env
+# Backend
+cd backend
+python -m uvicorn api_server:app --reload --host 0.0.0.0 --port 8000
+
+# Frontend (in another terminal)
+cd frontend
+./setup-dev.sh  # Creates .env.local and installs dependencies
+npm run dev
 ```
 
-#### Step 3: Install & Run
-From the `gemini-fullstack` directory, install dependencies and start the servers.
-
+#### For Production Build Testing:
 ```bash
-make install && make dev
-```
-Your agent is now running at `http://localhost:5173`.
-
----
-
-### B. Google Cloud Vertex AI
-
-You'll also need: **[Google Cloud SDK](https://cloud.google.com/sdk/docs/install)** and a **Google Cloud Project** with the **Vertex AI API** enabled.
-
-#### Step 1: Create Project from Template
-This command uses the [Agent Starter Pack](https://goo.gle/agent-starter-pack) to create a new directory (`my-fullstack-agent`) with all the necessary code.
-```bash
-# Create and activate a virtual environment
-python -m venv .venv && source .venv/bin/activate # On Windows: .venv\Scripts\activate
-
-# Install the starter pack and create your project
-pip install --upgrade agent-starter-pack
-agent-starter-pack create my-fullstack-agent -a adk@gemini-fullstack
-```
-<details>
-<summary>⚡️ Alternative: Using uv</summary>
-
-If you have [`uv`](https://github.com/astral-sh/uv) installed, you can create and set up your project with a single command:
-```bash
-uvx agent-starter-pack create my-fullstack-agent -a adk@gemini-fullstack
-```
-This command handles creating the project without needing to pre-install the package into a virtual environment.
-</details>
-
-You'll be prompted to select a deployment option (Agent Engine or Cloud Run) and verify your Google Cloud credentials.
-
-#### Step 2: Install & Run
-Navigate into your **newly created project folder**, then install dependencies and start the servers.
-```bash
-cd my-fullstack-agent && make install && make dev
-```
-Your agent is now running at `http://localhost:5173`.
-
-## ☁️ Cloud Deployment
-> **Note:** The cloud deployment instructions below apply only if you chose the **Google Cloud Vertex AI** option.
-
-You can quickly deploy your agent to a **development environment** on Google Cloud. You can deploy your latest code at any time with:
-
-```bash
-# Replace YOUR_DEV_PROJECT_ID with your actual Google Cloud Project ID
-gcloud config set project YOUR_DEV_PROJECT_ID
-make backend
+cd frontend
+export VITE_BACKEND_URL="https://your-backend-url.com"
+npm run build
+npm run preview
 ```
 
-For robust, **production-ready deployments** with automated CI/CD, please follow the detailed instructions in the **[Agent Starter Pack Development Guide](https://googlecloudplatform.github.io/agent-starter-pack/guide/development-guide.html#b-production-ready-deployment-with-ci-cd)**.
-## Agent Details
+### Verification
 
-| Attribute | Description |
-| :--- | :--- |
-| **Interaction Type** | Workflow |
-| **Complexity** | Advanced |
-| **Agent Type** | Multi Agent |
-| **Components** | Multi-agent, Function calling, Web search, React frontend, Human-in-the-Loop |
-| **Vertical** | Horizontal |
+After deployment, verify:
+1. ✅ Backend health check: `GET https://your-backend-url.com/health`
+2. ✅ Frontend loads: Visit your Vercel URL
+3. ✅ API calls work: Test transactions, file uploads, etc.
 
-## How the Agent Thinks: A Two-Phase Workflow
+### Troubleshooting
 
-The backend agent, defined in `app/agent.py`, follows a sophisticated workflow to move from a simple topic to a fully-researched report.
+#### CORS Issues
+If you encounter CORS errors, ensure your backend includes the frontend domain in allowed origins.
 
-The following diagram illustrates the agent's architecture and workflow:
+#### Environment Variables Not Loading
+- Ensure variables are prefixed with `VITE_`
+- Rebuild after changing environment variables
+- Check Vercel deployment logs for build-time errors
 
-![ADK Gemini Fullstack Architecture](https://github.com/GoogleCloudPlatform/agent-starter-pack/blob/main/docs/images/adk_gemini_fullstack_architecture.png?raw=true)
-
-This process is broken into two main phases:
-
-### Phase 1: Plan & Refine (Human-in-the-Loop)
-
-This is the collaborative brainstorming phase.
-
-1.  **You provide a research topic.**
-2.  The agent generates a high-level research plan with several key goals (e.g., "Analyze the market impact," "Identify key competitors").
-3.  The plan is presented to **you**. You can approve it, or chat with the agent to add, remove, or change goals until you're satisfied. Nothing happens without your explicit approval.
-
-The plan will contains following tags as a signal to downstream agents,
-  - Research Plan Tags
-
-    - [RESEARCH]: Guides info gathering via search.
-    - [DELIVERABLE]: Guides creation of final outputs (e.g., tables, reports).
-  
-  - Plan Refinement Tags
-
-    - [MODIFIED]: Goal was updated.
-    - [NEW]: New goal added per user.
-    - [IMPLIED]: Deliverable proactively added by AI.
-
-### Phase 2: Execute Autonomous Research
-
-Once you approve the plan, the agent's `research_pipeline` takes over and works autonomously.
-
-1.  **Outlining:** It first converts the approved plan into a structured report outline (like a table of contents).
-2.  **Iterative Research & Critique Loop:** For each section of the outline, it repeats a cycle:
-    *   **Search:** It performs web searches to gather information.
-    *   **Critique:** A "critic" model evaluates the findings for gaps or weaknesses.
-    *   **Refine:** If the critique finds weaknesses, the agent generates more specific follow-up questions and searches again. This loop continues until the research meets a high-quality bar.
-3.  **Compose Final Report:** After the research loop is complete, a final agent takes all the verified findings and writes a polished report, automatically adding inline citations that link back to the original sources.
-
-You can edit key parameters (Gemini models, research loop iterations) in the `ResearchConfiguration` dataclass within `app/config.py`.
-
-## Customization
-
-You can modify and extend this agent's behavior by editing the backend code.
-
-*   **Modifying Agent Logic:** The core logic for all sub-agents (planner, researcher, critic, composer) is defined in `app/agent.py`. You can change the prompts, tools, or reasoning steps by modifying the agent definitions here.
-*   **Adjusting Research Parameters:** Key parameters, such as the Gemini models used or the number of research loop iterations, can be adjusted in the `ResearchConfiguration` dataclass within `app/config.py`.
-*   **Syncing with Frontend:** The frontend UI integrates with the backend through specific agent names that process outputs differently (e.g., research findings vs. final report), update the activity timeline with appropriate titles/icons, and track research metrics like website counts. 
-    Important agent names include:
-    * `section_researcher` & `enhanced_search_executor` - track websites consulted
-    * `report_composer_with_citations` - processes final report
-    * `interactive_planner_agent` - updates AI messages during planning
-    * `plan_generator` and `section_planner` - used for timeline labels
-    
-    If you rename agents in `app/agent.py`, you must update their names in the frontend code (`/ui`) to maintain functionality.
-
-
-### Example Interaction
-
-> **User:** A report on the last Google I/O
->
-> **Agent:** Here's a research plan for a report on the last Google I/O:
->
-> *   Analyze the key announcements and product updates made at Google I/O 2025.
-> *   Identify the central themes and strategic directions emphasized by Google during the event, particularly concerning AI, Android, and other emerging technologies like Android XR.
-> *   Investigate the reception and industry impact of the major product unveilings and feature enhancements.
-> *   Examine any significant shifts or continuities in Google's developer strategy as presented at the conference.
-> *   Assess the implications of the announced technologies and initiatives for developers, consumers, and the broader tech landscape.
->
-> Does this plan look good, or would you like to refine it further? Once approved, I can initiate the research.
->
-> **User:** Looks good!
-> *(The agent proceeds to autonomously execute the research, showing its progress on the timeline.)*
->
-> **Agent:**
-> 
-> Google I/O 2025: Key Announcements and Highlights
-> ....
-
-## Troubleshooting
-
-If you encounter issues while setting up or running this agent, here are some resources to help you troubleshoot:
-- [ADK Documentation](https://google.github.io/adk-docs/): Comprehensive documentation for the Agent Development Kit
-- [Vertex AI Authentication Guide](https://cloud.google.com/vertex-ai/docs/authentication): Detailed instructions for setting up authentication
-- [Agent Starter Pack Troubleshooting](https://googlecloudplatform.github.io/agent-starter-pack/guide/troubleshooting.html): Common issues
-
-
-## 🛠️ Technologies Used
-
-### Backend
-*   [**Agent Development Kit (ADK)**](https://github.com/google/adk-python): The core framework for building the stateful, multi-turn agent.
-*   [**FastAPI**](https://fastapi.tiangolo.com/): High-performance web framework for the backend API.
-*   [**Google Gemini**](https://cloud.google.com/vertex-ai/generative-ai/docs): Used for planning, reasoning, search query generation, and final synthesis.
-
-### Frontend
-*   [**React**](https://reactjs.org/) (with [Vite](https://vitejs.dev/)): For building the interactive user interface.
-*   [**Tailwind CSS**](https://tailwindcss.com/): For utility-first styling.
-*   [**Shadcn UI**](https://ui.shadcn.com/): A set of beautifully designed, accessible components.
-
-## Disclaimer
-
-This agent sample is provided for illustrative purposes only. It serves as a basic example of an agent and a foundational starting point for individuals or teams to develop their own agents.
-
-Users are solely responsible for any further development, testing, security hardening, and deployment of agents based on this sample. We recommend thorough review, testing, and the implementation of appropriate safeguards before using any derived agent in a live or critical system.
+#### Backend Connection Issues
+- Verify the backend URL is accessible
+- Check network policies if using VPC
+- Ensure the backend is not IP-restricted

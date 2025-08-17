@@ -1,0 +1,17 @@
+services:
+  plainfigures-app:
+    build: .
+    container_name: plainfigures-app
+    ports:
+      - "8000:8000"  # Backend API
+      - "5173:5173"  # Frontend dev server
+    environment:
+      # Load environment variables from .env file
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      PORT: 8000
+    volumes:
+      # Mount the backend/.env file if it exists
+      - ./backend/.env:/app/backend/.env:ro
+      # Mount CSV database for persistence
+      - ./backend/database:/app/backend/database
+    restart: unless-stopped

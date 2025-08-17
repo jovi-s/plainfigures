@@ -1,0 +1,2 @@
+invoice_id,line_id,vendor,issue_date,due_date,currency,desc,qty,unit_price,tax_rate,subtotal,tax,total
+INV-0001,INV-0001-1,PT Widget Corp,2024-06-01,2024-06-30,IDR,Box of widgets,10,20000,11.0,200000,22000,222000
