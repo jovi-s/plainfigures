@@ -3,16 +3,23 @@ FastAPI server for plainfigures
 Provides REST API endpoints for the frontend to communicate with the backend
 """
 
-from fastapi import FastAPI, HTTPException, UploadFile, File
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from pathlib import Path
-from typing import Optional, List, Dict, Any
 import pandas as pd
 import openai
 import base64
 import uvicorn
 import os
+
+from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
+from pathlib import Path
+from typing import Optional
+
+from src.types.request_types import (
+    TransactionRequest,
+    FunctionCallRequest,
+    AgentMessageRequest,
+    ApiResponse,
+)
 
 # Import the financial tools
 from src.tools.finance_tools import (
@@ -23,14 +30,6 @@ from src.tools.finance_tools import (
     extract_invoice_data_from_image,
     extract_invoice_data_from_pdf,
 )
-
-currency_conversion_rates = {
-    "SGD": 1.0,
-    "MYR": 3.3,
-    "THB": 24,
-    "IDR": 12633,
-    "PHP": 44,
-}
 
 app = FastAPI(
     title="plainfigures API",
@@ -46,58 +45,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Request/Response models
-class TransactionRequest(BaseModel):
-    user_id: str
-    date: str
-    category: str
-    currency: str
-    amount: float
-    direction: str
-    counterparty_id: Optional[str] = None
-    counterparty_type: Optional[str] = None
-    description: Optional[str] = None
-    document_reference: Optional[str] = None
-    tax_amount: Optional[float] = None
-    payment_method: Optional[str] = None
-
-class InvoiceLineItem(BaseModel):
-    description: str
-    quantity: float
-    unit_price: float
-    tax_rate: float
-
-class InvoiceRequest(BaseModel):
-    user_id: str
-    invoice_type: str
-    counterparty_id: str
-    issue_date: str
-    due_date: str
-    currency: str
-    line_items: List[InvoiceLineItem]
-    payment_terms: Optional[str] = None
-    notes: Optional[str] = None
-
-class PaymentRequest(BaseModel):
-    user_id: str
-    amount: float
-    date: str
-    payment_method: Optional[str] = None
-
-class FunctionCallRequest(BaseModel):
-    function_name: str
-    parameters: Dict[str, Any]
-
-class AgentMessageRequest(BaseModel):
-    message: str
-    user_id: Optional[str] = "user_1"
-
-class ApiResponse(BaseModel):
-    success: bool
-    data: Optional[Any] = None
-    message: Optional[str] = None
-    error: Optional[str] = None
 
 # Health check endpoint
 @app.get("/health")
