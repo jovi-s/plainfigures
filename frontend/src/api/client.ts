@@ -86,21 +86,6 @@ export class FinanceApiClient {
     }
   }
 
-  static async getInvoices(): Promise<ApiResponse<Invoice[]>> {
-    try {
-      // Will need to implement invoice list endpoint
-      return {
-        success: true,
-        data: [],
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
-    }
-  }
-
   // Customer/Supplier operations
   static async getCustomers(): Promise<ApiResponse<Customer[]>> {
     try {
@@ -143,26 +128,10 @@ export class FinanceApiClient {
     return result as UploadResponse;
   }
 
-  // Agent operations
-  static async sendMessage(message: string): Promise<AgentResponse> {
-    const result = await FinanceRoutes.sendMessage(message);
-    return result as AgentResponse;
-  }
-
   // Health check
   static async healthCheck(): Promise<{ status: string }> {
     const result = await FinanceRoutes.healthCheck();
     return result as { status: string };
-  }
-
-  // AI Recommendations
-  static async getAIRecommendations(userId?: string): Promise<ApiResponse<AIRecommendationsResponse>> {
-    try {
-      const result = await FinanceRoutes.getAIRecommendations(userId);
-      return { success: true, data: result as AIRecommendationsResponse };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Failed to get AI recommendations' };
-    }
   }
 
   // User Profile
