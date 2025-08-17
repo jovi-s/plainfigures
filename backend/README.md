@@ -174,7 +174,7 @@ python api_server.py
 #### Development Server
 ```bash
 # Run with auto-reload
-uvicorn api_server:app --reload --host 0.0.0.0 --port 8000
+uvicorn api_server:app --reload --host 0.0.0.0 --port 8080
 ```
 
 ### 🧪 Sample Data

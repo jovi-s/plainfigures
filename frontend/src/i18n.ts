@@ -15,7 +15,7 @@ const resources = {
       "loading.connecting": "Connecting to backend services...",
       "loading.first_startup": "This may take a moment on first startup",
       "error.backend_unavailable": "Backend Unavailable",
-      "error.unable_connect": "Unable to connect to backend services at localhost:8000",
+      "error.unable_connect": "Unable to connect to backend services at localhost:8080",
       "button.retry_connection": "Retry Connection",
       
       // Navigation tabs
@@ -153,7 +153,7 @@ const resources = {
       "loading.connecting": "Menghubungkan ke layanan backend...",
       "loading.first_startup": "Ini mungkin memerlukan waktu saat startup pertama",
       "error.backend_unavailable": "Backend Tidak Tersedia",
-      "error.unable_connect": "Tidak dapat terhubung ke layanan backend di localhost:8000",
+      "error.unable_connect": "Tidak dapat terhubung ke layanan backend di localhost:8080",
       "button.retry_connection": "Coba Lagi Koneksi",
       
       // Navigation tabs
@@ -291,7 +291,7 @@ const resources = {
       "loading.connecting": "กำลังเชื่อมต่อกับบริการ backend...",
       "loading.first_startup": "อาจใช้เวลาสักครู่ในการเริ่มต้นครั้งแรก",
       "error.backend_unavailable": "Backend ไม่พร้อมใช้งาน",
-      "error.unable_connect": "ไม่สามารถเชื่อมต่อกับบริการ backend ที่ localhost:8000",
+      "error.unable_connect": "ไม่สามารถเชื่อมต่อกับบริการ backend ที่ localhost:8080",
       "button.retry_connection": "ลองเชื่อมต่อใหม่",
       
       // Navigation tabs
@@ -429,7 +429,7 @@ const resources = {
       "loading.connecting": "Kumukonekta sa backend services...",
       "loading.first_startup": "Maaaring tumagal ng konti sa unang startup",
       "error.backend_unavailable": "Hindi Available ang Backend",
-      "error.unable_connect": "Hindi makakonekta sa backend services sa localhost:8000",
+      "error.unable_connect": "Hindi makakonekta sa backend services sa localhost:8080",
       "button.retry_connection": "Subukan Ulit ang Koneksyon",
       
       // Navigation tabs

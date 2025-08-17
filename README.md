@@ -72,7 +72,7 @@ This application uses CSV files stored in the `backend/database/` directory. No 
 
 1. Create the `.env` file
 2. Run: `docker-compose up --build`
-3. The application will be available at `http://localhost:8000`
+3. The application will be available at `http://localhost:8080`
 
 ### Running Locally
 
@@ -128,7 +128,7 @@ If deploying as Cloud Functions, update the URL accordingly.
 #### Development
 Create `/frontend/.env.local`:
 ```bash
-VITE_BACKEND_URL=http://127.0.0.1:8000
+VITE_BACKEND_URL=http://127.0.0.1:8080
 ```
 
 #### Production (Vercel)
@@ -143,7 +143,7 @@ Set in Vercel dashboard:
 ```bash
 # Backend
 cd backend
-python -m uvicorn api_server:app --reload --host 0.0.0.0 --port 8000
+python -m uvicorn api_server:app --reload --host 0.0.0.0 --port 8080
 
 # Frontend (in another terminal)
 cd frontend

@@ -6,7 +6,7 @@ dev-finance:
 	make dev-api & make dev-frontend
 
 dev-api:
-	uv run python backend/api_server.py
+	cd backend && uv run uvicorn api_server:app --reload --port 8080
 
 dev-frontend:
 	npm --prefix frontend run dev
@@ -24,10 +24,10 @@ docker-dev-build:
 	docker build -f Dockerfile.local -t plainfigures .
 
 docker-dev-run:
-	docker run -p 8000:8000 -p 5173:5173 plainfigures
+	docker run -p 8080:8080 -p 5173:5173 plainfigures
 
 # http://localhost:5173 (frontend)
-# http://localhost:8000 (API endpoints)
+# http://localhost:8080 (API endpoints)
 
 # prod:
 # 	docker-compose up

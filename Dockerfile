@@ -23,8 +23,8 @@ RUN uv pip install --system -e .
 # Set Python path to include /app
 ENV PYTHONPATH=/app
 
-# Expose port 8000 (Cloud Run will set PORT env var to 8080)
-EXPOSE 8000
+# Expose port 8080
+EXPOSE 8080
 
 # Command to run the FastAPI server (will serve both API and frontend)
-CMD ["python", "api_server.py"]
+CMD ["uvicorn", "api_server:app", "--host", "0.0.0.0", "--port", "8080"]

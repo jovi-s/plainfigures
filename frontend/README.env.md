@@ -7,7 +7,7 @@ This frontend application uses environment variables to configure the backend UR
 ### `VITE_BACKEND_URL`
 The URL of the backend API server.
 
-**Development**: `http://127.0.0.1:8000`
+**Development**: `http://127.0.0.1:8080`
 **Production**: Your deployed backend URL (e.g., `https://your-app.cloudfunctions.net` or `https://your-backend-domain.com`)
 
 ## Setup for Different Environments
@@ -15,7 +15,7 @@ The URL of the backend API server.
 ### Local Development
 Create a `.env.local` file in the frontend directory:
 ```bash
-VITE_BACKEND_URL=http://127.0.0.1:8000
+VITE_BACKEND_URL=http://127.0.0.1:8080
 ```
 
 ### Vercel Production Deployment
@@ -36,7 +36,7 @@ The environment variables are processed at build time by Vite. Make sure to:
 ## Usage in Code
 ```typescript
 // This will use the environment variable or fall back to localhost
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8080';
 ```
 
 ## Important Notes

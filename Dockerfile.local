@@ -58,8 +58,8 @@ ENV PYTHONPATH=/app/backend:/app
 # Create supervisor configuration
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Expose ports (8000 for backend, 5173 for frontend dev server)
-EXPOSE 8000 5173
+# Expose ports (8080 for backend, 5173 for frontend dev server)
+EXPOSE 8080 5173
 
 # Command to run both services
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
