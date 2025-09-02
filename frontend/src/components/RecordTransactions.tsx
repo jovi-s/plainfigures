@@ -279,12 +279,12 @@ export function RecordTransactions({
                   </SelectTrigger>
                   <SelectContent>
                     {customers.map((customer) => (
-                      <SelectItem key={customer.id} value={customer.id}>
+                      <SelectItem key={customer.customer_id} value={customer.customer_id}>
                         {customer.name} ({t('record.customer')})
                       </SelectItem>
                     ))}
                     {suppliers.map((supplier) => (
-                      <SelectItem key={supplier.id} value={supplier.id}>
+                      <SelectItem key={supplier.supplier_id} value={supplier.supplier_id}>
                         {supplier.name} ({t('record.supplier')})
                       </SelectItem>
                     ))}
@@ -394,8 +394,8 @@ export function RecordTransactions({
                   <div>
                     <span className="font-medium text-neutral-600">{t('record.counterparty')}:</span>
                     <span className="ml-2">
-                      {customers.find(c => c.id === transactionToSubmit.counterparty_id)?.name ||
-                       suppliers.find(s => s.id === transactionToSubmit.counterparty_id)?.name ||
+                      {customers.find(c => c.customer_id === transactionToSubmit.counterparty_id)?.name ||
+                       suppliers.find(s => s.supplier_id === transactionToSubmit.counterparty_id)?.name ||
                        'Unknown'}
                     </span>
                   </div>

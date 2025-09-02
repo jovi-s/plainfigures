@@ -105,7 +105,7 @@ export function GenerateInvoice({ customers }: GenerateInvoiceProps) {
 
     try {
       const pdf = new jsPDF();
-      const selectedCustomerData = customers.find(c => c.id === selectedCustomer);
+      const selectedCustomerData = customers.find(c => c.customer_id === selectedCustomer);
       
       // Company Header
       pdf.setFontSize(20);
@@ -143,8 +143,11 @@ export function GenerateInvoice({ customers }: GenerateInvoiceProps) {
       pdf.setFont("helvetica", "normal");
       if (selectedCustomerData) {
         pdf.text(selectedCustomerData.name, 20, 115);
-        if (selectedCustomerData.address) {
-          pdf.text(selectedCustomerData.address, 20, 125);
+        if (selectedCustomerData.address_line1) {
+          pdf.text(selectedCustomerData.address_line1, 20, 125);
+          if (selectedCustomerData.address_line2) {
+            pdf.text(selectedCustomerData.address_line2, 20, 135);
+          }
         }
         if (selectedCustomerData.email) {
           pdf.text(selectedCustomerData.email, 20, 135);
@@ -289,7 +292,7 @@ export function GenerateInvoice({ customers }: GenerateInvoiceProps) {
                 </SelectTrigger>
                 <SelectContent>
                   {customers.map((customer) => (
-                    <SelectItem key={customer.id} value={customer.id}>
+                    <SelectItem key={customer.customer_id} value={customer.customer_id}>
                       {customer.name}
                     </SelectItem>
                   ))}
