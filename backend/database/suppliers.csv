@@ -1,0 +1,2 @@
+supplier_id,user_id,name,tax_reg_id,address_line1,address_line2,city,postal_code,contact_name,email,phone,default_payment_terms,preferred_currency,created_at
+SUP-0001,1,TH Bangkok Supreme,ID-123456789,1 Bangkok Way,#01-01,Bangkok,1122325,Mr Porn,porn@bkksupreme.co.th,62-21-555-101,NET30,THB,2025-08-11T16:53:16.657005

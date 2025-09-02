@@ -1,0 +1,2 @@
+invoice_id,line_id,item_sku,item_name,item_description,quantity,unit_code,unit_price,currency,line_tax_rate_percent,line_tax_amount,total_amount,vendor,issue_date,due_date
+INV-0001,INV-0001-1,11AA11,Widgets,Box of widgets,10,111,20000,IDR,11,22000,222000,PT Widget Corp,1/6/24,30/6/24

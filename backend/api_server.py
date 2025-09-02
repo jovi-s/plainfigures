@@ -33,18 +33,14 @@ from src.utils.format_model_response import extract_json_from_response
 # Global variables for DataFrames and their paths
 CASHFLOW_CSV_PATH = Path(__file__).parent / "database" / "cashflow.csv"
 USER_PROFILE_CSV_PATH = Path(__file__).parent / "database" / "user_sme_profile.csv"
-CUSTOMERS_CSV_PATH = Path(__file__).parent / "database" / "customers_template.csv"
-SUPPLIERS_CSV_PATH = Path(__file__).parent / "database" / "suppliers_template.csv"
 
 # Global DataFrames - will be loaded at startup
 cashflow_df = None
 user_profile_df = None
-customers_df = None
-suppliers_df = None
 
 def load_dataframes():
     """Load all DataFrames from CSV files at startup"""
-    global cashflow_df, user_profile_df, customers_df, suppliers_df
+    global cashflow_df, user_profile_df
     
     try:
         # Load cashflow data
@@ -69,30 +65,7 @@ def load_dataframes():
     except Exception as e:
         print(f"Error loading user profile data: {e}")
         user_profile_df = pd.DataFrame()
-    
-    try:
-        # Load customers data
-        if CUSTOMERS_CSV_PATH.exists():
-            customers_df = pd.read_csv(CUSTOMERS_CSV_PATH)
-            print(f"Loaded customers data: {len(customers_df)} records")
-        else:
-            customers_df = pd.DataFrame()
-            print("Customers CSV not found, using empty DataFrame")
-    except Exception as e:
-        print(f"Error loading customers data: {e}")
-        customers_df = pd.DataFrame()
-    
-    try:
-        # Load suppliers data
-        if SUPPLIERS_CSV_PATH.exists():
-            suppliers_df = pd.read_csv(SUPPLIERS_CSV_PATH)
-            print(f"Loaded suppliers data: {len(suppliers_df)} records")
-        else:
-            suppliers_df = pd.DataFrame()
-            print("Suppliers CSV not found, using empty DataFrame")
-    except Exception as e:
-        print(f"Error loading suppliers data: {e}")
-        suppliers_df = pd.DataFrame()
+
 
 app = FastAPI(
     title="plainfigures API",

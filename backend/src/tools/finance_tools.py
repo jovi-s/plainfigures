@@ -63,22 +63,10 @@ INVOICE_LINES_CSV = KB_DIR / "invoice_lines.csv"
 CASHFLOW_CSV = KB_DIR / "cashflow.csv"
 CUSTOMERS_CSV = KB_DIR / "customers.csv"
 SUPPLIERS_CSV = KB_DIR / "suppliers.csv"
-CUSTOMERS_TEMPLATE_CSV = KB_DIR / "customers_template.csv"
-SUPPLIERS_TEMPLATE_CSV = KB_DIR / "suppliers_template.csv"
 
 
 def _ensure_parent_dir(path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-
-
-def _ensure_csv(path: Path, header: Iterable[str]) -> None:
-    """Create the CSV file with header if it does not exist."""
-    if path.exists():
-        return
-    _ensure_parent_dir(path)
-    with path.open("w", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f)
-        writer.writerow(list(header))
 
 
 def _read_csv_dicts(path: Path) -> List[Dict[str, str]]:
@@ -220,21 +208,19 @@ def process_invoice(context = None, invoice_text: str | None = None) -> Dict[str
 
 
 def load_customers(context = None) -> Dict[str, Any]:
-    """Loads customers from `customers.csv` or falls back to `customers_template.csv`.
+    """Loads customers from `customers.csv`
 
     Returns a dict with `customers` as a list of row dicts.
     """
-    source = CUSTOMERS_CSV if CUSTOMERS_CSV.exists() else CUSTOMERS_TEMPLATE_CSV
-    return {"source": str(source), "customers": _read_csv_dicts(source)}
+    return {"source": str(CUSTOMERS_CSV), "customers": _read_csv_dicts(CUSTOMERS_CSV)}
 
 
 def load_suppliers(context = None) -> Dict[str, Any]:
-    """Loads suppliers from `suppliers.csv` or falls back to `suppliers_template.csv`.
+    """Loads suppliers from `suppliers.csv`
 
     Returns a dict with `suppliers` as a list of row dicts.
     """
-    source = SUPPLIERS_CSV if SUPPLIERS_CSV.exists() else SUPPLIERS_TEMPLATE_CSV
-    return {"source": str(source), "suppliers": _read_csv_dicts(source)}
+    return {"source": str(SUPPLIERS_CSV), "suppliers": _read_csv_dicts(SUPPLIERS_CSV)}
 
 
 def record_transaction(
@@ -332,12 +318,12 @@ def summarize_cashflow(
     for r in rows:
         if user_id and (r.get("user_id") or "").strip() != str(user_id):
             continue
-        dt = _parse_date(r.get("date", ""))
+        dt = _parse_date(r.get("payment_date", ""))
         if dt is None:
             continue
         if dt.timestamp() < cutoff:
             continue
-        amt_str = str(r.get("amount", "0")).replace(",", "")
+        amt_str = str(r.get("payment_amount", "0")).replace(",", "")
         try:
             amount = float(amt_str)
         except Exception:

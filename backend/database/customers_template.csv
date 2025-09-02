@@ -1,2 +1,0 @@
-customer_id,user_id,name,tax_id,address,email,phone,default_payment_terms,preferred_currency,created_at
-CUS-0001,1,Nusantara Retail,ID-987654321,"Jl. Thamrin No. 2, Jakarta",ap@nusaretail.id,+62-21-555-0202,NET15,IDR,2025-08-11T16:53:16.661856

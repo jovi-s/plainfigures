@@ -46,9 +46,9 @@ export function TransactionList() {
         };
         
         const sorted = response.data.sort((a, b) => {
-          const dateA = parseDate(a.date);
-          const dateB = parseDate(b.date);
-          console.log('Sorting dates:', a.date, '->', dateA, 'vs', b.date, '->', dateB);
+          const dateA = parseDate(a.payment_date);
+          const dateB = parseDate(b.payment_date);
+          console.log('Sorting dates:', a.payment_date, '->', dateA, 'vs', b.payment_date, '->', dateB);
           return dateB.getTime() - dateA.getTime();
         });
         console.log('TransactionList: Setting transactions:', sorted);
@@ -161,7 +161,7 @@ export function TransactionList() {
             <div className="space-y-3">
               {transactions.map((transaction) => (
                 <div
-                  key={transaction.transaction_id}
+                  key={transaction.payment_id}
                   className="flex items-center justify-between p-3 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors"
                 >
                   <div className="flex items-center gap-3">
@@ -188,12 +188,12 @@ export function TransactionList() {
                       </div>
                       
                       <div className="text-xs text-neutral-500 mt-1">
-                        {formatDate(transaction.date)} • {transaction.payment_method}
+                        {formatDate(transaction.payment_date)} • {transaction.payment_method}
                       </div>
                       
-                      {transaction.description && (
+                      {transaction.reference && (
                         <div className="text-xs text-neutral-600 mt-1 truncate max-w-[200px]">
-                          {transaction.description}
+                          {transaction.reference}
                         </div>
                       )}
                     </div>
@@ -206,12 +206,12 @@ export function TransactionList() {
                         : 'text-red-600'
                     }`}>
                       {transaction.direction === 'IN' ? '+' : '-'}
-                      {formatAmount(transaction.amount, transaction.currency)}
+                      {formatAmount(transaction.payment_amount, transaction.currency)}
                     </div>
                     
-                    {transaction.tax_amount && transaction.tax_amount > 0 && (
+                    {transaction.fees_amount && transaction.fees_amount > 0 && (
                       <div className="text-xs text-neutral-500">
-                        {t('transactions.tax')}: {formatAmount(transaction.tax_amount, transaction.currency)}
+                        {t('transactions.fees_amount')}: {formatAmount(transaction.fees_amount, transaction.currency)}
                       </div>
                     )}
                   </div>

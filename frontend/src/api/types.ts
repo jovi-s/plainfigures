@@ -13,18 +13,19 @@ export interface ApiResponse<T = any> {
 // Transaction types
 export interface Transaction {
   user_id: string;
-  date: string;
-  category: string;
+  payment_id: string;
+  invoice_id: string;
+  payment_amount: number;
   currency: string;
-  amount: number;
+  payment_date: string;
+  payment_method: string;
+  reference: string;
+  category: string;
   direction: 'IN' | 'OUT';
-  counterparty_id?: string;
-  counterparty_type?: string;
-  transaction_id: string;
-  description?: string;
-  document_reference?: string;
-  tax_amount?: number;
-  payment_method?: string;
+  counterparty_id: string;
+  counterparty_type: string;
+  exchange_rate_used?: number | null;
+  fees_amount?: number | null;
 }
 
 export interface TransactionCreateRequest {
@@ -58,26 +59,39 @@ export interface CashflowSummary {
 export interface Invoice {
   user_id: string;
   invoice_id: string;
-  invoice_type: 'AR' | 'AP';
+  invoice_type: 'Accounts Receivable' | 'Accounts Payable';
+  issue_date: string; // e.g. "1/6/24"
+  due_date: string;   // e.g. "30/6/24"
   counterparty_id: string;
-  issue_date: string;
-  due_date: string;
-  status: 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled';
-  currency: string;
+  currency_code: string;
+  tax_rate_percent_total: number;
+  tax_amount_total: number;
   subtotal: number;
-  tax_rate: number;
-  tax_amount: number;
-  total: number;
-  payment_terms?: string;
-  fx_rate_to_base?: string;
+  payable_amount_total: number;
+  payment_terms: string;
+  purchase_order_ref?: string;
+  status: 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled';
+  paid_date?: string;
+  exhcange_rate_to_base?: number;
   notes?: string;
 }
 
 export interface InvoiceLineItem {
-  description: string;
+  invoice_id: string;
+  line_id: string;
+  item_sku: string;
+  item_name: string;
+  item_description: string;
   quantity: number;
+  unit_code: string;
   unit_price: number;
-  tax_rate: number;
+  currency: string;
+  line_tax_rate_percent: number;
+  line_tax_amount: number;
+  total_amount: number;
+  vendor: string;
+  issue_date: string;
+  due_date: string;
 }
 
 export interface InvoiceCreateRequest {
@@ -94,21 +108,37 @@ export interface InvoiceCreateRequest {
 
 // Customer/Supplier types
 export interface Customer {
-  id: string;
+  customer_id: string;
+  user_id: string;
   name: string;
-  address?: string;
-  tax_id?: string;
+  tax_reg_id?: string;
+  address_line1?: string;
+  address_line2?: string;
+  city?: string;
+  postal_code?: string;
+  contact_name?: string;
   email?: string;
   phone?: string;
+  default_payment_terms?: string;
+  preferred_currency?: string;
+  created_at?: string;
 }
 
 export interface Supplier {
-  id: string;
+  supplier_id: string;
+  user_id: string;
   name: string;
-  address?: string;
-  tax_id?: string;
+  tax_reg_id?: string;
+  address_line1?: string;
+  address_line2?: string;
+  city?: string;
+  postal_code?: string;
+  contact_name?: string;
   email?: string;
   phone?: string;
+  default_payment_terms?: string;
+  preferred_currency?: string;
+  created_at?: string;
 }
 
 // OCR/Upload types

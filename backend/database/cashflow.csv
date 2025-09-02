@@ -1,30 +1,30 @@
-user_id,date,category,currency,amount,direction,counterparty_id,counterparty_type,transaction_id,description,document_reference,tax_amount,payment_method
-1,18-07-2025,Sales Revenue,SGD,3200,IN,CUS-0002,customer,TXN-2025-0718,Sale of consulting services to KL Tech,INV-2025-0718-001,320,Bank Transfer
-1,19-07-2025,Office Supplies,SGD,420,OUT,SUP-0002,supplier,TXN-2025-0719,Purchase of office stationery from PaperMart,INV-2025-0719-002,28,Credit Card
-1,20-07-2025,Sales Revenue,SGD,2100,IN,CUS-0003,customer,TXN-2025-0720,Website development for Jakarta Retail,INV-2025-0720-003,210,Bank Transfer
-1,21-07-2025,Professional Services,MYR,1800,OUT,SUP-0003,supplier,TXN-2025-0721,Accounting services from MY Accountants,INV-2025-0721-004,108,Bank Transfer
-1,22-07-2025,Marketing Expenses,IDR,9000000,OUT,SUP-0004,supplier,TXN-2025-0722,Digital ad campaign for Indonesia market,INV-2025-0722-005,990000,Credit Card
-1,23-07-2025,Sales Revenue,SGD,2750,IN,CUS-0004,customer,TXN-2025-0723,Software license sold to Manila Corp,INV-2025-0723-006,275,Bank Transfer
-1,24-07-2025,Travel Expenses,THB,12000,OUT,SUP-0005,supplier,TXN-2025-0724,Business trip to Bangkok for client meeting,REC-2025-0724-007,800,Cash
-1,25-07-2025,Equipment Purchase,SGD,1800,OUT,SUP-0006,supplier,TXN-2025-0725,Purchase of new office printer,INV-2025-0725-008,126,Bank Transfer
-1,26-07-2025,Sales Revenue,SGD,4100,IN,CUS-0005,customer,TXN-2025-0726,Annual maintenance contract with Penang Foods,INV-2025-0726-009,410,Bank Transfer
-1,27-07-2025,Utilities,SGD,350,OUT,SUP-0007,supplier,TXN-2025-0727,Monthly electricity bill,INV-2025-0727-010,24,Bank Transfer
-1,28-07-2025,Sales Revenue,SGD,1950,IN,CUS-0006,customer,TXN-2025-0728,Mobile app delivered to Ho Chi Minh Startups,INV-2025-0728-011,195,Bank Transfer
-1,29-07-2025,Office Rent,SGD,2800,OUT,SUP-0008,supplier,TXN-2025-0729,June office rent payment,INV-2025-0729-012,196,Bank Transfer
-1,30-07-2025,Sales Revenue,SGD,3600,IN,CUS-0007,customer,TXN-2025-0730,IT support services for Bangkok Biz,INV-2025-0730-013,360,Bank Transfer
-1,31-07-2025,Professional Services,PHP,32000,OUT,SUP-0009,supplier,TXN-2025-0731,Legal review by Manila Law Partners,INV-2025-0731-014,1920,Bank Transfer
-1,01-08-2025,Sales Revenue,SGD,2500,IN,CUS-0008,customer,TXN-2025-0801,Training workshop for KL Fintech,INV-2025-0801-015,250,Bank Transfer
-1,02-08-2025,Internet Expenses,SGD,180,OUT,SUP-0010,supplier,TXN-2025-0802,Monthly broadband subscription,INV-2025-0802-016,12,Bank Transfer
-1,03-08-2025,Sales Revenue,MYR,3500,IN,CUS-0009,customer,TXN-2025-0803,Mobile app project for Johor Bahru Retailers,INV-2025-0803-017,210,Bank Transfer
-1,04-08-2025,Marketing Expenses,SGD,950,OUT,SUP-0011,supplier,TXN-2025-0804,Social media ads for Singapore market,INV-2025-0804-018,76,Credit Card
-1,05-08-2025,Sales Revenue,IDR,12000000,IN,CUS-0010,customer,TXN-2025-0805,Consulting for Surabaya Startups,INV-2025-0805-019,1200000,Bank Transfer
-1,06-08-2025,Travel Expenses,SGD,600,OUT,SUP-0012,supplier,TXN-2025-0806,Flight to Kuala Lumpur for client meeting,REC-2025-0806-020,40,Credit Card
-1,07-08-2025,Sales Revenue,THB,25000,IN,CUS-0011,customer,TXN-2025-0807,Web design for Chiang Mai Cafe,INV-2025-0807-021,2000,Bank Transfer
-1,08-08-2025,Office Supplies,SGD,320,OUT,SUP-0013,supplier,TXN-2025-0808,Printer ink and paper,INV-2025-0808-022,22,Cash
-1,09-08-2025,Sales Revenue,SGD,2800,IN,CUS-0012,customer,TXN-2025-0809,Annual subscription from Singapore client,INV-2025-0809-023,280,Bank Transfer
-1,10-08-2025,Professional Services,MYR,2200,OUT,SUP-0014,supplier,TXN-2025-0810,Tax advisory from KL Tax Experts,INV-2025-0810-024,132,Bank Transfer
-1,11-08-2025,Sales Revenue,PHP,42000,IN,CUS-0013,customer,TXN-2025-0811,Software deployment for Cebu Tech,INV-2025-0811-025,4200,Bank Transfer
-1,12-08-2025,Utilities,SGD,370,OUT,SUP-0007,supplier,TXN-2025-0812,Monthly water bill,INV-2025-0812-026,26,Bank Transfer
-1,13-08-2025,Sales Revenue,SGD,3100,IN,CUS-0014,customer,TXN-2025-0813,Cloud services for Penang Logistics,INV-2025-0813-027,310,Bank Transfer
-1,14-08-2025,Equipment Purchase,SGD,2200,OUT,SUP-0015,supplier,TXN-2025-0814,New laptops for development team,INV-2025-0814-028,154,Bank Transfer
-1,15-08-2025,Sales Revenue,IDR,15000000,IN,CUS-0015,customer,TXN-2025-0815,ERP implementation for Bandung Manufacturing,INV-2025-0815-029,1500000,Bank Transfer
+user_id,payment_id,invoice_id,payment_amount,currency,payment_date,payment_method,reference,category,direction,counterparty_id,counterparty_type,exchange_rate_used,fees_amount
+1,PAY-F733C5DF,INV-2025-0718-001,3200,SGD,18/7/25,Bank Transfer,Sale of consulting services to KL Tech,Sales Revenue,IN,CUS-0002,customer,,
+1,PAY-4AC3C4D1,INV-2025-0719-002,420,SGD,19/7/25,Credit Card,Purchase of office stationery from PaperMart,Office Supplies,OUT,SUP-0002,supplier,,
+1,PAY-5AA2E7FB,INV-2025-0720-003,2100,SGD,20/7/25,Bank Transfer,Website development for Jakarta Retail,Sales Revenue,IN,CUS-0003,customer,,
+1,PAY-96963C85,INV-2025-0721-004,1800,MYR,21/7/25,Bank Transfer,Accounting services from MY Accountants,Professional Services,OUT,SUP-0003,supplier,,
+1,PAY-72127292,INV-2025-0722-005,9000000,IDR,22/7/25,Credit Card,Digital ad campaign for Indonesia market,Marketing Expenses,OUT,SUP-0004,supplier,,
+1,PAY-0414D849,INV-2025-0723-006,2750,SGD,23/7/25,Bank Transfer,Software license sold to Manila Corp,Sales Revenue,IN,CUS-0004,customer,,
+1,PAY-7BA50094,REC-2025-0724-007,12000,THB,24/7/25,Cash,Business trip to Bangkok for client meeting,Travel Expenses,OUT,SUP-0005,supplier,,
+1,PAY-1A78F4BC,INV-2025-0725-008,1800,SGD,25/7/25,Bank Transfer,Purchase of new office printer,Equipment Purchase,OUT,SUP-0006,supplier,,
+1,PAY-7017A8CC,INV-2025-0726-009,4100,SGD,26/7/25,Bank Transfer,Annual maintenance contract with Penang Foods,Sales Revenue,IN,CUS-0005,customer,,
+1,PAY-B6DBC373,INV-2025-0727-010,350,SGD,27/7/25,Bank Transfer,Monthly electricity bill,Utilities,OUT,SUP-0007,supplier,,
+1,PAY-AB628C3B,INV-2025-0728-011,1950,SGD,28/7/25,Bank Transfer,Mobile app delivered to Ho Chi Minh Startups,Sales Revenue,IN,CUS-0006,customer,,
+1,PAY-EF1B5E18,INV-2025-0729-012,2800,SGD,29/7/25,Bank Transfer,June office rent payment,Office Rent,OUT,SUP-0008,supplier,,
+1,PAY-2A2E4F43,INV-2025-0730-013,3600,SGD,30/7/25,Bank Transfer,IT support services for Bangkok Biz,Sales Revenue,IN,CUS-0007,customer,,
+1,PAY-0D1BE335,INV-2025-0731-014,32000,PHP,31/7/25,Bank Transfer,Legal review by Manila Law Partners,Professional Services,OUT,SUP-0009,supplier,,
+1,PAY-97D8DA4A,INV-2025-0801-015,2500,SGD,1/8/25,Bank Transfer,Training workshop for KL Fintech,Sales Revenue,IN,CUS-0008,customer,,
+1,PAY-B06F024D,INV-2025-0802-016,180,SGD,2/8/25,Bank Transfer,Monthly broadband subscription,Internet Expenses,OUT,SUP-0010,supplier,,
+1,PAY-ED764F42,INV-2025-0803-017,3500,MYR,3/8/25,Bank Transfer,Mobile app project for Johor Bahru Retailers,Sales Revenue,IN,CUS-0009,customer,,
+1,PAY-F3ECA276,INV-2025-0804-018,950,SGD,4/8/25,Credit Card,Social media ads for Singapore market,Marketing Expenses,OUT,SUP-0011,supplier,,
+1,PAY-B17B0CAE,INV-2025-0805-019,12000000,IDR,5/8/25,Bank Transfer,Consulting for Surabaya Startups,Sales Revenue,IN,CUS-0010,customer,,
+1,PAY-4AF6390A,REC-2025-0806-020,600,SGD,6/8/25,Credit Card,Flight to Kuala Lumpur for client meeting,Travel Expenses,OUT,SUP-0012,supplier,,
+1,PAY-A14B7353,INV-2025-0807-021,25000,THB,7/8/25,Bank Transfer,Web design for Chiang Mai Cafe,Sales Revenue,IN,CUS-0011,customer,,
+1,PAY-2219966C,INV-2025-0808-022,320,SGD,8/8/25,Cash,Printer ink and paper,Office Supplies,OUT,SUP-0013,supplier,,
+1,PAY-59F1686B,INV-2025-0809-023,2800,SGD,9/8/25,Bank Transfer,Annual subscription from Singapore client,Sales Revenue,IN,CUS-0012,customer,,
+1,PAY-592A4813,INV-2025-0810-024,2200,MYR,10/8/25,Bank Transfer,Tax advisory from KL Tax Experts,Professional Services,OUT,SUP-0014,supplier,,
+1,PAY-38A77B01,INV-2025-0811-025,42000,PHP,11/8/25,Bank Transfer,Software deployment for Cebu Tech,Sales Revenue,IN,CUS-0013,customer,,
+1,PAY-3693DDFF,INV-2025-0812-026,370,SGD,12/8/25,Bank Transfer,Monthly water bill,Utilities,OUT,SUP-0007,supplier,,
+1,PAY-4ADD947D,INV-2025-0813-027,3100,SGD,13/8/25,Bank Transfer,Cloud services for Penang Logistics,Sales Revenue,IN,CUS-0014,customer,,
+1,PAY-AED3FF47,INV-2025-0814-028,2200,SGD,14/8/25,Bank Transfer,New laptops for development team,Equipment Purchase,OUT,SUP-0015,supplier,,
+1,PAY-BB5646E2,INV-2025-0815-029,15000000,IDR,15/8/25,Bank Transfer,ERP implementation for Bandung Manufacturing,Sales Revenue,IN,CUS-0015,customer,,
