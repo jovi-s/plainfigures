@@ -15,10 +15,10 @@ from typing import Dict, List, Any, Optional
 from langchain_core.messages import HumanMessage
 
 # Import the LangGraph agent
-from .agent.graph import graph
+from ..src.agent.graph import graph
 
 # Import currency conversion utilities
-from .tools.finance_tools import CURRENCY_RATES, _convert_to_sgd
+from ..src.tools.finance_tools import CURRENCY_RATES, _convert_to_sgd
 
 
 async def generate_financial_recommendations(user_id: str = "1") -> Dict[str, Any]:
