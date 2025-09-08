@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { CashflowSummary } from "@/components/CashflowSummary";
-import { FileUpload } from "@/components/FileUpload";
 // import { UserProfile } from "@/components/UserProfile";
 import { OpenAIRecommendations } from "@/components/OpenAIRecommendations";
 import { MarketResearch } from "@/components/MarketResearch";
@@ -10,16 +9,14 @@ import { TransactionList } from "@/components/TransactionList";
 import { GenerateInvoice } from "@/components/GenerateInvoice";
 import { LanguagePicker } from "@/components/LanguagePicker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FinanceApiClient } from "@/api/client";
-import { Customer, Supplier, InvoiceData } from "@/api/types";
-import { Building2, TrendingUp, Upload, FileText, RefreshCw } from "lucide-react";
+import { Customer, InvoiceData } from "@/api/types";
+import { Building2, TrendingUp, FileText, RefreshCw } from "lucide-react";
 
 export default function App() {
   const { t } = useTranslation();
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [isBackendReady, setIsBackendReady] = useState(false);
   const [isCheckingBackend, setIsCheckingBackend] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -145,20 +142,13 @@ export default function App() {
     }
   }, []);
 
-  // Load customers and suppliers data
+  // Load customers data
   const loadData = async () => {
     try {
-      const [customersResponse, suppliersResponse] = await Promise.all([
-        FinanceApiClient.getCustomers(),
-        FinanceApiClient.getSuppliers(),
-      ]);
+      const customersResponse = await FinanceApiClient.getCustomers();
 
       if (customersResponse.success && customersResponse.data) {
         setCustomers(customersResponse.data);
-      }
-
-      if (suppliersResponse.success && suppliersResponse.data) {
-        setSuppliers(suppliersResponse.data);
       }
     } catch (error) {
       console.error('Failed to load data:', error);
@@ -312,18 +302,14 @@ export default function App() {
           </div>
         </div>
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4" />
               {t('nav.dashboard')}
             </TabsTrigger>
             <TabsTrigger value="transactions" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
-              {t('nav.transactions')}
-            </TabsTrigger>
-            <TabsTrigger value="upload" className="flex items-center gap-2">
-              <Upload className="h-4 w-4" />
-              {t('nav.upload')}
+              Add Data
             </TabsTrigger>
             <TabsTrigger value="invoices" className="flex items-center gap-2">
               <Building2 className="h-4 w-4" />
@@ -419,57 +405,13 @@ export default function App() {
             </div>
           </TabsContent>
 
-          {/* Transactions Tab */}
+          {/* Add Data Tab (formerly Transactions + Upload) */}
           <TabsContent value="transactions" className="space-y-6">
             <RecordTransactions
-              customers={customers}
-              suppliers={suppliers}
               onTransactionCreated={handleTransactionCreated}
+              onDataExtracted={handleDataExtracted}
               refreshTrigger={refreshTrigger}
             />
-          </TabsContent>
-
-          {/* Upload Tab */}
-          <TabsContent value="upload" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <FileUpload onDataExtracted={handleDataExtracted} />
-              <Card>
-                <div className="mb-4">
-                  <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-2 rounded text-sm">
-                    <strong>Note:</strong> {t('note.image_uploads')}
-                  </div>
-                </div>
-                <CardHeader>
-                  <CardTitle>{t('upload.instructions')}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-sm">{t('upload.supported_formats')}</h3>
-                    <ul className="text-sm text-neutral-600 space-y-1">
-                      <li>• {t('upload.formats.images')}</li>
-                      <li>• {t('upload.formats.documents')}</li>
-                    </ul>
-                  </div>
-
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-sm">{t('upload.what_extract')}</h3>
-                    <ul className="text-sm text-neutral-600 space-y-1">
-                      <li>• {t('upload.extract.vendor')}</li>
-                      <li>• {t('upload.extract.dates')}</li>
-                      <li>• {t('upload.extract.items')}</li>
-                      <li>• {t('upload.extract.tax')}</li>
-                    </ul>
-                  </div>
-
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-sm">{t('upload.processing')}</h3>
-                    <p className="text-sm text-neutral-600">
-                      {t('upload.processing_desc')}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
           </TabsContent>
 
           {/* Invoices Tab */}

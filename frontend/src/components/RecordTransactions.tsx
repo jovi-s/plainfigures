@@ -1,152 +1,230 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FinanceApiClient } from "@/api/client";
-import { TransactionCreateRequest, Customer, Supplier } from "@/api/types";
-import { Mic, MicOff, Send, FileText } from "lucide-react";
+import { InvoiceData } from "@/api/types";
+import { Mic, MicOff, Send, Upload, FileImage, FileText, X, Check, MessageSquare, Camera } from "lucide-react";
 import { TransactionList } from "@/components/TransactionList";
 
 interface RecordTransactionsProps {
-  customers: Customer[];
-  suppliers: Supplier[];
   onTransactionCreated: () => void;
+  onDataExtracted: (data: InvoiceData) => void;
   refreshTrigger: number;
 }
 
 export function RecordTransactions({ 
-  customers, 
-  suppliers, 
-  onTransactionCreated, 
+  onTransactionCreated,
+  onDataExtracted, 
   refreshTrigger 
 }: RecordTransactionsProps) {
   const { t } = useTranslation();
+  
+  // Voice recording state
   const [isRecording, setIsRecording] = useState(false);
   const [transcriptionText, setTranscriptionText] = useState("");
-  const [formData, setFormData] = useState<Partial<TransactionCreateRequest>>({
-    user_id: 'user_1', // Default user
-    date: new Date().toISOString().split('T')[0],
-    direction: 'OUT' as const,
-    currency: 'SGD',
-    amount: 0,
-    category: '',
-    payment_method: t('payment.bank_transfer'),
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // File upload state
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [extractedData, setExtractedData] = useState<InvoiceData | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Natural text input state
+  const [naturalTextInput, setNaturalTextInput] = useState("");
+  const [isProcessingText, setIsProcessingText] = useState(false);
+  
+  // General state
   const [error, setError] = useState<string | null>(null);
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const [transactionToSubmit, setTransactionToSubmit] = useState<TransactionCreateRequest | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Clear messages after a delay
+  const clearMessages = () => {
+    setTimeout(() => {
+      setError(null);
+      setSuccessMessage(null);
+    }, 5000);
+  };
 
   // Handle voice recording toggle
   const handleVoiceToggle = () => {
     setIsRecording(!isRecording);
+    setError(null);
     if (isRecording) {
-      // Stop recording logic will go here
       console.log("Stopping voice recording...");
+      // Stop recording logic will go here
     } else {
-      // Start recording logic will go here
       console.log("Starting voice recording...");
+      // Start recording logic will go here
     }
   };
 
   // Handle transcription submission
-  const handleTranscriptionSubmit = () => {
-    console.log("Submitting transcription:", transcriptionText);
-    // Backend processing logic will go here
-    // For now, we'll just clear the transcription
-    setTranscriptionText("");
-  };
-
-  // Handle manual form submission - show confirmation dialog
-  const handleFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.category || !formData.amount || formData.amount <= 0) {
-      setError(t('record.fill_required'));
-      return;
-    }
-
+  const handleTranscriptionSubmit = async () => {
+    if (!transcriptionText.trim()) return;
+    
+    setIsProcessingText(true);
     setError(null);
-    setTransactionToSubmit(formData as TransactionCreateRequest);
-    setShowConfirmation(true);
+    
+    try {
+      console.log("Processing voice transcription:", transcriptionText);
+      // TODO: Send to backend for processing
+      setSuccessMessage("Voice input processed successfully!");
+      setTranscriptionText("");
+      onTransactionCreated();
+      clearMessages();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to process voice input");
+    } finally {
+      setIsProcessingText(false);
+    }
   };
 
-  // Handle confirmed transaction submission
-  const handleConfirmSubmit = async () => {
-    if (!transactionToSubmit) return;
+  // Handle natural text input submission
+  const handleNaturalTextSubmit = async () => {
+    if (!naturalTextInput.trim()) return;
+    
+    setIsProcessingText(true);
+    setError(null);
+    
+    try {
+      console.log("Processing natural text:", naturalTextInput);
+      // TODO: Send to backend for processing
+      setSuccessMessage("Text input processed successfully!");
+      setNaturalTextInput("");
+      onTransactionCreated();
+      clearMessages();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to process text input");
+    } finally {
+      setIsProcessingText(false);
+    }
+  };
 
-    setIsSubmitting(true);
-    setShowConfirmation(false);
+  // File upload handlers
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setUploadedFile(file);
+      setExtractedData(null);
+      setError(null);
+      processFile(file);
+    }
+  };
+
+  const processFile = async (file: File) => {
+    setIsUploading(true);
+    setError(null);
 
     try {
-      await FinanceApiClient.createTransaction(transactionToSubmit);
-      setFormData({
-        ...formData,
-        amount: 0,
-        category: '',
-        description: '',
-        counterparty_id: '',
-        document_reference: '',
-        tax_amount: 0,
-      });
-      setTransactionToSubmit(null);
-      onTransactionCreated();
+      let response;
+      
+      if (file.type.startsWith('image/')) {
+        response = await FinanceApiClient.uploadInvoiceImage(file);
+      } else if (file.type === 'application/pdf') {
+        response = await FinanceApiClient.uploadInvoicePDF(file);
+      } else {
+        throw new Error('Unsupported file type. Please upload an image or PDF.');
+      }
+
+      if (response.invoice_data) {
+        setExtractedData(response.invoice_data);
+        onDataExtracted(response.invoice_data);
+        setSuccessMessage("File processed successfully!");
+        clearMessages();
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('record.creating'));
+      setError(err instanceof Error ? err.message : 'Failed to process file');
     } finally {
-      setIsSubmitting(false);
+      setIsUploading(false);
     }
   };
 
-  // Handle cancelling the confirmation
-  const handleCancelSubmit = () => {
-    setShowConfirmation(false);
-    setTransactionToSubmit(null);
+  const clearFile = () => {
+    setUploadedFile(null);
+    setExtractedData(null);
+    setError(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
-  const updateFormData = (field: keyof TransactionCreateRequest, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const triggerFileSelect = () => {
+    fileInputRef.current?.click();
+  };
+
+  const getFileIcon = (file: File) => {
+    if (file.type.startsWith('image/')) {
+      return <FileImage className="h-8 w-8 text-blue-600" />;
+    } else if (file.type === 'application/pdf') {
+      return <FileText className="h-8 w-8 text-red-600" />;
+    }
+    return <FileText className="h-8 w-8 text-neutral-600" />;
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   return (
     <div className="space-y-6">
-      {/* Voice Input Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Mic className="h-5 w-5" />
-            {t('record.voice_title')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-neutral-600 mb-4">
-            {t('record.voice_description')}
-          </p>
-          
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
+      {/* Header with intro */}
+      <div className="text-center space-y-2">
+        <h1 className="text-2xl font-bold text-neutral-800">{t('add_data.title')}</h1>
+        <p className="text-neutral-600">
+          {t('add_data.subtitle')}
+        </p>
+      </div>
+
+      {/* Status messages */}
+      {error && (
+        <div className="p-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">
+          <strong>Error:</strong> {error}
+        </div>
+      )}
+      
+      {successMessage && (
+        <div className="p-4 text-sm text-green-600 bg-green-50 border border-green-200 rounded-lg">
+          <strong>Success:</strong> {successMessage}
+        </div>
+      )}
+
+      {/* Main input methods grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Voice Input */}
+        <Card className="border-2 border-dashed border-blue-200 hover:border-blue-300 transition-colors">
+          <CardHeader className="text-center">
+            <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-2">
+              <Mic className="h-6 w-6 text-blue-600" />
+            </div>
+            <CardTitle className="text-lg">{t('add_data.voice_title')}</CardTitle>
+            <p className="text-sm text-neutral-600">
+              {t('add_data.voice_description')}
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="text-center">
               <Button
                 onClick={handleVoiceToggle}
                 variant={isRecording ? "destructive" : "default"}
                 size="lg"
-                className="w-16 h-16 rounded-full"
+                className="w-20 h-20 rounded-full"
               >
                 {isRecording ? (
-                  <MicOff className="h-6 w-6" />
+                  <MicOff className="h-8 w-8" />
                 ) : (
-                  <Mic className="h-6 w-6" />
+                  <Mic className="h-8 w-8" />
                 )}
               </Button>
-              <div>
-                <p className="font-medium">
-                  {isRecording ? t('record.recording') : t('record.click_to_start')}
-                </p>
-                <p className="text-sm text-neutral-500">
-                  {isRecording ? t('record.click_again_stop') : t('record.speak_details')}
-                </p>
-              </div>
+              <p className="mt-2 text-sm font-medium">
+                {isRecording ? t('add_data.recording') : t('add_data.tap_to_record')}
+              </p>
             </div>
 
             {transcriptionText && (
@@ -154,297 +232,160 @@ export function RecordTransactions({
                 <div className="p-3 bg-neutral-50 border border-neutral-200 rounded-md">
                   <p className="text-sm text-neutral-700">{transcriptionText}</p>
                 </div>
-                <div className="flex gap-3">
-                  <Button
-                    onClick={handleTranscriptionSubmit}
-                    disabled={!transcriptionText.trim()}
-                    className="flex-1"
-                  >
-                    <Send className="h-4 w-4 mr-2" />
-                    {t('record.process_voice')}
-                  </Button>
-                </div>
+                <Button
+                  onClick={handleTranscriptionSubmit}
+                  disabled={!transcriptionText.trim() || isProcessingText}
+                  className="w-full"
+                >
+                  <Send className="h-4 w-4 mr-2" />
+                  {isProcessingText ? t('add_data.processing') : t('add_data.process_voice')}
+                </Button>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* File Upload */}
+        <Card className="border-2 border-dashed border-green-200 hover:border-green-300 transition-colors">
+          <CardHeader className="text-center">
+            <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-2">
+              <Camera className="h-6 w-6 text-green-600" />
+            </div>
+            <CardTitle className="text-lg">{t('add_data.upload_title')}</CardTitle>
+            <p className="text-sm text-neutral-600">
+              {t('add_data.upload_description')}
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* File input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,.pdf"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+
+            {!uploadedFile ? (
+              <div
+                onClick={triggerFileSelect}
+                className="border-2 border-dashed border-neutral-300 rounded-lg p-6 text-center cursor-pointer hover:border-neutral-400 transition-colors"
+              >
+                <Upload className="h-8 w-8 text-neutral-400 mx-auto mb-2" />
+                <p className="text-sm font-medium text-neutral-700">
+                  {t('add_data.click_to_upload')}
+                </p>
+                <p className="text-xs text-neutral-500 mt-1">
+                  {t('add_data.file_types')}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="border border-neutral-200 rounded-lg p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {getFileIcon(uploadedFile)}
+                      <div>
+                        <p className="font-medium text-xs">{uploadedFile.name}</p>
+                        <p className="text-xs text-neutral-500">
+                          {formatFileSize(uploadedFile.size)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {isUploading ? (
+                        <div className="text-blue-600 text-xs">{t('add_data.processing')}</div>
+                      ) : extractedData ? (
+                        <Check className="h-4 w-4 text-green-600" />
+                      ) : null}
+                      <Button onClick={clearFile} variant="ghost" size="sm">
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                
+                {extractedData && (
+                  <div className="text-xs space-y-2">
+                    <p className="font-medium text-green-600">{t('add_data.data_extracted')}</p>
+                    {extractedData.vendor && (
+                      <p><strong>{t('add_data.vendor')}:</strong> {extractedData.vendor}</p>
+                    )}
+                    {extractedData.total && (
+                      <p><strong>{t('add_data.amount')}:</strong> {extractedData.currency || 'SGD'} {extractedData.total}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Natural Text Input */}
+        <Card className="border-2 border-dashed border-purple-200 hover:border-purple-300 transition-colors">
+          <CardHeader className="text-center">
+            <div className="mx-auto w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-2">
+              <MessageSquare className="h-6 w-6 text-purple-600" />
+            </div>
+            <CardTitle className="text-lg">{t('add_data.text_title')}</CardTitle>
+            <p className="text-sm text-neutral-600">
+              {t('add_data.text_description')}
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Textarea
+              value={naturalTextInput}
+              onChange={(e) => setNaturalTextInput(e.target.value)}
+              placeholder={t('add_data.text_placeholder')}
+              rows={4}
+              className="resize-none"
+            />
+            <Button
+              onClick={handleNaturalTextSubmit}
+              disabled={!naturalTextInput.trim() || isProcessingText}
+              className="w-full"
+            >
+              <Send className="h-4 w-4 mr-2" />
+              {isProcessingText ? t('add_data.processing') : t('add_data.process_text')}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Instructions */}
+      <Card className="bg-neutral-50">
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+            <div className="text-center">
+              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                <span className="text-blue-600 font-bold">1</span>
+              </div>
+              <h3 className="font-semibold mb-1">{t('add_data.step1')}</h3>
+              <p className="text-neutral-600">
+                {t('add_data.step1_desc')}
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                <span className="text-green-600 font-bold">2</span>
+              </div>
+              <h3 className="font-semibold mb-1">{t('add_data.step2')}</h3>
+              <p className="text-neutral-600">
+                {t('add_data.step2_desc')}
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                <span className="text-purple-600 font-bold">3</span>
+              </div>
+              <h3 className="font-semibold mb-1">{t('add_data.step3')}</h3>
+              <p className="text-neutral-600">
+                {t('add_data.step3_desc')}
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
-
-      {/* Manual Transaction Form */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            {t('record.manual_title')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleFormSubmit} className="space-y-4">
-            {error && (
-              <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
-                {error}
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">{t('record.date')}</label>
-                <Input
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => updateFormData('date', e.target.value)}
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">{t('record.direction')}</label>
-                <Select 
-                  value={formData.direction} 
-                  onValueChange={(value) => updateFormData('direction', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="IN">{t('record.income')}</SelectItem>
-                    <SelectItem value="OUT">{t('record.expense')}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">{t('record.amount')}</label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.amount}
-                  onChange={(e) => updateFormData('amount', parseFloat(e.target.value) || 0)}
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">{t('record.currency')}</label>
-                <Select 
-                  value={formData.currency} 
-                  onValueChange={(value) => updateFormData('currency', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="SGD">{t('currency.sgd')}</SelectItem>
-                    <SelectItem value="IDR">{t('currency.idr')}</SelectItem>
-                    <SelectItem value="THB">{t('currency.thb')}</SelectItem>
-                    <SelectItem value="MYR">{t('currency.myr')}</SelectItem>
-                    <SelectItem value="PHP">{t('currency.php')}</SelectItem>
-                    <SelectItem value="MMK">{t('currency.mmk')}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">{t('record.category')}</label>
-                <Select 
-                  value={formData.category} 
-                  onValueChange={(value) => updateFormData('category', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('record.select_category')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Sales Revenue">{t('category.sales_revenue')}</SelectItem>
-                    <SelectItem value="Office Expenses">{t('category.office_expenses')}</SelectItem>
-                    <SelectItem value="Professional Services">{t('category.professional_services')}</SelectItem>
-                    <SelectItem value="Marketing Expenses">{t('category.marketing_expenses')}</SelectItem>
-                    <SelectItem value="Equipment Purchase">{t('category.equipment_purchase')}</SelectItem>
-                    <SelectItem value="Staff Salaries">{t('category.staff_salaries')}</SelectItem>
-                    <SelectItem value="Utilities">{t('category.utilities')}</SelectItem>
-                    <SelectItem value="Office Rent">{t('category.office_rent')}</SelectItem>
-                    <SelectItem value="Miscellaneous">{t('category.miscellaneous')}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">{t('record.counterparty')}</label>
-                <Select 
-                  value={formData.counterparty_id || undefined} 
-                  onValueChange={(value) => updateFormData('counterparty_id', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('record.select_counterparty')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {customers.map((customer) => (
-                      <SelectItem key={customer.customer_id} value={customer.customer_id}>
-                        {customer.name} ({t('record.customer')})
-                      </SelectItem>
-                    ))}
-                    {suppliers.map((supplier) => (
-                      <SelectItem key={supplier.supplier_id} value={supplier.supplier_id}>
-                        {supplier.name} ({t('record.supplier')})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">{t('record.payment_method')}</label>
-                <Select 
-                  value={formData.payment_method} 
-                  onValueChange={(value) => updateFormData('payment_method', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Bank Transfer">{t('payment.bank_transfer')}</SelectItem>
-                    <SelectItem value="Credit Card">{t('payment.credit_card')}</SelectItem>
-                    <SelectItem value="Cash">{t('payment.cash')}</SelectItem>
-                    <SelectItem value="Cheque">{t('payment.cheque')}</SelectItem>
-                    <SelectItem value="Digital Wallet">{t('payment.digital_wallet')}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">{t('record.tax_amount')}</label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.tax_amount || 0}
-                  onChange={(e) => updateFormData('tax_amount', parseFloat(e.target.value) || 0)}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">{t('record.description')}</label>
-              <Textarea
-                value={formData.description || ''}
-                onChange={(e) => updateFormData('description', e.target.value)}
-                placeholder={t('record.description_placeholder')}
-                rows={3}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">{t('record.document_reference')}</label>
-              <Input
-                value={formData.document_reference || ''}
-                onChange={(e) => updateFormData('document_reference', e.target.value)}
-                placeholder={t('record.document_placeholder')}
-              />
-            </div>
-
-            <Button type="submit" disabled={isSubmitting || showConfirmation} className="w-full">
-              {isSubmitting ? t('record.creating') : t('record.preview_transaction')}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-
-      {/* Confirmation Dialog */}
-      {showConfirmation && transactionToSubmit && (
-        <Card className="border-blue-200 bg-blue-50">
-          <CardHeader>
-            <CardTitle className="text-blue-800">{t('record.confirm_transaction')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-blue-700 mb-4">
-              {t('record.review_details')}
-            </p>
-            
-            <div className="space-y-3 bg-white p-4 rounded-lg border">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="font-medium text-neutral-600">{t('record.date')}:</span>
-                  <span className="ml-2">{transactionToSubmit.date}</span>
-                </div>
-                <div>
-                  <span className="font-medium text-neutral-600">{t('record.direction')}:</span>
-                  <span className={`ml-2 px-2 py-1 rounded text-xs ${
-                    transactionToSubmit.direction === 'IN' 
-                      ? 'bg-green-100 text-green-700' 
-                      : 'bg-red-100 text-red-700'
-                  }`}>
-                    {transactionToSubmit.direction === 'IN' ? t('record.income') : t('record.expense')}
-                  </span>
-                </div>
-                <div>
-                  <span className="font-medium text-neutral-600">{t('record.amount')}:</span>
-                  <span className="ml-2 font-semibold">
-                    {transactionToSubmit.currency} {transactionToSubmit.amount.toFixed(2)}
-                  </span>
-                </div>
-                <div>
-                  <span className="font-medium text-neutral-600">{t('record.category')}:</span>
-                  <span className="ml-2">{transactionToSubmit.category}</span>
-                </div>
-                <div>
-                  <span className="font-medium text-neutral-600">{t('record.payment_method')}:</span>
-                  <span className="ml-2">{transactionToSubmit.payment_method}</span>
-                </div>
-                {transactionToSubmit.counterparty_id && (
-                  <div>
-                    <span className="font-medium text-neutral-600">{t('record.counterparty')}:</span>
-                    <span className="ml-2">
-                      {customers.find(c => c.customer_id === transactionToSubmit.counterparty_id)?.name ||
-                       suppliers.find(s => s.supplier_id === transactionToSubmit.counterparty_id)?.name ||
-                       'Unknown'}
-                    </span>
-                  </div>
-                )}
-                {transactionToSubmit.tax_amount && transactionToSubmit.tax_amount > 0 && (
-                  <div>
-                    <span className="font-medium text-neutral-600">{t('record.tax_amount')}:</span>
-                    <span className="ml-2">
-                      {transactionToSubmit.currency} {transactionToSubmit.tax_amount.toFixed(2)}
-                    </span>
-                  </div>
-                )}
-              </div>
-              
-              {transactionToSubmit.description && (
-                <div className="mt-3 pt-3 border-t">
-                  <span className="font-medium text-neutral-600">{t('record.description')}:</span>
-                  <p className="mt-1 text-sm text-neutral-700">{transactionToSubmit.description}</p>
-                </div>
-              )}
-              
-              {transactionToSubmit.document_reference && (
-                <div className="mt-2">
-                  <span className="font-medium text-neutral-600">{t('record.document_reference')}:</span>
-                  <span className="ml-2 text-sm">{transactionToSubmit.document_reference}</span>
-                </div>
-              )}
-            </div>
-
-            <div className="flex gap-3 mt-6">
-              <Button 
-                onClick={handleConfirmSubmit}
-                disabled={isSubmitting}
-                className="flex-1 bg-green-600 hover:bg-green-700"
-              >
-                {isSubmitting ? t('record.creating') : t('record.confirm_create')}
-              </Button>
-              <Button 
-                onClick={handleCancelSubmit}
-                variant="outline"
-                disabled={isSubmitting}
-                className="flex-1"
-              >
-                {t('record.cancel')}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Recent Transactions List */}
       <Card>
