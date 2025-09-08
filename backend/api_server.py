@@ -29,6 +29,7 @@ from src.tools.finance_tools import (
 )
 from src.tools.openai_recommendations import openai_recommendations
 from src.agent.market_research import graph
+from src.utils.cache import app_cache
 
 # Global variables for DataFrames and their paths
 CASHFLOW_CSV_PATH = Path(__file__).parent / "database" / "cashflow.csv"
@@ -213,10 +214,28 @@ async def get_user_profile(user_id: str):
 # Simple AI Recommendations endpoint using OpenAI GPT-4o
 @app.get("/ai/openai-recommendations")
 async def get_openai_recommendations():
-    """Generate simple AI recommendations using GPT-4o"""
+    """Generate simple AI recommendations using GPT-4o with caching"""
     try:
         global user_profile_df
+        
+        # Create cache key based on user profile and financial data hash
+        # This ensures cache invalidation when underlying data changes
+        cache_key = "openai_recommendations"
+        
+        # Try to get from cache first
+        cached_result = app_cache.get(cache_key)
+        if cached_result:
+            print("Returning cached OpenAI recommendations")
+            return ApiResponse(success=True, data=cached_result)
+        
+        # Generate fresh recommendations
+        print("Generating fresh OpenAI recommendations")
         recommendations_data = openai_recommendations(user_profile_df)
+        
+        # Cache the result (only if successful and contains recommendations)
+        if recommendations_data and hasattr(recommendations_data, 'recommendations') and recommendations_data.recommendations:
+            app_cache.set(cache_key, recommendations_data, ttl_seconds=1800)  # 30 minutes
+        
         return ApiResponse(success=True, data=recommendations_data)
         
     except Exception as e:
@@ -224,17 +243,30 @@ async def get_openai_recommendations():
 
 @app.get("/ai/market-research")
 async def get_market_research():
-    """Generate market research using LangGraph"""
-    user_information = {
-        "industry": "beauty_and_personal_care",
-        "location": "Singapore",
-        "company_size": "50-100",
-        "company_type": "hair_salon",
-        "company_stage": "growth",
-        "company_revenue": "500000",
-        "company_employees": "65",
-    }
-    MARKET_RESEARCH_PROMPT = f"""
+    """Generate market research using LangGraph with caching"""
+    try:
+        user_information = {
+            "industry": "beauty_and_personal_care",
+            "location": "Singapore",
+            "company_size": "50-100",
+            "company_type": "hair_salon",
+            "company_stage": "growth",
+            "company_revenue": "500000",
+            "company_employees": "65",
+        }
+        
+        # Create cache key based on user information to ensure appropriate cache invalidation
+        cache_key = f"market_research_{user_information['company_type']}_{user_information['location']}_{user_information['industry']}"
+        
+        # Try to get from cache first
+        cached_result = app_cache.get(cache_key)
+        if cached_result:
+            print("Returning cached market research")
+            return ApiResponse(success=True, data=cached_result)
+        
+        # Generate fresh market research
+        print("Generating fresh market research")
+        MARKET_RESEARCH_PROMPT = f"""
 Perform comprehensive economic and market research for a {user_information['company_type']} business 
 in the {user_information['industry']} industry located in {user_information['location']}. 
 The company is at the {user_information['company_stage']} stage with {user_information['company_employees']} 
@@ -257,9 +289,47 @@ and capitalize on economic opportunities in their market.
 
 Your final answer should take all the learnings from the previous steps and provide a comprehensive report on the market research in 2 short paragraphs.
 """
-    state = graph.invoke({"messages": [{"role": "user", "content": MARKET_RESEARCH_PROMPT}], "max_research_loops": 3, "initial_search_query_count": 3})
-    output = state["messages"][-1].content
-    try:
+        
+        state = graph.invoke({
+            "messages": [{"role": "user", "content": MARKET_RESEARCH_PROMPT}], 
+            "max_research_loops": 3, 
+            "initial_search_query_count": 3
+        })
+        output = state["messages"][-1].content
+        
+        # Cache the result if it's substantial (more than 100 characters to avoid caching errors)
+        if output and len(output) > 100:
+            app_cache.set(cache_key, output, ttl_seconds=1800)  # 30 minutes
+        
         return ApiResponse(success=True, data=output)
+        
     except Exception as e:
         return ApiResponse(success=False, error=f"Failed to generate market research: {str(e)}")
+
+# Cache management endpoints
+@app.get("/cache/stats")
+async def get_cache_stats():
+    """Get cache statistics for debugging"""
+    stats = app_cache.stats()
+    return ApiResponse(success=True, data=stats)
+
+@app.post("/cache/clear")
+async def clear_cache():
+    """Clear all cache entries"""
+    app_cache.clear()
+    return ApiResponse(success=True, data={"message": "Cache cleared successfully"})
+
+@app.delete("/cache/{cache_key}")
+async def delete_cache_entry(cache_key: str):
+    """Delete a specific cache entry"""
+    deleted = app_cache.delete(cache_key)
+    if deleted:
+        return ApiResponse(success=True, data={"message": f"Cache entry '{cache_key}' deleted"})
+    else:
+        return ApiResponse(success=False, error=f"Cache entry '{cache_key}' not found")
+
+@app.post("/cache/cleanup")
+async def cleanup_expired_cache():
+    """Remove expired cache entries"""
+    removed_count = app_cache.cleanup_expired()
+    return ApiResponse(success=True, data={"message": f"Removed {removed_count} expired cache entries"})

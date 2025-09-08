@@ -97,10 +97,52 @@ export default function App() {
 
   // Load cached data on app initialization
   useEffect(() => {
-    // Clear any existing cache on app start to prevent stale generic recommendations
-    clearRecommendationsCache();
-    clearMarketResearchCache();
-    // Note: Data will be fetched fresh when the components mount
+    // Load cached data from localStorage if available and valid
+    try {
+      // Load cached recommendations
+      const cachedRecs = localStorage.getItem('aiRecommendations');
+      const recsTimestamp = localStorage.getItem('aiRecommendationsTimestamp');
+      
+      if (cachedRecs && recsTimestamp) {
+        const timestamp = parseInt(recsTimestamp);
+        const isRecsValid = Date.now() - timestamp < CACHE_DURATION;
+        
+        if (isRecsValid) {
+          const recommendations = JSON.parse(cachedRecs);
+          setCachedRecommendations(recommendations);
+          setRecommendationsCacheTime(timestamp);
+          console.log('Loaded cached recommendations from localStorage');
+        } else {
+          // Clear expired cache
+          localStorage.removeItem('aiRecommendations');
+          localStorage.removeItem('aiRecommendationsTimestamp');
+        }
+      }
+      
+      // Load cached market research
+      const cachedResearch = localStorage.getItem('marketResearch');
+      const researchTimestamp = localStorage.getItem('marketResearchTimestamp');
+      
+      if (cachedResearch && researchTimestamp) {
+        const timestamp = parseInt(researchTimestamp);
+        const isResearchValid = Date.now() - timestamp < CACHE_DURATION;
+        
+        if (isResearchValid) {
+          setCachedMarketResearch(cachedResearch);
+          setMarketResearchCacheTime(timestamp);
+          console.log('Loaded cached market research from localStorage');
+        } else {
+          // Clear expired cache
+          localStorage.removeItem('marketResearch');
+          localStorage.removeItem('marketResearchTimestamp');
+        }
+      }
+    } catch (error) {
+      console.error('Error loading cached data:', error);
+      // Clear corrupted cache
+      clearRecommendationsCache();
+      clearMarketResearchCache();
+    }
   }, []);
 
   // Load customers and suppliers data
