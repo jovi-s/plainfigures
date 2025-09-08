@@ -9,6 +9,7 @@ import os
 
 from fastapi import FastAPI, HTTPException, File
 from fastapi.middleware.cors import CORSMiddleware
+from langchain_core.messages import HumanMessage
 from pathlib import Path
 from typing import Optional
 
@@ -290,12 +291,12 @@ and capitalize on economic opportunities in their market.
 Your final answer should take all the learnings from the previous steps and provide a comprehensive report on the market research in 2 short paragraphs.
 """
         
-        state = graph.invoke({
-            "messages": [{"role": "user", "content": MARKET_RESEARCH_PROMPT}], 
+        result = graph.invoke({
+            "messages": [HumanMessage(content=MARKET_RESEARCH_PROMPT)], 
             "max_research_loops": 3, 
             "initial_search_query_count": 3
         })
-        output = state["messages"][-1].content
+        output = result["messages"][-1].content
         
         # Cache the result if it's substantial (more than 100 characters to avoid caching errors)
         if output and len(output) > 100:
