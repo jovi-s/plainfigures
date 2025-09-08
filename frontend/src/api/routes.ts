@@ -3,9 +3,8 @@
  * This serves as a proxy layer between the React frontend and Python backend
  */
 
-import { 
-  TransactionCreateRequest
-} from './types';
+// Import statements for type checking if needed
+// import { } from './types';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -65,32 +64,6 @@ export const FinanceRoutes = {
   },
 
   // Transaction operations
-  async createTransaction(data: TransactionCreateRequest) {
-    // Map to backend function call format
-    const payload = {
-      function_name: 'record_transaction',
-      parameters: {
-        user_id: data.user_id,
-        date: data.date,
-        category: data.category,
-        currency: data.currency,
-        amount: data.amount,
-        direction: data.direction,
-        counterparty_id: data.counterparty_id,
-        counterparty_type: data.counterparty_type,
-        description: data.description,
-        document_reference: data.document_reference,
-        tax_amount: data.tax_amount,
-        payment_method: data.payment_method,
-      }
-    };
-
-    return backendRequest('/functions/call', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
-  },
-
   async getTransactions(userId?: string) {
     // Get transactions directly from the REST endpoint
     const params = userId ? `?user_id=${encodeURIComponent(userId)}` : '';
@@ -116,18 +89,6 @@ export const FinanceRoutes = {
   async getCustomers() {
     const payload = {
       function_name: 'load_customers',
-      parameters: {}
-    };
-
-    return backendRequest('/functions/call', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
-  },
-
-  async getSuppliers() {
-    const payload = {
-      function_name: 'load_suppliers',
       parameters: {}
     };
 

@@ -132,29 +132,6 @@ async def call_function(request: FunctionCallRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 # Transaction endpoints
-@app.post("/transactions")
-async def create_transaction(request: TransactionRequest):
-    """Create a new transaction"""
-    try:
-        result = record_transaction(
-            user_id=request.user_id,
-            date=request.date,
-            category=request.category,
-            currency=request.currency,
-            amount=request.amount,
-            direction=request.direction,
-            counterparty_id=request.counterparty_id,
-            counterparty_type=request.counterparty_type,
-            description=request.description,
-            document_reference=request.document_reference,
-            tax_amount=request.tax_amount,
-            payment_method=request.payment_method,
-        )
-        
-        return ApiResponse(success=True, data=result)
-    except Exception as e:
-        return ApiResponse(success=False, error=str(e))
-
 @app.get("/transactions")
 async def get_transactions(user_id: Optional[str] = None):
     """Get all transactions"""
@@ -306,31 +283,3 @@ Your final answer should take all the learnings from the previous steps and prov
         
     except Exception as e:
         return ApiResponse(success=False, error=f"Failed to generate market research: {str(e)}")
-
-# Cache management endpoints
-@app.get("/cache/stats")
-async def get_cache_stats():
-    """Get cache statistics for debugging"""
-    stats = app_cache.stats()
-    return ApiResponse(success=True, data=stats)
-
-@app.post("/cache/clear")
-async def clear_cache():
-    """Clear all cache entries"""
-    app_cache.clear()
-    return ApiResponse(success=True, data={"message": "Cache cleared successfully"})
-
-@app.delete("/cache/{cache_key}")
-async def delete_cache_entry(cache_key: str):
-    """Delete a specific cache entry"""
-    deleted = app_cache.delete(cache_key)
-    if deleted:
-        return ApiResponse(success=True, data={"message": f"Cache entry '{cache_key}' deleted"})
-    else:
-        return ApiResponse(success=False, error=f"Cache entry '{cache_key}' not found")
-
-@app.post("/cache/cleanup")
-async def cleanup_expired_cache():
-    """Remove expired cache entries"""
-    removed_count = app_cache.cleanup_expired()
-    return ApiResponse(success=True, data={"message": f"Removed {removed_count} expired cache entries"})

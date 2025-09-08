@@ -4,10 +4,8 @@
 import {
   ApiResponse,
   Transaction,
-  TransactionCreateRequest,
   CashflowSummary,
   Customer,
-  Supplier,
   UploadResponse,
   UserProfile,
 } from './types';
@@ -33,21 +31,6 @@ class ApiError extends Error {
  */
 export class FinanceApiClient {
   // Transaction operations
-  static async createTransaction(data: TransactionCreateRequest): Promise<ApiResponse<Transaction>> {
-    try {
-      const result = await FinanceRoutes.createTransaction(data);
-      return {
-        success: true,
-        data: result as Transaction,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
-    }
-  }
-
   static async getTransactions(userId?: string): Promise<ApiResponse<Transaction[]>> {
     try {
       const result = await FinanceRoutes.getTransactions(userId) as any;
@@ -90,21 +73,6 @@ export class FinanceApiClient {
       return {
         success: true,
         data: (result.customers || []) as Customer[],
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
-    }
-  }
-
-  static async getSuppliers(): Promise<ApiResponse<Supplier[]>> {
-    try {
-      const result = await FinanceRoutes.getSuppliers() as any;
-      return {
-        success: true,
-        data: (result.suppliers || []) as Supplier[],
       };
     } catch (error) {
       return {
