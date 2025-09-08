@@ -6,6 +6,7 @@ Provides REST API endpoints for the frontend to communicate with the backend
 import pandas as pd
 import openai
 import os
+import re
 
 from fastapi import FastAPI, HTTPException, File
 from fastapi.middleware.cors import CORSMiddleware
@@ -29,8 +30,24 @@ from src.tools.finance_tools import (
     extract_invoice_data_from_pdf,
 )
 from src.tools.openai_recommendations import openai_recommendations
+from src.tools.enhanced_recommendations import generate_enhanced_recommendations
+from src.tools.chart_generator import generate_charts_for_recommendations
 from src.agent.market_research import graph
 from src.utils.cache import app_cache
+
+def clean_market_research_text(text: str) -> str:
+    """Clean up market research text by removing garbled URLs and citations"""
+    # Remove URLs with grounding API references that contain encoded content
+    text = re.sub(r'\[([^\]]+)\]\(https://vertexaisearch\.cloud\.google\.com/grounding-api-redirect/[^)]+\)', r'[\1]', text)
+    
+    # Remove any remaining long encoded strings that look like base64
+    text = re.sub(r'[A-Za-z0-9+/=]{50,}', '', text)
+    
+    # Clean up extra spaces and newlines
+    text = re.sub(r'\s+', ' ', text)
+    text = text.strip()
+    
+    return text
 
 # Global variables for DataFrames and their paths
 CASHFLOW_CSV_PATH = Path(__file__).parent / "database" / "cashflow.csv"
@@ -296,7 +313,10 @@ Your final answer should take all the learnings from the previous steps and prov
             "max_research_loops": 3, 
             "initial_search_query_count": 3
         })
-        output = result["messages"][-1].content
+        raw_output = result["messages"][-1].content
+        
+        # Clean up the market research text to remove garbled URLs
+        output = clean_market_research_text(raw_output)
         
         # Cache the result if it's substantial (more than 100 characters to avoid caching errors)
         if output and len(output) > 100:
@@ -334,3 +354,98 @@ async def cleanup_expired_cache():
     """Remove expired cache entries"""
     removed_count = app_cache.cleanup_expired()
     return ApiResponse(success=True, data={"message": f"Removed {removed_count} expired cache entries"})
+
+# AI Charts and Visualization endpoint
+@app.get("/ai/charts")
+async def get_ai_charts():
+    """Generate AI-powered charts and forecasts with caching"""
+    try:
+        global cashflow_df, user_profile_df
+        
+        # Create cache key
+        cache_key = "ai_charts_visualization"
+        
+        # Try to get from cache first
+        cached_result = app_cache.get(cache_key)
+        if cached_result:
+            print("Returning cached AI charts")
+            return ApiResponse(success=True, data=cached_result)
+        
+        # Generate fresh charts and insights
+        print("Generating fresh AI charts and forecasts")
+        
+        # Prepare user profile data
+        user_profile = {}
+        if user_profile_df is not None and not user_profile_df.empty:
+            user_profile = user_profile_df.iloc[0].to_dict()
+        
+        # Generate charts using the cashflow data
+        if cashflow_df is None or cashflow_df.empty:
+            return ApiResponse(success=False, error="No cashflow data available for chart generation")
+        
+        charts_data = generate_charts_for_recommendations(cashflow_df, user_profile)
+        
+        # Cache the result (charts are expensive to generate)
+        app_cache.set(cache_key, charts_data, ttl_seconds=3600)  # 1 hour cache
+        
+        return ApiResponse(success=True, data=charts_data)
+        
+    except Exception as e:
+        print(f"Error generating AI charts: {e}")
+        return ApiResponse(success=False, error=f"Failed to generate charts: {str(e)}")
+
+
+# Enhanced AI Recommendations with Market Research Integration
+@app.post("/ai/enhanced-recommendations")
+async def get_enhanced_recommendations(market_research: dict):
+    """Generate enhanced AI recommendations combining financial data with market research"""
+    try:
+        global cashflow_df, user_profile_df
+        
+        # Extract market research data from request
+        market_data = market_research.get("market_research_data", "")
+        if not market_data.strip():
+            return ApiResponse(success=False, error="Market research data is required")
+        
+        # Create cache key based on market data hash
+        import hashlib
+        market_hash = hashlib.md5(market_data.encode()).hexdigest()[:8]
+        cache_key = f"enhanced_recommendations_{market_hash}"
+        
+        # Try to get from cache first
+        cached_result = app_cache.get(cache_key)
+        if cached_result:
+            print(f"Cache HIT: {cache_key}")
+            return ApiResponse(success=True, data=cached_result)
+        
+        print(f"Cache MISS: {cache_key}")
+        print(f"Generating enhanced recommendations with market intelligence...")
+        
+        # First get existing AI recommendations from financial data
+        print("Getting existing AI recommendations...")
+        existing_ai_recs_data = openai_recommendations(user_profile_df)
+        existing_recommendations = existing_ai_recs_data.get("recommendations", []) if existing_ai_recs_data else []
+        print(f"Found {len(existing_recommendations)} existing AI recommendations")
+        
+        # Generate enhanced recommendations combining existing recs with market research
+        enhanced_recommendations = await generate_enhanced_recommendations(
+            cashflow_df=cashflow_df,
+            user_profile_df=user_profile_df, 
+            market_research_data=market_data,
+            existing_ai_recommendations=existing_recommendations
+        )
+        
+        # Cache the result (expire in 2 hours since it's contextual)
+        app_cache.set(cache_key, enhanced_recommendations, ttl_seconds=7200)  # 2 hours
+        print(f"Cache SET: {cache_key}")
+        
+        return ApiResponse(success=True, data=enhanced_recommendations)
+        
+    except Exception as e:
+        print(f"Error in enhanced recommendations endpoint: {str(e)}")
+        return ApiResponse(success=False, error=f"Failed to generate enhanced recommendations: {str(e)}")
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="127.0.0.1", port=8080)

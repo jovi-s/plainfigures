@@ -4,6 +4,8 @@ import { CashflowSummary } from "@/components/CashflowSummary";
 // import { UserProfile } from "@/components/UserProfile";
 import { OpenAIRecommendations } from "@/components/OpenAIRecommendations";
 import { MarketResearch } from "@/components/MarketResearch";
+import { AICharts } from "@/components/AICharts";
+import { EnhancedRecommendations } from "@/components/EnhancedRecommendations";
 import { RecordTransactions } from "@/components/RecordTransactions";
 import { TransactionList } from "@/components/TransactionList";
 import { GenerateInvoice } from "@/components/GenerateInvoice";
@@ -28,6 +30,8 @@ export default function App() {
   // Market Research caching
   const [cachedMarketResearch, setCachedMarketResearch] = useState<string>('');
   const [marketResearchCacheTime, setMarketResearchCacheTime] = useState<number>(0);
+  const [enhancedRecommendations, setEnhancedRecommendations] = useState<any>(null);
+  const [showEnhancedRecommendations, setShowEnhancedRecommendations] = useState<boolean>(false);
 
   // Cache management functions
   const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes in milliseconds
@@ -77,6 +81,31 @@ export default function App() {
       setMarketResearchCacheTime(0);
     } catch (error) {
       console.error('Error clearing market research cache:', error);
+    }
+  };
+
+  // Handle integration of market research with AI recommendations
+  const handleIntegrateWithRecommendations = async (marketData: string) => {
+    try {
+      console.log('Integrating market research with AI recommendations...');
+      const response = await FinanceApiClient.getEnhancedRecommendations(marketData);
+      
+      if (response.success && response.data) {
+        setEnhancedRecommendations(response.data);
+        setShowEnhancedRecommendations(true);
+        
+        // Scroll to enhanced recommendations section
+        setTimeout(() => {
+          const element = document.getElementById('enhanced-recommendations');
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 100);
+      } else {
+        console.error('Failed to generate enhanced recommendations:', response.error);
+      }
+    } catch (error) {
+      console.error('Error integrating recommendations:', error);
     }
   };
 
@@ -368,6 +397,9 @@ export default function App() {
               <TransactionList key={`dashboard-transactions-${refreshTrigger}`} />
             </div>
 
+            {/* AI Charts & Forecasting */}
+            <AICharts refreshTrigger={refreshTrigger} />
+
             {/* Market Research */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -401,7 +433,18 @@ export default function App() {
                 onMarketResearchReceived={setCachedMarketResearchData}
                 isCacheValid={Date.now() - marketResearchCacheTime < CACHE_DURATION}
                 refreshTrigger={refreshTrigger}
+                onIntegrateWithRecommendations={handleIntegrateWithRecommendations}
               />
+
+              {/* Enhanced Recommendations */}
+              {showEnhancedRecommendations && enhancedRecommendations && (
+                <div className="mt-6">
+                  <EnhancedRecommendations 
+                    data={enhancedRecommendations}
+                    onClose={() => setShowEnhancedRecommendations(false)}
+                  />
+                </div>
+              )}
             </div>
           </TabsContent>
 

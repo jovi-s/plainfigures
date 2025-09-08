@@ -160,6 +160,24 @@ export class FinanceApiClient {
       return { success: false, error: error instanceof Error ? error.message : 'Failed to get market research' };
     }
   }
+
+  static async getAICharts(): Promise<ApiResponse<any>> {
+    try {
+      const result = await FinanceRoutes.getAICharts();
+      return result as ApiResponse<any>;
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to get AI charts' };
+    }
+  }
+
+  static async getEnhancedRecommendations(marketResearchData: string): Promise<ApiResponse<any>> {
+    try {
+      const result = await FinanceRoutes.getEnhancedRecommendations(marketResearchData);
+      return result as ApiResponse<any>;
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to get enhanced recommendations' };
+    }
+  }
 }
 
 export { ApiError };

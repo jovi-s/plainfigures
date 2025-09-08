@@ -2,6 +2,7 @@ import os
 import openai
 from dotenv import load_dotenv
 from src.tools.finance_tools import summarize_cashflow
+from src.tools.recommendation_visualizer import generate_recommendation_charts
 from src.utils.format_model_response import extract_json_from_response
 from src.types.request_types import ApiResponse
 
@@ -193,5 +194,14 @@ Be specific, reference the actual numbers, and provide reasoning based on the da
                 }
             ]
         }
+    
+    # Generate visualization charts for recommendations
+    try:
+        recommendations = recommendations_data.get("recommendations", [])
+        chart_data = generate_recommendation_charts(recommendations, financial_data)
+        recommendations_data["visualizations"] = chart_data
+    except Exception as viz_error:
+        print(f"Error generating recommendation charts: {viz_error}")
+        recommendations_data["visualizations"] = {"error": str(viz_error)}
     
     return recommendations_data
