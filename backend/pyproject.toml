@@ -15,7 +15,13 @@ dependencies = [
     "openai>=1.99.6",
     "uvicorn>=0.24.0",
     "python-multipart>=0.0.6",
-    "fastapi>=0.100.0",
+    "fastapi",
+    "langchain>=0.3.19",
+    "langchain-openai",
+    "langchain-google-genai",
+    "langgraph>=0.2.6",
+    "langgraph-sdk>=0.1.57",
+    "google-genai",
 ]
 
 requires-python = ">=3.11,<3.13"
@@ -78,22 +84,3 @@ follow_imports = "silent"
 ignore_missing_imports = true
 explicit_package_bases = true
 disable_error_code = ["misc", "no-untyped-call", "no-any-return"]
-
-exclude = [".venv"]
-
-[tool.codespell]
-ignore-words-list = "rouge"
-skip = "./locust_env/*,uv.lock,.venv,./frontend,**/*.ipynb"
-
-
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-
-[tool.pytest.ini_options]
-pythonpath = "."
-asyncio_default_fixture_loop_scope = "function"
-
-[tool.hatch.build.targets.wheel]
-packages = ["app","frontend"]

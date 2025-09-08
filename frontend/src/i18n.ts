@@ -26,6 +26,7 @@ const resources = {
       
       // Dashboard
       "dashboard.ai_recommendations": "AI Financial Recommendations",
+      "dashboard.market_research": "Market Research Analysis",
       "dashboard.cache": "Cache",
       "dashboard.minutes_ago": "m ago",
       "dashboard.refresh": "Refresh",
@@ -164,6 +165,7 @@ const resources = {
       
       // Dashboard
       "dashboard.ai_recommendations": "Rekomendasi Keuangan AI",
+      "dashboard.market_research": "Analisis Riset Pasar",
       "dashboard.cache": "Cache",
       "dashboard.minutes_ago": "m lalu",
       "dashboard.refresh": "Refresh",
@@ -302,6 +304,7 @@ const resources = {
       
       // Dashboard
       "dashboard.ai_recommendations": "คำแนะนำการเงินจาก AI",
+      "dashboard.market_research": "การวิเคราะห์การวิจัยตลาด",
       "dashboard.cache": "แคช",
       "dashboard.minutes_ago": "น. ที่แล้ว",
       "dashboard.refresh": "รีเฟรช",
@@ -440,6 +443,7 @@ const resources = {
       
       // Dashboard
       "dashboard.ai_recommendations": "AI Financial Recommendations",
+      "dashboard.market_research": "Market Research Analysis",
       "dashboard.cache": "Cache",
       "dashboard.minutes_ago": "m nakaraan",
       "dashboard.refresh": "Refresh",

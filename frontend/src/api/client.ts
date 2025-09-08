@@ -151,6 +151,15 @@ export class FinanceApiClient {
       return { success: false, error: error instanceof Error ? error.message : 'Failed to get AI recommendations' };
     }
   }
+
+  static async getMarketResearch(): Promise<ApiResponse<any>> {
+    try {
+      const result = await FinanceRoutes.getMarketResearch();
+      return result as ApiResponse<any>;
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to get market research' };
+    }
+  }
 }
 
 export { ApiError };

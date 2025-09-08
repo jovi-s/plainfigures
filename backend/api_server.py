@@ -28,6 +28,7 @@ from src.tools.finance_tools import (
     extract_invoice_data_from_pdf,
 )
 from src.tools.openai_recommendations import openai_recommendations
+from src.agent.market_research import graph
 
 # Global variables for DataFrames and their paths
 CASHFLOW_CSV_PATH = Path(__file__).parent / "database" / "cashflow.csv"
@@ -220,3 +221,45 @@ async def get_openai_recommendations():
         
     except Exception as e:
         return ApiResponse(success=False, error=f"Failed to generate recommendations: {str(e)}")
+
+@app.get("/ai/market-research")
+async def get_market_research():
+    """Generate market research using LangGraph"""
+    user_information = {
+        "industry": "beauty_and_personal_care",
+        "location": "Singapore",
+        "company_size": "50-100",
+        "company_type": "hair_salon",
+        "company_stage": "growth",
+        "company_revenue": "500000",
+        "company_employees": "65",
+    }
+    MARKET_RESEARCH_PROMPT = f"""
+Perform comprehensive economic and market research for a {user_information['company_type']} business 
+in the {user_information['industry']} industry located in {user_information['location']}. 
+The company is at the {user_information['company_stage']} stage with {user_information['company_employees']} 
+employees and {user_information['company_revenue']} in revenue.
+
+Focus on actionable insights to grow this business including:
+1. Economic trends and opportunities in {user_information['location']} that could benefit this business
+2. Market size and growth potential for {user_information['industry']} services
+3. Competitive landscape analysis and positioning opportunities
+4. Customer demand patterns and emerging market segments
+5. Economic factors affecting pricing strategies and profitability
+6. Investment opportunities and funding landscape for {user_information['company_stage']} companies
+7. Regulatory and economic policy impacts on business growth
+8. Supply chain and operational cost optimization opportunities
+9. Technology adoption trends that could drive business expansion
+10. Strategic partnerships and market entry opportunities
+
+Provide specific, data-driven recommendations that this business can implement to accelerate growth 
+and capitalize on economic opportunities in their market.
+
+Your final answer should take all the learnings from the previous steps and provide a comprehensive report on the market research in 2 short paragraphs.
+"""
+    state = graph.invoke({"messages": [{"role": "user", "content": MARKET_RESEARCH_PROMPT}], "max_research_loops": 3, "initial_search_query_count": 3})
+    output = state["messages"][-1].content
+    try:
+        return ApiResponse(success=True, data=output)
+    except Exception as e:
+        return ApiResponse(success=False, error=f"Failed to generate market research: {str(e)}")

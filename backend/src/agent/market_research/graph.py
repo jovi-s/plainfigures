@@ -1,6 +1,6 @@
 import os
 
-from .tools_and_schemas import SearchQueryList, Reflection
+from src.agent.market_research.tools_and_schemas import SearchQueryList, Reflection
 from dotenv import load_dotenv
 from langchain_core.messages import AIMessage
 from langgraph.types import Send
@@ -9,22 +9,22 @@ from langgraph.graph import START, END
 from langchain_core.runnables import RunnableConfig
 from google.genai import Client
 
-from .state import (
+from src.agent.market_research.state import (
     OverallState,
     QueryGenerationState,
     ReflectionState,
     WebSearchState,
 )
-from .configuration import Configuration
-from .prompts import (
+from src.agent.market_research.configuration import Configuration
+from src.agent.market_research.prompts import (
     get_current_date,
     query_writer_instructions,
     web_searcher_instructions,
     reflection_instructions,
     answer_instructions,
 )
-from langchain_openai import ChatOpenAI
-from .utils import (
+from langchain_google_genai import ChatGoogleGenerativeAI
+from src.agent.market_research.utils import (
     get_citations,
     get_research_topic,
     insert_citation_markers,
@@ -33,18 +33,18 @@ from .utils import (
 
 load_dotenv()
 
-if os.getenv("OPENAI_API_KEY") is None:
-    raise ValueError("OPENAI_API_KEY is not set")
+if os.getenv("GEMINI_API_KEY") is None:
+    raise ValueError("GEMINI_API_KEY is not set")
 
 # Used for Google Search API
-genai_client = Client(api_key=os.getenv("OPENAI_API_KEY"))
+genai_client = Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 
 # Nodes
 def generate_query(state: OverallState, config: RunnableConfig) -> QueryGenerationState:
     """LangGraph node that generates search queries based on the User's question.
 
-    Uses GPT 4o Mini to create an optimized search queries for web research based on
+    Uses Gemini 2.0 Flash to create an optimized search queries for web research based on
     the User's question.
 
     Args:
@@ -60,12 +60,12 @@ def generate_query(state: OverallState, config: RunnableConfig) -> QueryGenerati
     if state.get("initial_search_query_count") is None:
         state["initial_search_query_count"] = configurable.number_of_initial_queries
 
-    # init GPT 4o mini
-    llm = ChatOpenAI(
+    # init Gemini 2.0 Flash
+    llm = ChatGoogleGenerativeAI(
         model=configurable.query_generator_model,
         temperature=1.0,
         max_retries=2,
-        api_key=os.getenv("OPENAI_API_KEY"),
+        api_key=os.getenv("GEMINI_API_KEY"),
     )
     structured_llm = llm.with_structured_output(SearchQueryList)
 
@@ -95,7 +95,7 @@ def continue_to_web_research(state: QueryGenerationState):
 def web_research(state: WebSearchState, config: RunnableConfig) -> OverallState:
     """LangGraph node that performs web research using the native Google Search API tool.
 
-    Executes a web search using the native Google Search API tool in combination with GPT 4o mini.
+    Executes a web search using the native Google Search API tool in combination with Gemini 2.0 Flash.
 
     Args:
         state: Current graph state containing the search query and research loop count
@@ -163,11 +163,11 @@ def reflection(state: OverallState, config: RunnableConfig) -> ReflectionState:
         summaries="\n\n---\n\n".join(state["web_research_result"]),
     )
     # init Reasoning Model
-    llm = ChatOpenAI(
+    llm = ChatGoogleGenerativeAI(
         model=reasoning_model,
         temperature=1.0,
         max_retries=2,
-        api_key=os.getenv("OPENAI_API_KEY"),
+        api_key=os.getenv("GEMINI_API_KEY"),
     )
     result = llm.with_structured_output(Reflection).invoke(formatted_prompt)
 
@@ -241,12 +241,12 @@ def finalize_answer(state: OverallState, config: RunnableConfig):
         summaries="\n---\n\n".join(state["web_research_result"]),
     )
 
-    # init Reasoning Model, default to GPT 4o mini
-    llm = ChatOpenAI(
+    # init Reasoning Model, default to Gemini 2.5 Flash
+    llm = ChatGoogleGenerativeAI(
         model=reasoning_model,
         temperature=0,
         max_retries=2,
-        api_key=os.getenv("OPENAI_API_KEY"),
+        api_key=os.getenv("GEMINI_API_KEY"),
     )
     result = llm.invoke(formatted_prompt)
 

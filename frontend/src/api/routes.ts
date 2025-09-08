@@ -207,4 +207,8 @@ export const FinanceRoutes = {
   async getOpenAIRecommendations() {
     return backendRequest('/ai/openai-recommendations');
   },
+
+  async getMarketResearch() {
+    return backendRequest('/ai/market-research');
+  },
 };

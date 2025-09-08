@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { CashflowSummary } from "@/components/CashflowSummary";
 import { FileUpload } from "@/components/FileUpload";
-// import { AIRecommendations } from "@/components/AIRecommendations";
 // import { UserProfile } from "@/components/UserProfile";
 import { OpenAIRecommendations } from "@/components/OpenAIRecommendations";
+import { MarketResearch } from "@/components/MarketResearch";
 import { RecordTransactions } from "@/components/RecordTransactions";
 import { TransactionList } from "@/components/TransactionList";
 import { GenerateInvoice } from "@/components/GenerateInvoice";
@@ -28,6 +28,10 @@ export default function App() {
   const [cachedRecommendations, setCachedRecommendations] = useState<any[]>([]);
   const [recommendationsCacheTime, setRecommendationsCacheTime] = useState<number>(0);
 
+  // Market Research caching
+  const [cachedMarketResearch, setCachedMarketResearch] = useState<string>('');
+  const [marketResearchCacheTime, setMarketResearchCacheTime] = useState<number>(0);
+
   // Cache management functions
   const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes in milliseconds
   
@@ -45,6 +49,18 @@ export default function App() {
     }
   };
 
+  const setCachedMarketResearchData = (research: string) => {
+    try {
+      const now = Date.now();
+      localStorage.setItem('marketResearch', research);
+      localStorage.setItem('marketResearchTimestamp', now.toString());
+      setCachedMarketResearch(research);
+      setMarketResearchCacheTime(now);
+    } catch (error) {
+      console.error('Error caching market research:', error);
+    }
+  };
+
   const clearRecommendationsCache = () => {
     try {
       localStorage.removeItem('aiRecommendations');
@@ -56,17 +72,35 @@ export default function App() {
     }
   };
 
+  const clearMarketResearchCache = () => {
+    try {
+      localStorage.removeItem('marketResearch');
+      localStorage.removeItem('marketResearchTimestamp');
+      setCachedMarketResearch('');
+      setMarketResearchCacheTime(0);
+    } catch (error) {
+      console.error('Error clearing market research cache:', error);
+    }
+  };
+
   const refreshRecommendations = () => {
     clearRecommendationsCache();
     // This will trigger a fresh fetch in the SimpleAIRecommendations component
     setRefreshTrigger(prev => prev + 1);
   };
 
-  // Load cached recommendations on app initialization
+  const refreshMarketResearch = () => {
+    clearMarketResearchCache();
+    // This will trigger a fresh fetch in the MarketResearch component
+    setRefreshTrigger(prev => prev + 1);
+  };
+
+  // Load cached data on app initialization
   useEffect(() => {
     // Clear any existing cache on app start to prevent stale generic recommendations
     clearRecommendationsCache();
-    // Note: Recommendations will be fetched fresh when the component mounts
+    clearMarketResearchCache();
+    // Note: Data will be fetched fresh when the components mount
   }, []);
 
   // Load customers and suppliers data
@@ -299,11 +333,47 @@ export default function App() {
                 refreshTrigger={refreshTrigger}
               />
             </div>
-            
+
             {/* Financial Overview */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <CashflowSummary key={`cashflow-${refreshTrigger}`} />
               <TransactionList key={`dashboard-transactions-${refreshTrigger}`} />
+            </div>
+
+            {/* Market Research */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">{t('dashboard.market_research')}</h2>
+                <div className="flex items-center gap-3">
+                  {cachedMarketResearch && (
+                    <div className="flex items-center gap-2 text-sm text-neutral-500">
+                      <span>{t('dashboard.cache')}:</span>
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        Date.now() - marketResearchCacheTime < CACHE_DURATION 
+                          ? 'bg-green-100 text-green-700' 
+                          : 'bg-yellow-100 text-yellow-700'
+                      }`}>
+                        {Math.round((Date.now() - marketResearchCacheTime) / 60000)}{t('dashboard.minutes_ago')}
+                      </span>
+                    </div>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={refreshMarketResearch}
+                    className="text-xs"
+                  >
+                    <RefreshCw className="h-3 w-3 mr-1" />
+                    {t('dashboard.refresh')}
+                  </Button>
+                </div>
+              </div>
+              <MarketResearch 
+                cachedMarketResearch={cachedMarketResearch}
+                onMarketResearchReceived={setCachedMarketResearchData}
+                isCacheValid={Date.now() - marketResearchCacheTime < CACHE_DURATION}
+                refreshTrigger={refreshTrigger}
+              />
             </div>
           </TabsContent>
 
