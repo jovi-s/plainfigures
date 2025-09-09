@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FinanceApiClient } from '@/api/client';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { 
   Search, 
   TrendingUp, 
@@ -162,7 +164,7 @@ export function MarketResearch({
             Market Research Analysis
           </CardTitle>
           <p className="text-sm text-emerald-700">
-            Powered by LangGraph & Gemini 2.0 Flash • Analyzing market opportunities...
+            Powered by LangGraph & Gemini • Analyzing market opportunities...
           </p>
         </CardHeader>
         <CardContent>
@@ -250,7 +252,7 @@ export function MarketResearch({
             </span>
           </div>
           <p className="text-xs text-emerald-600">
-            Powered by LangGraph & Gemini 2.0 Flash • Real-time market intelligence
+            Powered by LangGraph & Gemini • Real-time market intelligence
           </p>
         </CardHeader>
       </Card>
@@ -313,9 +315,30 @@ export function MarketResearch({
           </CardHeader>
           <CardContent>
             <div className="prose prose-sm max-w-none">
-              <pre className="whitespace-pre-wrap text-gray-700 text-sm leading-relaxed font-sans">
+              <ReactMarkdown 
+                remarkPlugins={[remarkGfm]}
+                className="text-gray-700 text-sm leading-relaxed"
+                components={{
+                  h1: ({children}) => <h1 className="text-lg font-bold text-gray-900 mb-3">{children}</h1>,
+                  h2: ({children}) => <h2 className="text-base font-semibold text-gray-800 mb-2">{children}</h2>,
+                  h3: ({children}) => <h3 className="text-sm font-medium text-gray-700 mb-2">{children}</h3>,
+                  p: ({children}) => <p className="mb-2 text-gray-700">{children}</p>,
+                  ul: ({children}) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
+                  ol: ({children}) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
+                  li: ({children}) => <li className="text-gray-700">{children}</li>,
+                  strong: ({children}) => <strong className="font-semibold text-gray-900">{children}</strong>,
+                  em: ({children}) => <em className="italic text-gray-600">{children}</em>,
+                  code: ({children}) => <code className="bg-gray-100 px-1 py-0.5 rounded text-xs font-mono">{children}</code>,
+                  pre: ({children}) => <pre className="bg-gray-100 p-3 rounded-lg text-xs font-mono overflow-x-auto mb-2">{children}</pre>,
+                  blockquote: ({children}) => <blockquote className="border-l-4 border-emerald-200 pl-3 py-1 bg-emerald-50 mb-2">{children}</blockquote>,
+                  table: ({children}) => <div className="overflow-x-auto mb-2"><table className="min-w-full border border-gray-200">{children}</table></div>,
+                  thead: ({children}) => <thead className="bg-gray-50">{children}</thead>,
+                  th: ({children}) => <th className="border border-gray-200 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{children}</th>,
+                  td: ({children}) => <td className="border border-gray-200 px-3 py-2 text-sm text-gray-700">{children}</td>,
+                }}
+              >
                 {marketResearch}
-              </pre>
+              </ReactMarkdown>
             </div>
           </CardContent>
         </Card>
