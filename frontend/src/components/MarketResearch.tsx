@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { FinanceApiClient } from '@/api/client';
 import { 
   Search, 
@@ -15,7 +16,10 @@ import {
   Building2,
   Zap,
   Globe,
-  Lightbulb
+  Lightbulb,
+  Brain,
+  ArrowRight,
+  Sparkles
 } from 'lucide-react';
 
 interface MarketResearchProps {
@@ -23,18 +27,21 @@ interface MarketResearchProps {
   onMarketResearchReceived?: (research: string) => void;
   isCacheValid?: boolean;
   refreshTrigger?: number;
+  onIntegrateWithRecommendations?: (marketData: string) => void;
 }
 
 export function MarketResearch({ 
   cachedMarketResearch = '', 
   onMarketResearchReceived, 
   isCacheValid = false,
-  refreshTrigger = 0 
+  refreshTrigger = 0,
+  onIntegrateWithRecommendations
 }: MarketResearchProps) {
   const [marketResearch, setMarketResearch] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [parsedSections, setParsedSections] = useState<any[]>([]);
+  const [isIntegrating, setIsIntegrating] = useState(false);
 
   // Parse market research content into structured sections
   const parseMarketResearch = (content: string) => {
@@ -131,6 +138,20 @@ export function MarketResearch({
 
     loadMarketResearch();
   }, [cachedMarketResearch, isCacheValid, onMarketResearchReceived, refreshTrigger]);
+
+  // Handle integration with AI recommendations
+  const handleIntegrateWithRecommendations = async () => {
+    if (!marketResearch.trim() || !onIntegrateWithRecommendations) return;
+    
+    setIsIntegrating(true);
+    try {
+      await onIntegrateWithRecommendations(marketResearch);
+    } catch (error) {
+      console.error('Integration failed:', error);
+    } finally {
+      setIsIntegrating(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -279,7 +300,7 @@ export function MarketResearch({
                 </CardContent>
               </Card>
             );
-          })}
+          }          )}
         </div>
       ) : (
         // Fallback: display raw content if parsing fails
@@ -295,6 +316,47 @@ export function MarketResearch({
               <pre className="whitespace-pre-wrap text-gray-700 text-sm leading-relaxed font-sans">
                 {marketResearch}
               </pre>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Integration Button */}
+      {marketResearch && onIntegrateWithRecommendations && (
+        <Card className="bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <Brain className="h-5 w-5 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-purple-900 text-sm">
+                    Integrate Market Intelligence
+                  </h3>
+                  <p className="text-purple-700 text-xs mt-1">
+                    Combine market research with AI recommendations for enhanced strategic insights
+                  </p>
+                </div>
+              </div>
+              <Button
+                onClick={handleIntegrateWithRecommendations}
+                disabled={isIntegrating}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 text-sm"
+              >
+                {isIntegrating ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                    Integrating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Generate Enhanced Recommendations
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </>
+                )}
+              </Button>
             </div>
           </CardContent>
         </Card>

@@ -172,4 +172,20 @@ export const FinanceRoutes = {
   async getMarketResearch() {
     return backendRequest('/ai/market-research');
   },
+
+  async getAICharts() {
+    return backendRequest('/ai/charts');
+  },
+
+  async getEnhancedRecommendations(marketResearchData: string) {
+    return backendRequest('/ai/enhanced-recommendations', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        market_research_data: marketResearchData
+      })
+    });
+  },
 };
