@@ -2,7 +2,7 @@ PYTHON_FILES=src/
 
 install:
 	@command -v uv >/dev/null 2>&1 || { echo "uv is not installed. Installing uv..."; curl -LsSf https://astral.sh/uv/0.6.12/install.sh | sh; source $HOME/.local/bin/env; }
-	uv sync && npm --prefix frontend install
+	cd backend && uv sync && cd .. && npm --prefix frontend install
 
 activate:
 	source .venv/bin/activate
@@ -28,6 +28,9 @@ docker-dev-build:
 
 docker-dev-run:
 	docker run -p 8080:8080 -p 5173:5173 plainfigures
+
+test-sql-db:
+	sqlite3 backend/database/memory.db "SELECT 'openai_recommendations table:' as info; SELECT * FROM openai_recommendations LIMIT 1; SELECT 'market_research table:' as info; SELECT * FROM market_research LIMIT 1; SELECT 'enhanced_recommendations table:' as info; SELECT * FROM enhanced_recommendations LIMIT 1;"
 
 # http://localhost:5173 (frontend)
 # http://localhost:8080 (API endpoints)

@@ -34,6 +34,7 @@ from src.tools.enhanced_recommendations import generate_enhanced_recommendations
 from src.tools.chart_generator import generate_charts_for_recommendations
 from src.agent.market_research import graph
 from src.utils.cache import app_cache
+from src.utils.db import init_db, save_openai_recommendations, save_market_research, save_enhanced_recommendations
 
 def clean_market_research_text(text: str) -> str:
     """Clean up market research text by removing garbled URLs and citations"""
@@ -94,6 +95,12 @@ app = FastAPI(
 
 # Load DataFrames at startup
 load_dataframes()
+# Initialize SQLite DB for memory persistence
+try:
+    init_db()
+    print("SQLite memory DB initialized")
+except Exception as e:
+    print(f"Failed to initialize SQLite DB: {e}")
 
 # Enable CORS for frontend communication
 app.add_middleware(
@@ -227,8 +234,13 @@ async def get_openai_recommendations():
         print("Generating fresh OpenAI recommendations")
         recommendations_data = openai_recommendations(user_profile_df)
         
-        # Cache the result (only if successful and contains recommendations)
-        if recommendations_data and hasattr(recommendations_data, 'recommendations') and recommendations_data.recommendations:
+        # Persist and cache
+        if recommendations_data:
+            try:
+                user_context = user_profile_df.iloc[0].to_dict() if user_profile_df is not None and not user_profile_df.empty else {}
+                save_openai_recommendations(recommendations_data, cache_key=cache_key, user_context=user_context)
+            except Exception as db_err:
+                print(f"Failed to persist OpenAI recommendations: {db_err}")
             app_cache.set(cache_key, recommendations_data, ttl_seconds=1800)  # 30 minutes
         
         return ApiResponse(success=True, data=recommendations_data)
@@ -295,8 +307,12 @@ Your final answer should take all the learnings from the previous steps and prov
         # Clean up the market research text to remove garbled URLs
         output = clean_market_research_text(raw_output)
         
-        # Cache the result if it's substantial (more than 100 characters to avoid caching errors)
+        # Persist and cache if substantial (more than 100 chars to avoid caching errors)
         if output and len(output) > 100:
+            try:
+                save_market_research(output_text=output, cache_key=cache_key, prompt_context="market_research_prompt")
+            except Exception as db_err:
+                print(f"Failed to persist market research: {db_err}")
             app_cache.set(cache_key, output, ttl_seconds=1800)  # 30 minutes
         
         return ApiResponse(success=True, data=output)
@@ -412,9 +428,19 @@ async def get_enhanced_recommendations(market_research: dict):
             existing_ai_recommendations=existing_recommendations
         )
         
-        # Cache the result (expire in 2 hours since it's contextual)
+        # Persist and cache (expire in 2 hours since it's contextual)
         app_cache.set(cache_key, enhanced_recommendations, ttl_seconds=7200)  # 2 hours
         print(f"Cache SET: {cache_key}")
+        try:
+            user_context = user_profile_df.iloc[0].to_dict() if user_profile_df is not None and not user_profile_df.empty else {}
+            save_enhanced_recommendations(
+                enhanced_recommendations,
+                cache_key=cache_key,
+                market_hash=market_hash,
+                user_context=user_context,
+            )
+        except Exception as db_err:
+            print(f"Failed to persist enhanced recommendations: {db_err}")
         
         return ApiResponse(success=True, data=enhanced_recommendations)
         
