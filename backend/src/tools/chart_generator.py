@@ -20,8 +20,18 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # Set style for better-looking charts
-plt.style.use('seaborn-v0_8-darkgrid')
-sns.set_palette("husl")
+try:
+    plt.style.use('seaborn-v0_8-darkgrid')
+except OSError:
+    # Fallback to a basic style if seaborn style not available
+    plt.style.use('default')
+    plt.rcParams.update({'axes.grid': True, 'grid.alpha': 0.3})
+
+try:
+    sns.set_palette("husl")
+except Exception:
+    # Continue with default palette if this fails
+    pass
 
 class AIChartGenerator:
     """AI-powered chart generation with forecasting capabilities"""
