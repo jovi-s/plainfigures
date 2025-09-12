@@ -6,7 +6,5 @@ __pycache__/
 backend/.env
 backend/.DS_Store
 backend/data/.$plainfigures.drawio.bkp
-backend/database/concepts/
-backend/database/countries/
 frontend/dist/
 frontend/node_modules/
