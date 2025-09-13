@@ -32,6 +32,7 @@ from src.tools.finance_tools import (
 from src.tools.openai_recommendations import openai_recommendations
 from src.tools.enhanced_recommendations import generate_enhanced_recommendations
 from src.tools.chart_generator import generate_charts_for_recommendations
+from src.tools.rag_service import get_rag_service
 from src.agent.market_research import graph
 from src.utils.cache import app_cache
 from src.utils.db import init_db, save_openai_recommendations, save_market_research, save_enhanced_recommendations
@@ -450,6 +451,59 @@ async def get_enhanced_recommendations(market_research: dict):
     except Exception as e:
         print(f"Error in enhanced recommendations endpoint: {str(e)}")
         return ApiResponse(success=False, error=f"Failed to generate enhanced recommendations: {str(e)}")
+
+
+# RAG System Endpoints for Chatbot Integration
+@app.post("/rag/query")
+async def rag_query(request: dict):
+    """Query the RAG system for business knowledge and regulatory information"""
+    try:
+        question = request.get("question", "").strip()
+        user_context = request.get("user_context", {})
+        
+        if not question:
+            return ApiResponse(success=False, error="Question is required")
+        
+        # Get RAG service and query
+        rag_service = get_rag_service()
+        result = rag_service.query(question, user_context)
+        
+        return ApiResponse(success=result["success"], data=result)
+        
+    except Exception as e:
+        print(f"Error querying RAG system: {str(e)}")
+        return ApiResponse(success=False, error=f"Error querying RAG system: {str(e)}")
+
+
+@app.get("/rag/documents")
+async def get_rag_documents():
+    """Get information about indexed documents in the RAG system"""
+    try:
+        rag_service = get_rag_service()
+        stats = rag_service.get_document_stats()
+        
+        return ApiResponse(success=True, data=stats)
+        
+    except Exception as e:
+        print(f"Error getting document stats: {str(e)}")
+        return ApiResponse(success=False, error=f"Error getting document stats: {str(e)}")
+
+
+@app.post("/rag/rebuild")
+async def rebuild_rag_index():
+    """Rebuild the RAG index from documents"""
+    try:
+        rag_service = get_rag_service()
+        success = rag_service.build_index()
+        
+        if success:
+            return ApiResponse(success=True, data={"message": "RAG index rebuilt successfully"})
+        else:
+            return ApiResponse(success=False, error="Failed to rebuild RAG index")
+        
+    except Exception as e:
+        print(f"Error rebuilding RAG index: {str(e)}")
+        return ApiResponse(success=False, error=f"Error rebuilding RAG index: {str(e)}")
 
 
 if __name__ == "__main__":
