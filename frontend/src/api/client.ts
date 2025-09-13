@@ -129,9 +129,9 @@ export class FinanceApiClient {
     }
   }
 
-  static async getAICharts(): Promise<ApiResponse<any>> {
+  static async getAICharts(timeRange: string = "30d", scenario: string = "current"): Promise<ApiResponse<any>> {
     try {
-      const result = await FinanceRoutes.getAICharts();
+      const result = await FinanceRoutes.getAICharts(timeRange, scenario);
       return result as ApiResponse<any>;
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Failed to get AI charts' };

@@ -195,13 +195,15 @@ Be specific, reference the actual numbers, and provide reasoning based on the da
             ]
         }
     
-    # Generate visualization charts for recommendations
+    # Generate simple visualization charts for each recommendation
     try:
+        from src.tools.chart_generator import generate_simple_recommendation_charts
+        
         recommendations = recommendations_data.get("recommendations", [])
-        chart_data = generate_recommendation_charts(recommendations, financial_data)
-        recommendations_data["visualizations"] = chart_data
-    except Exception as viz_error:
-        print(f"Error generating recommendation charts: {viz_error}")
-        recommendations_data["visualizations"] = {"error": str(viz_error)}
+        chart_data = generate_simple_recommendation_charts(recommendations, financial_data)
+        recommendations_data["charts"] = chart_data
+    except Exception as chart_error:
+        print(f"Chart generation failed: {chart_error}")
+        recommendations_data["charts"] = {"error": "Chart generation failed"}
     
     return recommendations_data

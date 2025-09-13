@@ -173,8 +173,8 @@ export const FinanceRoutes = {
     return backendRequest('/ai/market-research');
   },
 
-  async getAICharts() {
-    return backendRequest('/ai/charts');
+  async getAICharts(timeRange: string = "30d", scenario: string = "current") {
+    return backendRequest(`/ai/charts?time_range=${timeRange}&scenario=${scenario}`);
   },
 
   async getEnhancedRecommendations(marketResearchData: string) {

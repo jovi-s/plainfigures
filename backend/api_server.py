@@ -350,13 +350,16 @@ async def cleanup_expired_cache():
 
 # AI Charts and Visualization endpoint
 @app.get("/ai/charts")
-async def get_ai_charts():
+async def get_ai_charts(
+    time_range: str = "30d",
+    scenario: str = "current"
+):
     """Generate AI-powered charts and forecasts with caching"""
     try:
         global cashflow_df, user_profile_df
         
-        # Create cache key
-        cache_key = "ai_charts_visualization"
+        # Create cache key with parameters
+        cache_key = f"ai_charts_visualization_{time_range}_{scenario}"
         
         # Try to get from cache first
         cached_result = app_cache.get(cache_key)
@@ -376,7 +379,7 @@ async def get_ai_charts():
         if cashflow_df is None or cashflow_df.empty:
             return ApiResponse(success=False, error="No cashflow data available for chart generation")
         
-        charts_data = generate_charts_for_recommendations(cashflow_df, user_profile)
+        charts_data = generate_charts_for_recommendations(cashflow_df, user_profile, time_range, scenario)
         
         # Cache the result (charts are expensive to generate)
         app_cache.set(cache_key, charts_data, ttl_seconds=3600)  # 1 hour cache

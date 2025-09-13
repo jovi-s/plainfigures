@@ -114,22 +114,27 @@ export function MarketResearch({
           return;
         }
 
-        setIsLoading(true);
-        setError(null);
+        // DISABLED: Auto-loading market research on startup
+        // This was causing slow app startup times
+        setIsLoading(false);
+        return;
+
+        // setIsLoading(true);
+        // setError(null)
         
-        const response = await FinanceApiClient.getMarketResearch();
+        // const response = await FinanceApiClient.getMarketResearch();
         
-        if (response.success && response.data) {
-          const researchContent = response.data;
-          setMarketResearch(researchContent);
-          setParsedSections(parseMarketResearch(researchContent));
+        // if (response.success && response.data) {
+        //   const researchContent = response.data;
+        //   setMarketResearch(researchContent);
+        //   setParsedSections(parseMarketResearch(researchContent));
           
-          if (onMarketResearchReceived) {
-            onMarketResearchReceived(researchContent);
-          }
-        } else {
-          setError(response.error || 'Failed to load market research');
-        }
+        //   if (onMarketResearchReceived) {
+        //     onMarketResearchReceived(researchContent);
+        //   }
+        // } else {
+        //   setError(response.error || 'Failed to load market research');
+        // }
       } catch (err) {
         setError('Failed to load market research');
         console.error('Market research error:', err);
@@ -154,6 +159,60 @@ export function MarketResearch({
       setIsIntegrating(false);
     }
   };
+
+  // Manual load function for when user wants to trigger research
+  const handleManualLoad = async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const response = await FinanceApiClient.getMarketResearch();
+      
+      if (response.success && response.data) {
+        const researchContent = response.data;
+        setMarketResearch(researchContent);
+        setParsedSections(parseMarketResearch(researchContent));
+        
+        if (onMarketResearchReceived) {
+          onMarketResearchReceived(researchContent);
+        }
+      } else {
+        setError(response.error || 'Failed to load market research');
+      }
+    } catch (err) {
+      setError('Failed to load market research');
+      console.error('Market research error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Show a simple card with load button when no research is loaded
+  if (!marketResearch && !isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Search className="h-5 w-5 text-blue-600" />
+            Market Research
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <Brain className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Market Research Available</h3>
+            <p className="text-gray-600 mb-6">
+              Get comprehensive market insights for your business. This feature uses AI to research current market conditions, trends, and opportunities.
+            </p>
+            <Button onClick={handleManualLoad} className="bg-blue-600 hover:bg-blue-700">
+              <Search className="h-4 w-4 mr-2" />
+              Load Market Research
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (isLoading) {
     return (

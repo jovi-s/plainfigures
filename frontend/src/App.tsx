@@ -391,14 +391,14 @@ export default function App() {
               />
             </div>
 
+            {/* AI Recommendation Charts */}
+            <AICharts refreshTrigger={refreshTrigger} />
+
             {/* Financial Overview */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <CashflowSummary key={`cashflow-${refreshTrigger}`} />
               <TransactionList key={`dashboard-transactions-${refreshTrigger}`} />
             </div>
-
-            {/* AI Charts & Forecasting */}
-            <AICharts refreshTrigger={refreshTrigger} />
 
             {/* Market Research */}
             <div className="space-y-4">

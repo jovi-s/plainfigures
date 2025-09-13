@@ -1,6 +1,7 @@
 """
 AI-powered chart generation and forecasting tool
 Automatically creates visualizations and predictions based on financial data
+Now uses advanced hybrid forecasting with ARIMA, Prophet, and Random Forest
 """
 
 import pandas as pd
@@ -18,6 +19,9 @@ import io
 from typing import Dict, List, Any, Optional, Tuple
 import warnings
 warnings.filterwarnings('ignore')
+
+# Import our advanced forecasting module
+from .advanced_forecasting import AdvancedForecaster
 
 # Set style for better-looking charts
 try:
@@ -55,8 +59,16 @@ class AIChartGenerator:
             'PHP': 1/44,
         }
         
+        # Handle both 'payment_amount' and 'amount_sgd' columns
+        if 'payment_amount' in self.cashflow_df.columns:
+            amount_col = 'payment_amount'
+        elif 'amount_sgd' in self.cashflow_df.columns:
+            amount_col = 'amount_sgd'
+        else:
+            raise ValueError("No amount column found in cashflow data")
+        
         self.cashflow_df['amount_sgd'] = self.cashflow_df.apply(
-            lambda row: row['payment_amount'] * currency_rates.get(row['currency'], 1.0), 
+            lambda row: row[amount_col] * currency_rates.get(row.get('currency', 'SGD'), 1.0), 
             axis=1
         )
         
@@ -84,7 +96,42 @@ class AIChartGenerator:
         }).round(2)
     
     def forecast_cashflow(self, days_ahead: int = 30) -> Tuple[np.ndarray, Dict[str, float]]:
-        """Forecast future cashflow using polynomial regression"""
+        """Forecast future cashflow using advanced hybrid forecasting"""
+        try:
+            # Initialize advanced forecaster
+            forecaster = AdvancedForecaster(self.cashflow_df)
+            
+            # Choose model based on forecast horizon
+            if days_ahead <= 30:
+                # Short-term: Use ARIMA
+                result = forecaster.forecast_arima(days_ahead)
+            elif days_ahead <= 90:
+                # Medium-term: Use Prophet
+                result = forecaster.forecast_prophet(days_ahead)
+            else:
+                # Long-term or robust: Use Ensemble
+                result = forecaster.ensemble_forecast(days_ahead)
+            
+            # Extract predictions and metrics
+            predictions = result['forecast']
+            metrics = {
+                'r2_score': result['metrics'].get('r2_score', 0.0),
+                'mae': result['metrics'].get('mae', 0.0),
+                'rmse': result['metrics'].get('rmse', 0.0),
+                'trend': result['trend'],
+                'model_type': result['model_type'],
+                'confidence_interval': result.get('confidence_interval', {})
+            }
+            
+            return predictions, metrics
+            
+        except Exception as e:
+            # Fallback to original polynomial regression if advanced forecasting fails
+            print(f"Advanced forecasting failed, using fallback: {e}")
+            return self._fallback_polynomial_forecast(days_ahead)
+    
+    def _fallback_polynomial_forecast(self, days_ahead: int = 30) -> Tuple[np.ndarray, Dict[str, float]]:
+        """Fallback polynomial regression forecasting"""
         df = self.daily_cashflow.copy()
         
         # Prepare features (days since start)
@@ -113,10 +160,68 @@ class AIChartGenerator:
         metrics = {
             'r2_score': r2_score(y, y_pred),
             'mae': mean_absolute_error(y, y_pred),
-            'trend': 'increasing' if predictions[-1] > y[-1] else 'decreasing'
+            'trend': 'increasing' if predictions[-1] > y[-1] else 'decreasing',
+            'model_type': 'Polynomial_Fallback'
         }
         
         return predictions, metrics
+    
+    def get_advanced_forecasting_insights(self, days_ahead: int = 30) -> Dict[str, Any]:
+        """Get comprehensive forecasting insights using all models"""
+        try:
+            forecaster = AdvancedForecaster(self.cashflow_df)
+            
+            # Get forecasts from all models
+            arima_result = forecaster.forecast_arima(days_ahead)
+            prophet_result = forecaster.forecast_prophet(days_ahead)
+            rf_result = forecaster.forecast_random_forest(days_ahead)
+            ensemble_result = forecaster.ensemble_forecast(days_ahead)
+            
+            # Model recommendations
+            recommendations = forecaster.get_model_recommendations()
+            
+            return {
+                'arima': arima_result,
+                'prophet': prophet_result,
+                'random_forest': rf_result,
+                'ensemble': ensemble_result,
+                'recommendations': recommendations,
+                'best_model_for_horizon': self._get_best_model_for_horizon(days_ahead),
+                'confidence_level': self._calculate_confidence_level(ensemble_result)
+            }
+            
+        except Exception as e:
+            print(f"Advanced forecasting insights failed: {e}")
+            return {
+                'error': str(e),
+                'fallback_used': True
+            }
+    
+    def _get_best_model_for_horizon(self, days_ahead: int) -> str:
+        """Determine best model for given forecast horizon"""
+        if days_ahead <= 7:
+            return "ARIMA - Best for very short-term daily patterns"
+        elif days_ahead <= 30:
+            return "ARIMA - Best for short-term trends and daily patterns"
+        elif days_ahead <= 90:
+            return "Prophet - Best for medium-term seasonality and business cycles"
+        else:
+            return "Ensemble - Best for long-term robust predictions"
+    
+    def _calculate_confidence_level(self, ensemble_result: Dict[str, Any]) -> str:
+        """Calculate confidence level based on model agreement"""
+        try:
+            metrics = ensemble_result.get('metrics', {})
+            mae = metrics.get('ensemble_mae', 0)
+            
+            if mae < 1000:
+                return "High - Models show strong agreement"
+            elif mae < 5000:
+                return "Medium - Some model disagreement"
+            else:
+                return "Low - High uncertainty, consider more data"
+        except:
+            return "Unknown - Unable to calculate confidence"
     
     def generate_cashflow_trend_chart(self) -> str:
         """Generate cashflow trend chart with forecast"""
@@ -305,10 +410,201 @@ class AIChartGenerator:
         return insights
 
 
-def generate_charts_for_recommendations(cashflow_df: pd.DataFrame, user_profile: Dict[str, Any]) -> Dict[str, Any]:
-    """Main function to generate all charts and insights"""
+def generate_simple_recommendation_charts(recommendations: List[Dict[str, Any]], financial_data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Generate structured data for React-based simple charts
+    Each chart focuses on the most important point of that recommendation
+    """
+    charts = {}
+    
+    for i, rec in enumerate(recommendations):
+        rec_title = rec.get('title', f'Recommendation {i+1}')
+        priority = rec.get('priority', 'medium')
+        
+        # Create structured data based on the recommendation type
+        if 'cashflow' in rec_title.lower() or 'cash flow' in rec_title.lower():
+            charts[f'rec_{i+1}'] = generate_cashflow_chart_data(financial_data, priority)
+        elif 'revenue' in rec_title.lower() or 'income' in rec_title.lower():
+            charts[f'rec_{i+1}'] = generate_revenue_chart_data(financial_data, priority)
+        elif 'expense' in rec_title.lower() or 'cost' in rec_title.lower():
+            charts[f'rec_{i+1}'] = generate_expense_chart_data(financial_data, priority)
+        else:
+            # Default chart for other recommendations
+            charts[f'rec_{i+1}'] = generate_general_chart_data(financial_data, priority)
+    
+    return {
+        'recommendation_charts': charts,
+        'chart_count': len(charts)
+    }
+
+
+def generate_cashflow_chart_data(financial_data: Dict[str, Any], priority: str) -> Dict[str, Any]:
+    """Generate structured data for cashflow chart"""
+    cashflow = financial_data.get('cashflow', {})
+    current_net = cashflow.get('net_cashflow', 0)
+    target_net = 5000  # Example target
+    
+    # Determine status and colors
+    is_positive = current_net >= 0
+    status = "positive" if is_positive else "negative"
+    bg_color = "bg-green-50" if is_positive else "bg-red-50"
+    text_color = "text-green-700" if is_positive else "text-red-700"
+    icon = "↗" if is_positive else "↘"
+    
+    return {
+        "type": "cashflow",
+        "title": "Cashflow Status",
+        "current_value": current_net,
+        "target_value": target_net,
+        "status": status,
+        "bg_color": bg_color,
+        "text_color": text_color,
+        "icon": icon,
+        "description": f"Current: ${current_net:,.0f} | Target: ${target_net:,.0f}",
+        "priority": priority
+    }
+
+
+def generate_revenue_chart_data(financial_data: Dict[str, Any], priority: str) -> Dict[str, Any]:
+    """Generate structured data for revenue chart"""
+    cashflow = financial_data.get('cashflow', {})
+    current_income = cashflow.get('total_income', 0)
+    target_income = 10000  # Example target
+    
+    # Calculate percentage of target
+    percentage = (current_income / target_income * 100) if target_income > 0 else 0
+    
+    # Determine status and colors
+    if percentage >= 80:
+        status = "excellent"
+        bg_color = "bg-green-50"
+        text_color = "text-green-700"
+        icon = "↗"
+    elif percentage >= 50:
+        status = "good"
+        bg_color = "bg-yellow-50"
+        text_color = "text-yellow-700"
+        icon = "→"
+    else:
+        status = "needs_improvement"
+        bg_color = "bg-red-50"
+        text_color = "text-red-700"
+        icon = "↘"
+    
+    return {
+        "type": "revenue",
+        "title": "Revenue Performance",
+        "current_value": current_income,
+        "target_value": target_income,
+        "percentage": percentage,
+        "status": status,
+        "bg_color": bg_color,
+        "text_color": text_color,
+        "icon": icon,
+        "description": f"{percentage:.1f}% of ${target_income:,.0f} target",
+        "priority": priority
+    }
+
+
+def generate_expense_chart_data(financial_data: Dict[str, Any], priority: str) -> Dict[str, Any]:
+    """Generate structured data for expense chart"""
+    cashflow = financial_data.get('cashflow', {})
+    current_expenses = cashflow.get('total_expenses', 0)
+    current_income = cashflow.get('total_income', 0)
+    optimal_expenses = current_income * 0.7  # 70% of income as optimal
+    
+    # Calculate expense ratio
+    expense_ratio = (current_expenses / current_income * 100) if current_income > 0 else 0
+    
+    # Determine status and colors
+    if expense_ratio <= 70:
+        status = "optimal"
+        bg_color = "bg-green-50"
+        text_color = "text-green-700"
+        icon = "✓"
+    elif expense_ratio <= 90:
+        status = "acceptable"
+        bg_color = "bg-yellow-50"
+        text_color = "text-yellow-700"
+        icon = "⚠"
+    else:
+        status = "high"
+        bg_color = "bg-red-50"
+        text_color = "text-red-700"
+        icon = "⚠"
+    
+    return {
+        "type": "expense",
+        "title": "Expense Optimization",
+        "current_value": current_expenses,
+        "optimal_value": optimal_expenses,
+        "expense_ratio": expense_ratio,
+        "status": status,
+        "bg_color": bg_color,
+        "text_color": text_color,
+        "icon": icon,
+        "description": f"{expense_ratio:.1f}% of income (optimal: 70%)",
+        "priority": priority
+    }
+
+
+def generate_general_chart_data(financial_data: Dict[str, Any], priority: str) -> Dict[str, Any]:
+    """Generate structured data for general chart"""
+    cashflow = financial_data.get('cashflow', {})
+    income = cashflow.get('total_income', 0)
+    expenses = cashflow.get('total_expenses', 0)
+    net = cashflow.get('net_cashflow', 0)
+    
+    # Determine overall status
+    if net > 0:
+        status = "profitable"
+        bg_color = "bg-green-50"
+        text_color = "text-green-700"
+        icon = "↗"
+    elif net < 0:
+        status = "loss"
+        bg_color = "bg-red-50"
+        text_color = "text-red-700"
+        icon = "↘"
+    else:
+        status = "break_even"
+        bg_color = "bg-yellow-50"
+        text_color = "text-yellow-700"
+        icon = "→"
+    
+    return {
+        "type": "general",
+        "title": "Financial Overview",
+        "income": income,
+        "expenses": expenses,
+        "net": net,
+        "status": status,
+        "bg_color": bg_color,
+        "text_color": text_color,
+        "icon": icon,
+        "description": f"Income: ${income:,.0f} | Expenses: ${expenses:,.0f}",
+        "priority": priority
+    }
+
+
+# Removed matplotlib functions - now using React-based charts
+
+
+def generate_charts_for_recommendations(cashflow_df: pd.DataFrame, user_profile: Dict[str, Any], time_range: str = "30d", scenario: str = "current") -> Dict[str, Any]:
+    """Main function to generate all charts and insights with advanced forecasting"""
     
     chart_gen = AIChartGenerator(cashflow_df, user_profile)
+    
+    # Convert time range to days
+    days_ahead = {
+        "7d": 7,
+        "30d": 30, 
+        "90d": 90,
+        "1y": 365
+    }.get(time_range, 30)
+    
+    # Get advanced forecasting insights
+    advanced_insights = chart_gen.get_advanced_forecasting_insights(days_ahead)
     
     return {
         'charts': {
@@ -317,6 +613,12 @@ def generate_charts_for_recommendations(cashflow_df: pd.DataFrame, user_profile:
             'currency_analysis': chart_gen.generate_currency_analysis_chart()
         },
         'insights': chart_gen.generate_ai_insights(),
+        'advanced_forecasting': advanced_insights,
+        'forecasting_params': {
+            'time_range': time_range,
+            'scenario': scenario,
+            'days_ahead': days_ahead
+        },
         'metadata': {
             'generated_at': datetime.now().isoformat(),
             'chart_count': 3,
