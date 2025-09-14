@@ -334,29 +334,38 @@ export function AICharts({ refreshTrigger = 0 }: AIChartsProps) {
     ];
   };
 
-  // AI Recommendations Chart Data
+  // AI Recommendations Chart Data4
   const generateAIRecommendationsData = () => {
+    // Use actual backend data
+    const summaryStats = chartData?.forecasting?.insights?.summary_stats;
+    const currentIncome = summaryStats?.total_income_sgd || 0;
+    const currentExpenses = summaryStats?.total_expenses_sgd || 0;
+    const currentNet = summaryStats?.net_cashflow_sgd || 0;
+    const targetMonthly = (chartData?.target_value || 850000) / 12;
+    
     return [
       {
         name: 'Current Monthly',
-        income: 1187.37,
-        expenses: 0,
-        net: 1187.37,
-        target: 70833.33 // $850,000 / 12 months
+        income: currentIncome,
+        expenses: currentExpenses,
+        net: currentNet,
+        target: targetMonthly
       },
       {
         name: 'Target Monthly',
-        income: 70833.33,
-        expenses: 10000, // Estimated 15% expense ratio
-        net: 60833.33,
-        target: 70833.33
+        income: targetMonthly,
+        expenses: targetMonthly * 0.15, // 15% expense ratio
+        net: targetMonthly * 0.85,
+        target: targetMonthly
       }
     ];
   };
 
   const generateRevenueGapData = () => {
-    const currentMonthly = 1187.37;
-    const targetMonthly = 850000 / 12; // $70,833.33
+    // Use actual backend data
+    const summaryStats = chartData?.forecasting?.insights?.summary_stats;
+    const currentMonthly = summaryStats?.total_income_sgd || 0;
+    const targetMonthly = (chartData?.target_value || 850000) / 12;
     const gap = targetMonthly - currentMonthly;
     
     return [
@@ -367,10 +376,16 @@ export function AICharts({ refreshTrigger = 0 }: AIChartsProps) {
   };
 
   const generateExpenseAnalysisData = () => {
+    // Use actual backend data
+    const summaryStats = chartData?.forecasting?.insights?.summary_stats;
+    const currentExpenses = summaryStats?.total_expenses_sgd || 0;
+    const recommendedExpenses = currentExpenses * 1.2; // 20% increase
+    const growthInvestment = currentExpenses * 0.5; // 50% of current expenses
+    
     return [
-      { name: 'Current Expenses', value: 0, fill: '#6B7280' },
-      { name: 'Recommended Expenses', value: 15000, fill: '#3B82F6' },
-      { name: 'Growth Investment', value: 10000, fill: '#8B5CF6' }
+      { name: 'Current Expenses', value: currentExpenses, fill: '#6B7280' },
+      { name: 'Recommended Expenses', value: recommendedExpenses, fill: '#3B82F6' },
+      { name: 'Growth Investment', value: growthInvestment, fill: '#8B5CF6' }
     ];
   };
 
@@ -405,13 +420,13 @@ export function AICharts({ refreshTrigger = 0 }: AIChartsProps) {
       
       if (metrics.ensemble_mae && metrics.ensemble_mae > 0) {
         // Convert MAE to accuracy percentage (lower MAE = higher accuracy)
-        baseAccuracy = Math.max(0.5, Math.min(0.99, 1 - (metrics.ensemble_mae / 10000)));
+        baseAccuracy = Math.max(0.1, Math.min(0.99, 1 - (metrics.ensemble_mae / 10000)));
       } else if (metrics.arima_mae && metrics.arima_mae > 0) {
         // Use ARIMA MAE if ensemble MAE is not available
-        baseAccuracy = Math.max(0.5, Math.min(0.99, 1 - (metrics.arima_mae / 10000)));
+        baseAccuracy = Math.max(0.1, Math.min(0.99, 1 - (metrics.arima_mae / 10000)));
       } else if (metrics.prophet_mae && metrics.prophet_mae > 0) {
         // Use Prophet MAE if others are not available
-        baseAccuracy = Math.max(0.5, Math.min(0.99, 1 - (metrics.prophet_mae / 10000)));
+        baseAccuracy = Math.max(0.1, Math.min(0.99, 1 - (metrics.prophet_mae / 10000)));
       }
       
       // Adjust accuracy based on time range (shorter = more accurate)
@@ -423,7 +438,7 @@ export function AICharts({ refreshTrigger = 0 }: AIChartsProps) {
       const accuracyScenarioMultiplier = scenario === 'optimistic' ? 1.02 : 
                                         scenario === 'pessimistic' ? 0.95 : 1.0;
       
-      const modelAccuracy = Math.max(0.5, Math.min(0.99, baseAccuracy * timeRangeMultiplier * accuracyScenarioMultiplier));
+      const modelAccuracy = Math.max(0.1, Math.min(0.99, baseAccuracy * timeRangeMultiplier * accuracyScenarioMultiplier));
       
       console.log('🎯 Model Accuracy Calculation:', {
         baseAccuracy,
@@ -434,21 +449,21 @@ export function AICharts({ refreshTrigger = 0 }: AIChartsProps) {
         scenario
       });
       
-      // Calculate realistic forecast values
+      // Use actual backend data for realistic values
       const daysAhead = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : timeRange === '90d' ? 90 : 365;
       const baseForecast = ensemble.forecast[ensemble.forecast.length - 1] || 0;
       const forecastScenarioMultiplier = scenario === 'optimistic' ? 1.1 : 
                                         scenario === 'pessimistic' ? 0.9 : 1.0;
       
-      // Use realistic daily amounts for net cashflow (current period)
-      const realisticDailyNet = 400; // $400 daily net cashflow
-      const currentPeriodNet = realisticDailyNet * daysAhead;
+      // Get actual current net cashflow from backend
+      const currentNetCashflow = chartData?.forecasting?.insights?.summary_stats?.net_cashflow_sgd || 0;
       
       return {
-        netCashflow: currentPeriodNet, // Current period's total net cashflow
-        forecast: (realisticDailyNet * forecastScenarioMultiplier) * daysAhead, // Forecast for next period
+        netCashflow: currentNetCashflow, // Use actual current net cashflow from backend
+        forecast: baseForecast * forecastScenarioMultiplier, // Use actual forecast from backend
         modelAccuracy: modelAccuracy,
-        avgTransaction: 3729, // This would come from backend data
+        avgTransaction: chartData?.forecasting?.insights?.summary_stats?.total_transactions ? 
+          (chartData.forecasting.insights.summary_stats.total_income_sgd / chartData.forecasting.insights.summary_stats.total_transactions) : 3729,
         trend: ensemble.trend
       };
     }
@@ -490,7 +505,7 @@ export function AICharts({ refreshTrigger = 0 }: AIChartsProps) {
     return {
       netCashflow: avgNet * daysAhead, // Current period's total net cashflow
       forecast: (avgNet * scenarioForecastMultiplier) * daysAhead, // Forecast for next period (realistic amounts)
-      modelAccuracy: Math.max(0.5, Math.min(0.99, scenarioAccuracy)),
+      modelAccuracy: Math.max(0.1, Math.min(0.99, scenarioAccuracy)),
       avgTransaction: (totalIncome + totalExpenses) / (cashflowData.length * 2),
       trend: trend > 0 ? 'increasing' : trend < -100 ? 'decreasing' : 'stable'
     };
@@ -635,7 +650,6 @@ export function AICharts({ refreshTrigger = 0 }: AIChartsProps) {
     return insights;
   }, [timeRange, scenario, chartData]); // Recalculate when controls or data change
 
-
   if (isLoading) {
     return (
       <Card className="mb-6 bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200">
@@ -760,7 +774,7 @@ export function AICharts({ refreshTrigger = 0 }: AIChartsProps) {
               </div>
               <div className="mt-3 pt-2 border-t border-red-200">
                 <p className="text-sm text-gray-600 leading-relaxed">
-                  <span className="font-medium">Gap:</span> {formatCurrency(850000/12 - 1187.37)}<br/>
+                  <span className="font-medium">Gap:</span> {formatCurrency(((chartData?.target_value || 850000) / 12) - (chartData?.forecasting?.insights?.summary_stats?.total_income_sgd || 0))}<br/>
                   <span className="text-gray-500">to reach annual target</span>
                 </p>
               </div>
@@ -812,7 +826,7 @@ export function AICharts({ refreshTrigger = 0 }: AIChartsProps) {
               </div>
               <div className="mt-3 pt-2 border-t border-blue-200">
                 <p className="text-sm text-gray-600 leading-relaxed">
-                  <span className="font-medium">Need {((850000/12) / 1187.37).toFixed(1)}x growth</span><br/>
+                  <span className="font-medium">Need {(((chartData?.target_value || 850000) / 12) / (chartData?.forecasting?.insights?.summary_stats?.total_income_sgd || 1)).toFixed(1)}x growth</span><br/>
                   <span className="text-gray-500">to reach target</span>
                 </p>
               </div>
@@ -861,7 +875,7 @@ export function AICharts({ refreshTrigger = 0 }: AIChartsProps) {
               <div className="mt-3 pt-2 border-t border-purple-200">
                 <p className="text-sm text-gray-600 leading-relaxed">
                   <span className="font-medium">Recommended:</span><br/>
-                  <span className="text-purple-700 font-semibold">{formatCurrency(25000)}</span><br/>
+                  <span className="text-purple-700 font-semibold">{formatCurrency((chartData?.forecasting?.insights?.summary_stats?.total_expenses_sgd || 0) * 1.2)}</span><br/>
                   <span className="text-gray-500">total investment</span>
                 </p>
               </div>

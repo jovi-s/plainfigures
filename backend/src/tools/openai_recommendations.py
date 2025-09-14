@@ -200,7 +200,7 @@ Be specific, reference the actual numbers, and provide reasoning based on the da
         from src.tools.chart_generator import generate_simple_recommendation_charts
         
         recommendations = recommendations_data.get("recommendations", [])
-        chart_data = generate_simple_recommendation_charts(recommendations, financial_data)
+        chart_data = generate_simple_recommendation_charts(recommendations, financial_data, user_data)
         recommendations_data["charts"] = chart_data
     except Exception as chart_error:
         print(f"Chart generation failed: {chart_error}")
