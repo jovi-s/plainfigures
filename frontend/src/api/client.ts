@@ -102,9 +102,14 @@ export class FinanceApiClient {
   // User Profile
   static async getUserProfile(userId: string): Promise<ApiResponse<UserProfile>> {
     try {
-      const result = await FinanceRoutes.getUserProfile(userId);
-      return { success: true, data: result as UserProfile };
+      const result = await FinanceRoutes.getUserProfile(userId) as any;
+      return {
+        success: result.success || false,
+        data: result.data || null,
+        error: result.error || null,
+      };
     } catch (error) {
+      console.error('FinanceApiClient: Error in getUserProfile:', error);
       return { success: false, error: error instanceof Error ? error.message : 'Failed to get user profile' };
     }
   }
@@ -144,6 +149,75 @@ export class FinanceApiClient {
       return result as ApiResponse<any>;
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Failed to get enhanced recommendations' };
+    }
+  }
+
+  // Authentication operations
+  static async registerUser(email: string, password: string, companyName: string, ownerName: string): Promise<ApiResponse<any>> {
+    try {
+      const result = await FinanceRoutes.registerUser(email, password, companyName, ownerName) as any;
+      return {
+        success: result.success || false,
+        data: result.data || null,
+        error: result.error || null,
+      };
+    } catch (error) {
+      console.error('FinanceApiClient: Error in registerUser:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  static async loginUser(email: string, password: string): Promise<ApiResponse<any>> {
+    try {
+      const result = await FinanceRoutes.loginUser(email, password) as any;
+      return {
+        success: result.success || false,
+        data: result.data || null,
+        error: result.error || null,
+      };
+    } catch (error) {
+      console.error('FinanceApiClient: Error in loginUser:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  static async completeUserProfile(userId: string, profileData: any): Promise<ApiResponse<any>> {
+    try {
+      const result = await FinanceRoutes.completeUserProfile(userId, profileData) as any;
+      return {
+        success: result.success || false,
+        data: result.data || null,
+        error: result.error || null,
+      };
+    } catch (error) {
+      console.error('FinanceApiClient: Error in completeUserProfile:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  static async updateUserProfile(userId: string, profileData: any): Promise<ApiResponse<any>> {
+    try {
+      const result = await FinanceRoutes.updateUserProfile(userId, profileData) as any;
+      return {
+        success: result.success || false,
+        data: result.data || null,
+        error: result.error || null,
+      };
+    } catch (error) {
+      console.error('FinanceApiClient: Error in updateUserProfile:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
     }
   }
 }

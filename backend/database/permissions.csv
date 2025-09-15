@@ -1,0 +1,6 @@
+user_id,email,password,account_type,company_name,owner_name,industry,country,permissions,status,created_date,last_login,notes
+1,owner@sunrisetrading.sg,demo123,demo,Sunrise Trading Co,Tan Wei Ming,Import/Export,Singapore,"admin,view_dashboard,add_transactions,view_invoices,generate_reports,ai_recommendations",active,2024-01-15,2025-09-15,Primary demo account with full access
+2,demo@company.com,demo123,demo,Demo Company,John Doe,Technology,Malaysia,"view_dashboard,add_transactions,view_invoices",active,2024-01-15,2025-09-15,Secondary demo account with limited access
+3,admin@plainfigures.com,admin123,admin,PlainFigures Admin,Admin User,System,Singapore,"admin,view_dashboard,add_transactions,view_invoices,generate_reports,ai_recommendations,user_management,system_settings",active,2024-01-10,2024-01-20,System administrator account
+4,test@example.com,test123,test,Test Company,Jane Smith,Retail,Thailand,"view_dashboard,add_transactions",active,2024-01-18,2024-01-18,Test account for development
+5,guest@plainfigures.com,guest123,guest,Guest User,Guest User,General,Singapore,view_dashboard,active,2024-01-15,2024-01-19,Read-only guest account

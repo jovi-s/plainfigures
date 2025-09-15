@@ -188,4 +188,45 @@ export const FinanceRoutes = {
       })
     });
   },
+
+  // Authentication operations
+  async registerUser(email: string, password: string, companyName: string, ownerName: string) {
+    return backendRequest('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({
+        email,
+        password,
+        company_name: companyName,
+        owner_name: ownerName
+      })
+    });
+  },
+
+  async loginUser(email: string, password: string) {
+    return backendRequest('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({
+        email,
+        password
+      })
+    });
+  },
+
+  async completeUserProfile(userId: string, profileData: any) {
+    return backendRequest(`/users/${userId}/profile/complete`, {
+      method: 'POST',
+      body: JSON.stringify({
+        profile_data: profileData
+      })
+    });
+  },
+
+  async updateUserProfile(userId: string, profileData: any) {
+    return backendRequest(`/users/${userId}/profile`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        profile_data: profileData
+      })
+    });
+  },
 };

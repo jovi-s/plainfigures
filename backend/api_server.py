@@ -36,6 +36,22 @@ from src.tools.rag_service import get_rag_service
 from src.agent.market_research import graph
 from src.utils.cache import app_cache
 from src.utils.db import init_db, save_openai_recommendations, save_market_research, save_enhanced_recommendations
+from src.tools.user_management import (
+    create_user_profile,
+    update_user_profile,
+    get_user_profile,
+    authenticate_user,
+    check_user_exists
+)
+from src.tools.permissions import (
+    authenticate_user as auth_user,
+    get_user_permissions,
+    check_permission,
+    get_all_users,
+    create_user_account,
+    update_user_permissions,
+    get_user_by_id
+)
 
 def clean_market_research_text(text: str) -> str:
     """Clean up market research text by removing garbled URLs and citations"""
@@ -504,6 +520,273 @@ async def rebuild_rag_index():
     except Exception as e:
         print(f"Error rebuilding RAG index: {str(e)}")
         return ApiResponse(success=False, error=f"Error rebuilding RAG index: {str(e)}")
+
+
+# User Authentication and Registration Endpoints
+@app.post("/auth/register")
+async def register_user(request: dict):
+    """Register a new user with profile data"""
+    try:
+        email = request.get("email", "").strip()
+        password = request.get("password", "").strip()
+        company_name = request.get("company_name", "").strip()
+        owner_name = request.get("owner_name", "").strip()
+        
+        if not all([email, password, company_name, owner_name]):
+            return ApiResponse(success=False, error="Email, password, company name, and owner name are required")
+        
+        # Check if user already exists
+        if check_user_exists(email):
+            return ApiResponse(success=False, error="User with this email already exists")
+        
+        # Create basic profile data
+        profile_data = {
+            "company_name": company_name,
+            "owner_name": owner_name,
+            "contact_email": email,
+            "industry": "",
+            "country": "",
+            "employees": 0,
+            "annual_revenue_usd": 0,
+            "years_in_business": 0,
+            "primary_business_activity": "",
+            "current_financial_challenges": [],
+            "cash_flow_frequency": "",
+            "invoice_volume_monthly": 0,
+            "expense_categories": [],
+            "microfinancing_interest": "",
+            "credit_score": "",
+            "banking_relationship_bank_name": "",
+            "banking_relationship_years": 0,
+            "technology_adoption_level": "",
+            "technology_adoption_tools": [],
+            "financial_goals": [],
+            "business_address_street": "",
+            "business_address_city": "",
+            "business_address_province_or_state": "",
+            "business_address_postal_code": "",
+            "business_address_country": "",
+            "contact_phone": "",
+            "preferred_language": "en"
+        }
+        
+        # Create user profile
+        user_profile = create_user_profile(profile_data)
+        
+        return ApiResponse(success=True, data={
+            "user_id": user_profile["user_id"],
+            "message": "User registered successfully",
+            "profile": user_profile
+        })
+        
+    except Exception as e:
+        print(f"Error registering user: {str(e)}")
+        return ApiResponse(success=False, error=f"Failed to register user: {str(e)}")
+
+@app.post("/auth/login")
+async def login_user(request: dict):
+    """Authenticate user login"""
+    try:
+        email = request.get("email", "").strip()
+        password = request.get("password", "").strip()
+        
+        if not email or not password:
+            return ApiResponse(success=False, error="Email and password are required")
+        
+        # Authenticate user
+        user_profile = authenticate_user(email, password)
+        
+        if user_profile:
+            return ApiResponse(success=True, data={
+                "user_id": user_profile["user_id"],
+                "message": "Login successful",
+                "profile": user_profile
+            })
+        else:
+            return ApiResponse(success=False, error="Invalid email or password")
+        
+    except Exception as e:
+        print(f"Error logging in user: {str(e)}")
+        return ApiResponse(success=False, error=f"Login failed: {str(e)}")
+
+@app.post("/users/{user_id}/profile/complete")
+async def complete_user_profile(user_id: int, request: dict):
+    """Complete user profile with onboarding data"""
+    try:
+        # Get the profile data from request
+        profile_data = request.get("profile_data", {})
+        
+        if not profile_data:
+            return ApiResponse(success=False, error="Profile data is required")
+        
+        # Update user profile
+        updated_profile = update_user_profile(user_id, profile_data)
+        
+        return ApiResponse(success=True, data={
+            "message": "Profile completed successfully",
+            "profile": updated_profile
+        })
+        
+    except Exception as e:
+        print(f"Error completing user profile: {str(e)}")
+        return ApiResponse(success=False, error=f"Failed to complete profile: {str(e)}")
+
+@app.put("/users/{user_id}/profile")
+async def update_user_profile_endpoint(user_id: int, request: dict):
+    """Update user profile"""
+    try:
+        # Get the profile data from request
+        profile_data = request.get("profile_data", {})
+        
+        if not profile_data:
+            return ApiResponse(success=False, error="Profile data is required")
+        
+        # Update user profile
+        updated_profile = update_user_profile(user_id, profile_data)
+        
+        return ApiResponse(success=True, data={
+            "message": "Profile updated successfully",
+            "profile": updated_profile
+        })
+        
+    except Exception as e:
+        print(f"Error updating user profile: {str(e)}")
+        return ApiResponse(success=False, error=f"Failed to update profile: {str(e)}")
+
+# Permissions System Endpoints
+
+@app.post("/auth/permissions-login")
+async def permissions_login(request: dict):
+    """Authenticate user using permissions system"""
+    try:
+        email = request.get("email", "").strip()
+        password = request.get("password", "").strip()
+        
+        if not email or not password:
+            return ApiResponse(success=False, error="Email and password are required")
+        
+        # Authenticate user using permissions system
+        user_data = auth_user(email, password)
+        
+        if user_data:
+            # Get user permissions
+            permissions = get_user_permissions(str(user_data["user_id"]))
+            
+            return ApiResponse(success=True, data={
+                "user_id": user_data["user_id"],
+                "email": user_data["email"],
+                "account_type": user_data["account_type"],
+                "company_name": user_data["company_name"],
+                "owner_name": user_data["owner_name"],
+                "industry": user_data["industry"],
+                "country": user_data["country"],
+                "permissions": permissions,
+                "status": user_data["status"],
+                "message": "Login successful"
+            })
+        else:
+            return ApiResponse(success=False, error="Invalid email or password")
+        
+    except Exception as e:
+        print(f"Error in permissions login: {str(e)}")
+        return ApiResponse(success=False, error=f"Login failed: {str(e)}")
+
+@app.get("/users/{user_id}/permissions")
+async def get_user_permissions_endpoint(user_id: str):
+    """Get user permissions"""
+    try:
+        permissions = get_user_permissions(user_id)
+        return ApiResponse(success=True, data={"permissions": permissions})
+        
+    except Exception as e:
+        print(f"Error getting user permissions: {str(e)}")
+        return ApiResponse(success=False, error=f"Failed to get permissions: {str(e)}")
+
+@app.post("/users/{user_id}/permissions/check")
+async def check_user_permission(user_id: str, request: dict):
+    """Check if user has specific permission"""
+    try:
+        permission = request.get("permission", "").strip()
+        
+        if not permission:
+            return ApiResponse(success=False, error="Permission is required")
+        
+        has_permission = check_permission(user_id, permission)
+        
+        return ApiResponse(success=True, data={
+            "has_permission": has_permission,
+            "permission": permission
+        })
+        
+    except Exception as e:
+        print(f"Error checking permission: {str(e)}")
+        return ApiResponse(success=False, error=f"Failed to check permission: {str(e)}")
+
+@app.get("/admin/users")
+async def get_all_users_endpoint():
+    """Get all users (admin only)"""
+    try:
+        users = get_all_users()
+        return ApiResponse(success=True, data={"users": users})
+        
+    except Exception as e:
+        print(f"Error getting all users: {str(e)}")
+        return ApiResponse(success=False, error=f"Failed to get users: {str(e)}")
+
+@app.post("/admin/users")
+async def create_user_endpoint(request: dict):
+    """Create new user account (admin only)"""
+    try:
+        user_data = request.get("user_data", {})
+        
+        if not user_data:
+            return ApiResponse(success=False, error="User data is required")
+        
+        success = create_user_account(user_data)
+        
+        if success:
+            return ApiResponse(success=True, data={"message": "User created successfully"})
+        else:
+            return ApiResponse(success=False, error="Failed to create user (email may already exist)")
+        
+    except Exception as e:
+        print(f"Error creating user: {str(e)}")
+        return ApiResponse(success=False, error=f"Failed to create user: {str(e)}")
+
+@app.put("/admin/users/{user_id}/permissions")
+async def update_user_permissions_endpoint(user_id: str, request: dict):
+    """Update user permissions (admin only)"""
+    try:
+        permissions = request.get("permissions", [])
+        
+        if not permissions:
+            return ApiResponse(success=False, error="Permissions list is required")
+        
+        success = update_user_permissions(user_id, permissions)
+        
+        if success:
+            return ApiResponse(success=True, data={"message": "Permissions updated successfully"})
+        else:
+            return ApiResponse(success=False, error="Failed to update permissions")
+        
+    except Exception as e:
+        print(f"Error updating permissions: {str(e)}")
+        return ApiResponse(success=False, error=f"Failed to update permissions: {str(e)}")
+
+@app.get("/admin/users/{user_id}")
+async def get_user_by_id_endpoint(user_id: str):
+    """Get user by ID (admin only)"""
+    try:
+        user_data = get_user_by_id(user_id)
+        
+        if user_data:
+            return ApiResponse(success=True, data={"user": user_data})
+        else:
+            return ApiResponse(success=False, error="User not found")
+        
+    except Exception as e:
+        print(f"Error getting user: {str(e)}")
+        return ApiResponse(success=False, error=f"Failed to get user: {str(e)}")
 
 
 if __name__ == "__main__":
