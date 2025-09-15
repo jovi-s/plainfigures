@@ -1,11 +1,10 @@
 import { useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FinanceApiClient } from "@/api/client";
 import { InvoiceData } from "@/api/types";
-import { Mic, MicOff, Send, Upload, FileImage, FileText, X, Check, MessageSquare, Camera } from "lucide-react";
+import { Upload, FileImage, FileText, X, Check, Camera, Database, CheckCircle } from "lucide-react";
 import { TransactionList } from "@/components/TransactionList";
 
 interface RecordTransactionsProps {
@@ -21,23 +20,18 @@ export function RecordTransactions({
 }: RecordTransactionsProps) {
   const { t } = useTranslation();
   
-  // Voice recording state
-  const [isRecording, setIsRecording] = useState(false);
-  const [transcriptionText, setTranscriptionText] = useState("");
-  
   // File upload state
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [extractedData, setExtractedData] = useState<InvoiceData | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
-  // Natural text input state
-  const [naturalTextInput, setNaturalTextInput] = useState("");
-  const [isProcessingText, setIsProcessingText] = useState(false);
   
   // General state
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isSavingToDb, setIsSavingToDb] = useState(false);
+  const [savedToDb, setSavedToDb] = useState(false);
 
   // Clear messages after a delay
   const clearMessages = () => {
@@ -47,60 +41,6 @@ export function RecordTransactions({
     }, 5000);
   };
 
-  // Handle voice recording toggle
-  const handleVoiceToggle = () => {
-    setIsRecording(!isRecording);
-    setError(null);
-    if (isRecording) {
-      console.log("Stopping voice recording...");
-      // Stop recording logic will go here
-    } else {
-      console.log("Starting voice recording...");
-      // Start recording logic will go here
-    }
-  };
-
-  // Handle transcription submission
-  const handleTranscriptionSubmit = async () => {
-    if (!transcriptionText.trim()) return;
-    
-    setIsProcessingText(true);
-    setError(null);
-    
-    try {
-      console.log("Processing voice transcription:", transcriptionText);
-      // TODO: Send to backend for processing
-      setSuccessMessage("Voice input processed successfully!");
-      setTranscriptionText("");
-      onTransactionCreated();
-      clearMessages();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to process voice input");
-    } finally {
-      setIsProcessingText(false);
-    }
-  };
-
-  // Handle natural text input submission
-  const handleNaturalTextSubmit = async () => {
-    if (!naturalTextInput.trim()) return;
-    
-    setIsProcessingText(true);
-    setError(null);
-    
-    try {
-      console.log("Processing natural text:", naturalTextInput);
-      // TODO: Send to backend for processing
-      setSuccessMessage("Text input processed successfully!");
-      setNaturalTextInput("");
-      onTransactionCreated();
-      clearMessages();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to process text input");
-    } finally {
-      setIsProcessingText(false);
-    }
-  };
 
   // File upload handlers
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -109,6 +49,15 @@ export function RecordTransactions({
       setUploadedFile(file);
       setExtractedData(null);
       setError(null);
+      
+      // Create preview URL for images and PDFs
+      if (file.type.startsWith('image/') || file.type === 'application/pdf') {
+        const previewUrl = URL.createObjectURL(file);
+        setImagePreviewUrl(previewUrl);
+      } else {
+        setImagePreviewUrl(null);
+      }
+      
       processFile(file);
     }
   };
@@ -145,6 +94,14 @@ export function RecordTransactions({
     setUploadedFile(null);
     setExtractedData(null);
     setError(null);
+    setSavedToDb(false);
+    
+    // Clean up image preview URL
+    if (imagePreviewUrl) {
+      URL.revokeObjectURL(imagePreviewUrl);
+      setImagePreviewUrl(null);
+    }
+    
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -152,6 +109,29 @@ export function RecordTransactions({
 
   const triggerFileSelect = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleSaveToDatabase = async () => {
+    if (!extractedData) return;
+    
+    setIsSavingToDb(true);
+    setError(null);
+    
+    try {
+      const result = await FinanceApiClient.saveExtractedInvoiceData(extractedData);
+      
+      if (result.success) {
+        setSavedToDb(true);
+        setSuccessMessage(`Data saved successfully! Invoice ID: ${result.data?.invoice_id}`);
+        clearMessages();
+      } else {
+        setError(result.error || 'Failed to save data to database');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save data to database');
+    } finally {
+      setIsSavingToDb(false);
+    }
   };
 
   const getFileIcon = (file: File) => {
@@ -194,58 +174,9 @@ export function RecordTransactions({
         </div>
       )}
 
-      {/* Main input methods grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Voice Input */}
-        <Card className="border-2 border-dashed border-blue-200 hover:border-blue-300 transition-colors">
-          <CardHeader className="text-center">
-            <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-2">
-              <Mic className="h-6 w-6 text-blue-600" />
-            </div>
-            <CardTitle className="text-lg">{t('add_data.voice_title')}</CardTitle>
-            <p className="text-sm text-neutral-600">
-              {t('add_data.voice_description')}
-            </p>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="text-center">
-              <Button
-                onClick={handleVoiceToggle}
-                variant={isRecording ? "destructive" : "default"}
-                size="lg"
-                className="w-20 h-20 rounded-full"
-              >
-                {isRecording ? (
-                  <MicOff className="h-8 w-8" />
-                ) : (
-                  <Mic className="h-8 w-8" />
-                )}
-              </Button>
-              <p className="mt-2 text-sm font-medium">
-                {isRecording ? t('add_data.recording') : t('add_data.tap_to_record')}
-              </p>
-            </div>
-
-            {transcriptionText && (
-              <div className="space-y-3">
-                <div className="p-3 bg-neutral-50 border border-neutral-200 rounded-md">
-                  <p className="text-sm text-neutral-700">{transcriptionText}</p>
-                </div>
-                <Button
-                  onClick={handleTranscriptionSubmit}
-                  disabled={!transcriptionText.trim() || isProcessingText}
-                  className="w-full"
-                >
-                  <Send className="h-4 w-4 mr-2" />
-                  {isProcessingText ? t('add_data.processing') : t('add_data.process_voice')}
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* File Upload */}
+      {/* File Upload and Extracted Data Section */}
+      <div className={`grid gap-6 ${uploadedFile ? 'grid-cols-1 xl:grid-cols-3' : 'grid-cols-1 lg:grid-cols-2'}`}>
+        {/* File Upload Card */}
         <Card className="border-2 border-dashed border-green-200 hover:border-green-300 transition-colors">
           <CardHeader className="text-center">
             <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-2">
@@ -304,88 +235,235 @@ export function RecordTransactions({
                     </div>
                   </div>
                 </div>
-                
-                {extractedData && (
-                  <div className="text-xs space-y-2">
-                    <p className="font-medium text-green-600">{t('add_data.data_extracted')}</p>
-                    {extractedData.vendor && (
-                      <p><strong>{t('add_data.vendor')}:</strong> {extractedData.vendor}</p>
-                    )}
-                    {extractedData.total && (
-                      <p><strong>{t('add_data.amount')}:</strong> {extractedData.currency || 'SGD'} {extractedData.total}</p>
-                    )}
-                  </div>
-                )}
               </div>
             )}
           </CardContent>
         </Card>
 
-        {/* Natural Text Input */}
-        <Card className="border-2 border-dashed border-purple-200 hover:border-purple-300 transition-colors">
-          <CardHeader className="text-center">
-            <div className="mx-auto w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-2">
-              <MessageSquare className="h-6 w-6 text-purple-600" />
-            </div>
-            <CardTitle className="text-lg">{t('add_data.text_title')}</CardTitle>
+        {/* File Preview Card - Show for both images and PDFs */}
+        {uploadedFile && imagePreviewUrl && (
+          <Card className="border-2 border-orange-200">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                {uploadedFile.type.startsWith('image/') ? (
+                  <FileImage className="h-5 w-5 text-orange-600" />
+                ) : (
+                  <FileText className="h-5 w-5 text-orange-600" />
+                )}
+                {uploadedFile.type.startsWith('image/') 
+                  ? t('add_data.image_preview_title') 
+                  : t('add_data.pdf_preview_title')
+                }
+              </CardTitle>
+              <p className="text-sm text-neutral-600">
+                {uploadedFile.type.startsWith('image/') 
+                  ? t('add_data.image_preview_description') 
+                  : t('add_data.pdf_preview_description')
+                }
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col items-center space-y-3">
+                {uploadedFile.type.startsWith('image/') ? (
+                  // Image Preview
+                  <div className="relative max-w-full max-h-96 overflow-hidden rounded-lg border border-neutral-200">
+                    <img
+                      src={imagePreviewUrl}
+                      alt={uploadedFile.name}
+                      className="max-w-full max-h-96 object-contain"
+                    />
+                  </div>
+                ) : uploadedFile.type === 'application/pdf' ? (
+                  // PDF Preview with fallback
+                  <div className="w-full">
+                    <div className="border border-neutral-200 rounded-lg overflow-hidden">
+                      <iframe
+                        src={imagePreviewUrl}
+                        className="w-full h-96"
+                        title={uploadedFile.name}
+                        onError={() => {
+                          // Fallback: show PDF icon and download link if iframe fails
+                          console.log('PDF preview failed, showing fallback');
+                        }}
+                      />
+                    </div>
+                    <div className="mt-2 text-center">
+                      <a
+                        href={imagePreviewUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 text-sm underline"
+                      >
+                        {t('add_data.open_pdf_new_tab')}
+                      </a>
+                    </div>
+                  </div>
+                ) : null}
+                <div className="text-center">
+                  <p className="text-sm font-medium text-neutral-700">{uploadedFile.name}</p>
+                  <p className="text-xs text-neutral-500">{formatFileSize(uploadedFile.size)}</p>
+                  <p className="text-xs text-neutral-400 mt-1">
+                    {uploadedFile.type.startsWith('image/') ? 'Image' : 'PDF Document'}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Extracted Data Display Card */}
+        <Card className="border-2 border-blue-200">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <FileText className="h-5 w-5 text-blue-600" />
+              {t('add_data.extracted_data_title')}
+            </CardTitle>
             <p className="text-sm text-neutral-600">
-              {t('add_data.text_description')}
+              {t('add_data.extracted_data_description')}
             </p>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <Textarea
-              value={naturalTextInput}
-              onChange={(e) => setNaturalTextInput(e.target.value)}
-              placeholder={t('add_data.text_placeholder')}
-              rows={4}
-              className="resize-none"
-            />
-            <Button
-              onClick={handleNaturalTextSubmit}
-              disabled={!naturalTextInput.trim() || isProcessingText}
-              className="w-full"
-            >
-              <Send className="h-4 w-4 mr-2" />
-              {isProcessingText ? t('add_data.processing') : t('add_data.process_text')}
-            </Button>
+          <CardContent>
+            {isUploading ? (
+              <div className="flex items-center justify-center py-8 text-neutral-500">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mr-3"></div>
+                <span>{t('add_data.processing')}</span>
+              </div>
+            ) : extractedData ? (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <Check className="h-5 w-5 text-green-600" />
+                  <span className="font-medium text-green-600">{t('add_data.data_extracted')}</span>
+                </div>
+                
+                <div className="grid grid-cols-1 gap-3">
+                  {extractedData.vendor && (
+                    <div className="p-3 bg-neutral-50 rounded-lg">
+                      <label className="text-xs font-medium text-neutral-500 uppercase tracking-wide">
+                        {t('add_data.vendor')}
+                      </label>
+                      <p className="text-sm font-medium text-neutral-800 mt-1">{extractedData.vendor}</p>
+                    </div>
+                  )}
+                  
+                  {extractedData.issue_date && (
+                    <div className="p-3 bg-neutral-50 rounded-lg">
+                      <label className="text-xs font-medium text-neutral-500 uppercase tracking-wide">
+                        {t('add_data.issue_date')}
+                      </label>
+                      <p className="text-sm font-medium text-neutral-800 mt-1">{extractedData.issue_date}</p>
+                    </div>
+                  )}
+                  
+                  {extractedData.due_date && (
+                    <div className="p-3 bg-neutral-50 rounded-lg">
+                      <label className="text-xs font-medium text-neutral-500 uppercase tracking-wide">
+                        {t('add_data.due_date')}
+                      </label>
+                      <p className="text-sm font-medium text-neutral-800 mt-1">{extractedData.due_date}</p>
+                    </div>
+                  )}
+                  
+                  {extractedData.total && (
+                    <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                      <label className="text-xs font-medium text-green-600 uppercase tracking-wide">
+                        {t('add_data.amount')}
+                      </label>
+                      <p className="text-lg font-bold text-green-700 mt-1">
+                        {extractedData.currency || 'SGD'} {extractedData.total}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {extractedData.subtotal && (
+                    <div className="p-3 bg-neutral-50 rounded-lg">
+                      <label className="text-xs font-medium text-neutral-500 uppercase tracking-wide">
+                        {t('add_data.subtotal')}
+                      </label>
+                      <p className="text-sm font-medium text-neutral-800 mt-1">
+                        {extractedData.currency || 'SGD'} {extractedData.subtotal}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {extractedData.tax && (
+                    <div className="p-3 bg-neutral-50 rounded-lg">
+                      <label className="text-xs font-medium text-neutral-500 uppercase tracking-wide">
+                        {t('add_data.tax')}
+                      </label>
+                      <p className="text-sm font-medium text-neutral-800 mt-1">
+                        {extractedData.currency || 'SGD'} {extractedData.tax}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {extractedData.line_items && extractedData.line_items.length > 0 && (
+                    <div className="p-3 bg-neutral-50 rounded-lg">
+                      <label className="text-xs font-medium text-neutral-500 uppercase tracking-wide">
+                        {t('add_data.line_items')}
+                      </label>
+                      <div className="mt-2 space-y-2">
+                        {extractedData.line_items.map((item, index) => (
+                          <div key={index} className="text-xs border-l-2 border-neutral-300 pl-2">
+                            <p className="font-medium">{item.description}</p>
+                            <p className="text-neutral-600">
+                              Qty: {item.qty} × {extractedData.currency || 'SGD'} {item.unit_price}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {extractedData.raw_text && (
+                    <div className="p-3 bg-neutral-50 rounded-lg">
+                      <label className="text-xs font-medium text-neutral-500 uppercase tracking-wide">
+                        {t('add_data.raw_text')}
+                      </label>
+                      <p className="text-xs text-neutral-700 mt-1 whitespace-pre-wrap max-h-32 overflow-y-auto">
+                        {extractedData.raw_text}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Add to Database Button - moved here after raw text */}
+                  <div className="flex justify-center pt-4">
+                    <Button
+                      onClick={handleSaveToDatabase}
+                      disabled={isSavingToDb || savedToDb}
+                      variant={savedToDb ? "secondary" : "default"}
+                      size="sm"
+                      className={savedToDb ? "bg-green-100 text-green-700 border-green-300" : ""}
+                    >
+                      {isSavingToDb ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                          {t('add_data.saving')}
+                        </>
+                      ) : savedToDb ? (
+                        <>
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                          {t('add_data.saved')}
+                        </>
+                      ) : (
+                        <>
+                          <Database className="h-4 w-4 mr-2" />
+                          {t('add_data.save_to_db')}
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8 text-neutral-400">
+                <FileText className="h-12 w-12 mb-3" />
+                <p className="text-sm">{t('add_data.no_data_extracted')}</p>
+                <p className="text-xs mt-1">{t('add_data.upload_file_to_see_data')}</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
-
-      {/* Instructions */}
-      <Card className="bg-neutral-50">
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
-            <div className="text-center">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                <span className="text-blue-600 font-bold">1</span>
-              </div>
-              <h3 className="font-semibold mb-1">{t('add_data.step1')}</h3>
-              <p className="text-neutral-600">
-                {t('add_data.step1_desc')}
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                <span className="text-green-600 font-bold">2</span>
-              </div>
-              <h3 className="font-semibold mb-1">{t('add_data.step2')}</h3>
-              <p className="text-neutral-600">
-                {t('add_data.step2_desc')}
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                <span className="text-purple-600 font-bold">3</span>
-              </div>
-              <h3 className="font-semibold mb-1">{t('add_data.step3')}</h3>
-              <p className="text-neutral-600">
-                {t('add_data.step3_desc')}
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Recent Transactions List */}
       <Card>

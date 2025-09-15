@@ -22,12 +22,12 @@ from src.types.request_types import (
 
 # Import the financial tools
 from src.tools.finance_tools import (
-    record_transaction,
     summarize_cashflow,
     load_customers,
     load_suppliers,
     extract_invoice_data_from_image,
     extract_invoice_data_from_pdf,
+    save_extracted_invoice_data,
 )
 from src.tools.openai_recommendations import openai_recommendations
 from src.tools.enhanced_recommendations import generate_enhanced_recommendations
@@ -148,12 +148,12 @@ async def call_function(request: FunctionCallRequest):
 
         # Map function names to actual functions
         function_map = {
-            "record_transaction": record_transaction,
             "summarize_cashflow": summarize_cashflow,
             "load_customers": load_customers,
             "load_suppliers": load_suppliers,
             "extract_invoice_data_from_image": extract_invoice_data_from_image,
             "extract_invoice_data_from_pdf": extract_invoice_data_from_pdf,
+            "save_extracted_invoice_data": save_extracted_invoice_data,
         }
 
         if function_name not in function_map:

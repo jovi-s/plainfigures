@@ -159,6 +159,20 @@ export const FinanceRoutes = {
     });
   },
 
+  async saveExtractedInvoiceData(invoiceData: any) {
+    const payload = {
+      function_name: 'save_extracted_invoice_data',
+      parameters: {
+        invoice_data: invoiceData
+      }
+    };
+
+    return backendRequest('/functions/call', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
   // User Profile
   async getUserProfile(userId: string) {
     return backendRequest(`/users/${userId}/profile`);

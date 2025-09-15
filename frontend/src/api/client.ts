@@ -93,6 +93,18 @@ export class FinanceApiClient {
     return result as UploadResponse;
   }
 
+  static async saveExtractedInvoiceData(invoiceData: any): Promise<ApiResponse<any>> {
+    try {
+      const result = await FinanceRoutes.saveExtractedInvoiceData(invoiceData);
+      return result as ApiResponse<any>;
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to save invoice data',
+      };
+    }
+  }
+
   // Health check
   static async healthCheck(): Promise<{ status: string }> {
     const result = await FinanceRoutes.healthCheck();

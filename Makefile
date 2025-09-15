@@ -41,6 +41,10 @@ rag-rebuild:
 rag-query:
 	curl -X POST http://localhost:8080/rag/query -H "Content-Type: application/json" -d '{"question": "How should I expand into Southeast Asia?", "user_context": {}}'
 
+clear-address:
+	lsof -ti:5173 | xargs kill -9 2>/dev/null || true
+	lsof -ti:8080 | xargs kill -9 2>/dev/null || true
+
 # http://localhost:5173 (frontend)
 # http://localhost:8080 (API endpoints)
 
