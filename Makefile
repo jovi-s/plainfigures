@@ -32,6 +32,15 @@ docker-dev-run:
 test-sql-db:
 	sqlite3 backend/database/memory.db "SELECT 'openai_recommendations table:' as info; SELECT * FROM openai_recommendations LIMIT 1; SELECT 'market_research table:' as info; SELECT * FROM market_research LIMIT 1; SELECT 'enhanced_recommendations table:' as info; SELECT * FROM enhanced_recommendations LIMIT 1;"
 
+rag-documents:
+	curl http://localhost:8080/rag/documents
+
+rag-rebuild:
+	curl -X POST http://localhost:8080/rag/rebuild
+
+rag-query:
+	curl -X POST http://localhost:8080/rag/query -H "Content-Type: application/json" -d '{"question": "How should I expand into Southeast Asia?", "user_context": {}}'
+
 # http://localhost:5173 (frontend)
 # http://localhost:8080 (API endpoints)
 

@@ -212,10 +212,6 @@ export function EnhancedRecommendations({ data, onClose }: EnhancedRecommendatio
                 {/* Original Recommendation Reference */}
                 {rec.original_recommendation_reference && (
                   <div className="bg-blue-50 rounded-lg p-3 border-l-4 border-blue-400">
-                    <h4 className="font-medium text-blue-900 text-xs mb-1 flex items-center gap-1">
-                      <ArrowRight className="h-3 w-3" />
-                      Building Upon AI Recommendation
-                    </h4>
                     <p className="text-blue-800 text-xs leading-relaxed font-medium">
                       {rec.original_recommendation_reference}
                     </p>

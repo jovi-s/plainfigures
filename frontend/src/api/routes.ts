@@ -229,4 +229,14 @@ export const FinanceRoutes = {
       })
     });
   },
+
+  async ragQuery(question: string, userContext: any) {
+    return backendRequest('/rag/query', {
+      method: 'POST',
+      body: JSON.stringify({
+        question,
+        user_context: userContext
+      })
+    });
+  },
 };

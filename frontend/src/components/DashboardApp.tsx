@@ -9,6 +9,7 @@ import { RecordTransactions } from "@/components/RecordTransactions";
 import { TransactionList } from "@/components/TransactionList";
 import { GenerateInvoice } from "@/components/GenerateInvoice";
 import { LanguagePicker } from "@/components/LanguagePicker";
+import { ChatForm } from "@/components/chat-form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { FinanceApiClient } from "@/api/client";
@@ -313,9 +314,11 @@ export function DashboardApp({ user, onLogout }: DashboardAppProps) {
 
   // Main application
   return (
-    <div className="min-h-screen bg-neutral-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-neutral-200">
+    <div className="min-h-screen bg-neutral-50 flex">
+      {/* Main content area */}
+      <div className="flex-1 flex flex-col lg:pr-80"> {/* Add right padding for chatbox on large screens */}
+        {/* Header */}
+        <header className="bg-white shadow-sm border-b border-neutral-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
@@ -362,8 +365,8 @@ export function DashboardApp({ user, onLogout }: DashboardAppProps) {
         </div>
       </header>
 
-      {/* Main content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Main content */}
+        <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
         <div className="mb-4">
           <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-2 rounded text-sm">
             <strong>Note:</strong> {getText('note.currency', 'All amounts are automatically converted to SGD for analysis')}
@@ -502,7 +505,13 @@ export function DashboardApp({ user, onLogout }: DashboardAppProps) {
             <GenerateInvoice customers={customers} />
           </TabsContent>
         </Tabs>
-      </main>
+        </main>
+      </div>
+
+      {/* Fixed Chat Sidebar */}
+      <div className="fixed right-0 top-0 h-screen w-96 z-50 hidden lg:block shadow-xl">
+        <ChatForm userContext={user} />
+      </div>
     </div>
   );
 }

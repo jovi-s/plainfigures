@@ -220,6 +220,15 @@ export class FinanceApiClient {
       };
     }
   }
+
+  static async ragQuery(question: string, userContext: any): Promise<ApiResponse<any>> {
+    try {
+      const result = await FinanceRoutes.ragQuery(question, userContext) as any;
+      return result as ApiResponse<any>;
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
 }
 
 export { ApiError };
