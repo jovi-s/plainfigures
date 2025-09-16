@@ -21,7 +21,9 @@ import {
   RefreshCw, 
   LogOut, 
   User,
-  Settings
+  Settings,
+  MessageSquare,
+  X
 } from "lucide-react";
 
 interface User {
@@ -59,6 +61,9 @@ export function DashboardApp({ user, onLogout }: DashboardAppProps) {
   const [marketResearchCacheTime, setMarketResearchCacheTime] = useState<number>(0);
   const [enhancedRecommendations, setEnhancedRecommendations] = useState<any>(null);
   const [showEnhancedRecommendations, setShowEnhancedRecommendations] = useState<boolean>(false);
+  
+  // Chat sidebar state for mobile
+  const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
 
   // Cache management functions
   const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes in milliseconds
@@ -316,7 +321,7 @@ export function DashboardApp({ user, onLogout }: DashboardAppProps) {
   return (
     <div className="min-h-screen bg-neutral-50 flex">
       {/* Main content area */}
-      <div className="flex-1 flex flex-col lg:pr-80"> {/* Add right padding for chatbox on large screens */}
+      <div className="flex-1 flex flex-col lg:pr-96"> {/* Add right padding for chatbox on large screens */}
         {/* Header */}
         <header className="bg-white shadow-sm border-b border-neutral-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -335,10 +340,20 @@ export function DashboardApp({ user, onLogout }: DashboardAppProps) {
             <div className="flex items-center gap-4">
               <LanguagePicker />
               
+              {/* Chat toggle for mobile */}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setIsChatOpen(true)}
+                className="lg:hidden"
+              >
+                <MessageSquare className="h-4 w-4" />
+              </Button>
+              
               {/* User info and logout */}
               {user && (
                 <div className="flex items-center gap-3">
-                  <div className="text-right">
+                  <div className="text-right hidden sm:block">
                     <div className="text-sm font-medium text-neutral-900">
                       {user.owner_name}
                     </div>
@@ -508,10 +523,35 @@ export function DashboardApp({ user, onLogout }: DashboardAppProps) {
         </main>
       </div>
 
-      {/* Fixed Chat Sidebar */}
-      <div className="fixed right-0 top-0 h-screen w-96 z-50 hidden lg:block shadow-xl">
-        <ChatForm userContext={user} />
+      {/* Fixed Chat Sidebar - Desktop */}
+      <div className="fixed right-0 top-0 h-screen w-96 z-40 hidden lg:flex flex-col shadow-xl border-l border-gray-200 bg-white">
+        <ChatForm userContext={user} className="h-full" />
       </div>
+
+      {/* Mobile Chat Overlay */}
+      {isChatOpen && (
+        <>
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-50 lg:hidden"
+            onClick={() => setIsChatOpen(false)}
+          />
+          <div className="fixed right-0 top-0 h-screen w-full sm:w-96 z-50 lg:hidden bg-white shadow-xl">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <h2 className="text-lg font-semibold">AI Assistant</h2>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setIsChatOpen(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="h-[calc(100vh-73px)]">
+              <ChatForm userContext={user} className="h-full" />
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
