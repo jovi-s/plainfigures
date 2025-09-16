@@ -6,6 +6,8 @@ Integrates with existing SQLite database for metadata management
 import os
 import json
 import logging
+import csv
+import sqlite3
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime
@@ -106,9 +108,210 @@ class RAGService:
             logger.error(f"Error checking PDF readability {pdf_path}: {e}")
             return False
     
-    def _load_documents(self) -> List[Document]:
-        """Load all documents from the database directories"""
+    def _load_csv_documents(self) -> List[Document]:
+        """Load CSV files as documents with structured data representation"""
         documents = []
+        
+        # Define CSV files to load
+        csv_files = [
+            "cashflow.csv",
+            "invoice_lines.csv", 
+            "invoice.csv"
+        ]
+        
+        for csv_file in csv_files:
+            csv_path = self.data_dir / csv_file
+            if not csv_path.exists():
+                logger.warning(f"CSV file not found: {csv_file}")
+                continue
+                
+            try:
+                with open(csv_path, 'r', encoding='utf-8') as file:
+                    csv_reader = csv.DictReader(file)
+                    rows = list(csv_reader)
+                    
+                if not rows:
+                    logger.warning(f"CSV file is empty: {csv_file}")
+                    continue
+                
+                # Create a structured text representation
+                content_lines = [f"# {csv_file.replace('.csv', '').replace('_', ' ').title()} Data"]
+                content_lines.append(f"Total records: {len(rows)}")
+                content_lines.append("")
+                
+                # Add column information
+                if rows:
+                    columns = list(rows[0].keys())
+                    content_lines.append("## Columns:")
+                    content_lines.extend([f"- {col}" for col in columns])
+                    content_lines.append("")
+                
+                # Add sample records for context
+                content_lines.append("## Sample Records:")
+                for i, row in enumerate(rows[:5]):  # Include first 5 records as samples
+                    content_lines.append(f"### Record {i+1}:")
+                    for key, value in row.items():
+                        content_lines.append(f"- {key}: {value}")
+                    content_lines.append("")
+                
+                # Add data analysis summary
+                content_lines.append("## Data Summary:")
+                if csv_file == "cashflow.csv":
+                    # Add cashflow-specific insights
+                    currencies = set(row.get('currency', '') for row in rows)
+                    directions = set(row.get('direction', '') for row in rows)
+                    content_lines.append(f"- Currencies: {', '.join(currencies)}")
+                    content_lines.append(f"- Transaction directions: {', '.join(directions)}")
+                elif csv_file == "invoice.csv":
+                    # Add invoice-specific insights
+                    statuses = set(row.get('status', '') for row in rows)
+                    currencies = set(row.get('currency_code', '') for row in rows)
+                    content_lines.append(f"- Invoice statuses: {', '.join(statuses)}")
+                    content_lines.append(f"- Currencies: {', '.join(currencies)}")
+                
+                # Add all records in a searchable format
+                content_lines.append("\n## All Records (Searchable Format):")
+                for i, row in enumerate(rows):
+                    record_text = f"Record {i+1}: " + " | ".join([f"{k}={v}" for k, v in row.items()])
+                    content_lines.append(record_text)
+                
+                content = "\n".join(content_lines)
+                
+                doc = Document(
+                    text=content,
+                    metadata={
+                        "filename": csv_file,
+                        "file_path": str(csv_path),
+                        "content_type": "text/csv",
+                        "source": "financial_data",
+                        "record_count": len(rows),
+                        "columns": columns if rows else []
+                    }
+                )
+                documents.append(doc)
+                logger.info(f"Loaded CSV document: {csv_file} ({len(rows)} records)")
+                
+            except Exception as e:
+                logger.error(f"Error loading CSV {csv_file}: {e}")
+        
+        return documents
+    
+    def _load_database_table_documents(self) -> List[Document]:
+        """Load database tables as documents"""
+        documents = []
+        
+        # Define tables to load with their primary content fields
+        tables_config = {
+            "openai_recommendations": {
+                "description": "AI-generated business recommendations",
+                "content_fields": ["data_json", "user_context"],
+                "metadata_fields": ["created_at", "cache_key"]
+            },
+            "market_research": {
+                "description": "Market research analysis and insights",
+                "content_fields": ["output_text", "prompt_context"],
+                "metadata_fields": ["created_at", "cache_key"]
+            },
+            "enhanced_recommendations": {
+                "description": "Enhanced business recommendations with market context",
+                "content_fields": ["data_json", "user_context"],
+                "metadata_fields": ["created_at", "cache_key", "market_hash"]
+            }
+        }
+        
+        try:
+            # Connect to the database
+            db_path = self.data_dir / "memory.db"
+            if not db_path.exists():
+                logger.warning("Database file memory.db not found")
+                return documents
+                
+            conn = sqlite3.connect(str(db_path))
+            conn.row_factory = sqlite3.Row
+            
+            for table_name, config in tables_config.items():
+                try:
+                    cursor = conn.cursor()
+                    cursor.execute(f"SELECT * FROM {table_name} ORDER BY created_at DESC LIMIT 10")
+                    rows = cursor.fetchall()
+                    
+                    if not rows:
+                        logger.warning(f"Table {table_name} is empty")
+                        continue
+                    
+                    # Create a document for the entire table
+                    content_lines = [f"# {table_name.replace('_', ' ').title()}"]
+                    content_lines.append(f"Description: {config['description']}")
+                    content_lines.append(f"Showing top {len(rows)} records (limited to 10)")
+                    content_lines.append("")
+                    
+                    # Process each record
+                    for i, row in enumerate(rows):
+                        row_dict = dict(row)
+                        content_lines.append(f"## Record {i+1} (ID: {row_dict.get('id', 'unknown')})")
+                        
+                        # Add metadata info
+                        for field in config['metadata_fields']:
+                            if field in row_dict and row_dict[field]:
+                                content_lines.append(f"- {field}: {row_dict[field]}")
+                        
+                        # Add main content
+                        for field in config['content_fields']:
+                            if field in row_dict and row_dict[field]:
+                                value = row_dict[field]
+                                # If it's JSON, try to parse and format it nicely
+                                if field.endswith('_json') and value:
+                                    try:
+                                        parsed_json = json.loads(value)
+                                        content_lines.append(f"- {field}:")
+                                        content_lines.append(f"  {json.dumps(parsed_json, indent=2)}")
+                                    except json.JSONDecodeError:
+                                        content_lines.append(f"- {field}: {value}")
+                                else:
+                                    # Truncate very long text content
+                                    display_value = value[:1000] + "..." if len(str(value)) > 1000 else value
+                                    content_lines.append(f"- {field}: {display_value}")
+                        
+                        content_lines.append("")
+                    
+                    content = "\n".join(content_lines)
+                    
+                    doc = Document(
+                        text=content,
+                        metadata={
+                            "filename": f"{table_name}.db_table",
+                            "file_path": f"database/memory.db#{table_name}",
+                            "content_type": "application/x-sqlite3",
+                            "source": "database",
+                            "table_name": table_name,
+                            "record_count": len(rows),
+                            "description": config['description']
+                        }
+                    )
+                    documents.append(doc)
+                    logger.info(f"Loaded database table: {table_name} ({len(rows)} records)")
+                    
+                except Exception as e:
+                    logger.error(f"Error loading table {table_name}: {e}")
+            
+            conn.close()
+            
+        except Exception as e:
+            logger.error(f"Error connecting to database: {e}")
+        
+        return documents
+    
+    def _load_documents(self) -> List[Document]:
+        """Load all documents from various sources: text files, PDFs, CSV files, and database tables"""
+        documents = []
+        
+        # Load CSV documents first
+        logger.info("Loading CSV documents...")
+        documents.extend(self._load_csv_documents())
+        
+        # Load database table documents
+        logger.info("Loading database table documents...")
+        documents.extend(self._load_database_table_documents())
         
         # Load text files from concepts directory
         if self.concepts_dir.exists():
