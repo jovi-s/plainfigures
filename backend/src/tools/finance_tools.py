@@ -129,7 +129,7 @@ Extract ALL information from the invoice. Return your output as a single JSON ob
 with the following keys:
 'invoice_id, line_id, item_sku, item_name, item_description, quantity,
 unit_code, unit_price, currency, line_tax_rate_percent, line_tax_amount,
-total_amount, vendor, issue_date, due_date'
+total_amount, vendor, issue_date, due_date'.
 If the information is not present, return an empty string for that key.
 If there are multiple line items, return all of the line items in a list for each output key.
                         """),
@@ -161,14 +161,21 @@ If there are multiple line items, return all of the line items in a list for eac
     return {"invoice_data": {"raw_text": ""}}
 
 
-def extract_invoice_data_from_pdf(invoice_pdf_bytes: bytes) -> Dict[str, Any]:
+def extract_invoice_data_from_pdf(invoice_pdf_bytes) -> Dict[str, Any]:
     """Extracts invoice text from a PDF file's bytes using PyPDF if available.
+    
+    Args:
+        invoice_pdf_bytes: Can be bytes object or list of integers (from JS Uint8Array)
 
     Returns a dict with key `invoice_data` containing either parsed JSON or raw text.
     """
     if PdfReader is None:
         return {"invoice_data": {"raw_text": ""}}
     try:
+        # Convert list of integers to bytes if needed (from JS Uint8Array -> Array.from())
+        if isinstance(invoice_pdf_bytes, list):
+            invoice_pdf_bytes = bytes(invoice_pdf_bytes)
+        
         reader = PdfReader(io.BytesIO(invoice_pdf_bytes))
         texts = []
         for page in reader.pages:
@@ -177,9 +184,39 @@ def extract_invoice_data_from_pdf(invoice_pdf_bytes: bytes) -> Dict[str, Any]:
             except Exception:
                 continue
         raw = "\n".join(texts).strip()
-        return {"invoice_data": {"raw_text": raw}}
+
+        messages = [
+            {
+                "role": "user",
+                "content": f"""
+You are an expert invoice data extraction system. Parse the following invoice text and extract structured information.
+
+REQUIRED OUTPUT FORMAT:
+Return a valid JSON object with these exact keys (use empty string "" if information not found):
+
+'invoice_id, line_id, item_sku, item_name, item_description, quantity,
+unit_code, unit_price, currency, line_tax_rate_percent, line_tax_amount,
+total_amount, vendor, issue_date, due_date'.
+
+INVOICE TEXT TO PARSE:
+<extracted_invoice_text>
+{raw}
+</extracted_invoice_text>
+            """}
+        ]
+        response = _openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=messages,
+            max_tokens=1000,
+        )
+        content = response.choices[0].message.content or "{}"
+        try:
+            data = json.loads(content)
+        except Exception:
+            data = {"raw_text": content}
+        return {"invoice_data": data}
     except Exception:
-        return {"invoice_data": {"raw_text": ""}}
+        return {"invoice_data": {"raw_text": raw}}
 
 
 def categorize_expense(expense_description: str) -> str:
