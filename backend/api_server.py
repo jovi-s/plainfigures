@@ -32,7 +32,8 @@ from src.tools.finance_tools import (
 from src.tools.openai_recommendations import openai_recommendations
 from src.tools.enhanced_recommendations import generate_enhanced_recommendations
 from src.tools.chart_generator import generate_charts_for_recommendations
-from src.tools.rag_service import get_rag_service
+# from src.tools.rag_service import get_rag_service
+from src.tools.langgraph_rag_service import get_langgraph_rag_service
 from src.agent.market_research import graph
 from src.utils.cache import app_cache
 from src.utils.db import init_db, save_openai_recommendations, save_market_research, save_enhanced_recommendations
@@ -481,7 +482,7 @@ async def rag_query(request: dict):
             return ApiResponse(success=False, error="Question is required")
         
         # Get RAG service and query
-        rag_service = get_rag_service()
+        rag_service = get_langgraph_rag_service()
         result = rag_service.query(question, user_context)
         
         return ApiResponse(success=result["success"], data=result)
@@ -495,7 +496,7 @@ async def rag_query(request: dict):
 async def get_rag_documents():
     """Get information about indexed documents in the RAG system"""
     try:
-        rag_service = get_rag_service()
+        rag_service = get_langgraph_rag_service()
         stats = rag_service.get_document_stats()
         
         return ApiResponse(success=True, data=stats)
@@ -509,8 +510,8 @@ async def get_rag_documents():
 async def rebuild_rag_index():
     """Rebuild the RAG index from documents"""
     try:
-        rag_service = get_rag_service()
-        success = rag_service.build_index()
+        rag_service = get_langgraph_rag_service()
+        success = rag_service.rebuild_indexes()
         
         if success:
             return ApiResponse(success=True, data={"message": "RAG index rebuilt successfully"})

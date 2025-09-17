@@ -237,3 +237,7 @@ Built specifically for Southeast Asian SMEs with understanding of:
 - **MVP approach**: CSV-based storage for rapid prototyping and deployment
 
 This backend provides a solid foundation for SME financial management with room for scaling to more sophisticated database systems and additional AI capabilities as needed.
+
+
+SEALION MODEL USED: 
+https://huggingface.co/aisingapore/Gemma-SEA-LION-v3-9B-IT

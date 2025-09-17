@@ -32,6 +32,7 @@ docker-dev-run:
 test-sql-db:
 	sqlite3 backend/database/memory.db "SELECT 'openai_recommendations table:' as info; SELECT * FROM openai_recommendations LIMIT 1; SELECT 'market_research table:' as info; SELECT * FROM market_research LIMIT 1; SELECT 'enhanced_recommendations table:' as info; SELECT * FROM enhanced_recommendations LIMIT 1;"
 
+# Ensure backend is running before executing curl commands
 rag-documents:
 	curl http://localhost:8080/rag/documents
 
@@ -44,6 +45,9 @@ rag-query:
 clear-address:
 	lsof -ti:5173 | xargs kill -9 2>/dev/null || true
 	lsof -ti:8080 | xargs kill -9 2>/dev/null || true
+
+invoke-sealion:
+	uv run python -m backend.src.sealion
 
 # http://localhost:5173 (frontend)
 # http://localhost:8080 (API endpoints)

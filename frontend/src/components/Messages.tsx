@@ -177,7 +177,7 @@ export function Messages({
           <div className="space-y-2">
             {[
               "What initiatives can I rely on to offset cost pressures?",
-              "What are the benefits of KYC and Data Analysis in Singapore?",
+              "Research through my data and tell me how to make more money?",
               "What should I look for in a business partner in Southeast Asia?",
               "What are 3 key tips to expand my business to Southeast Asia?"
             ].map((question, index) => (
