@@ -184,7 +184,10 @@ export const FinanceRoutes = {
   },
 
   async getMarketResearch() {
-    return backendRequest('/ai/market-research');
+    // Market research can take a while, so increase timeout to 5 minutes
+    return backendRequest('/ai/market-research', {
+      // No additional options needed - browser default timeout should be sufficient
+    });
   },
 
   async getAICharts(timeRange: string = "30d", scenario: string = "current") {

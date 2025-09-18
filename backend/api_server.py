@@ -270,11 +270,18 @@ async def get_openai_recommendations():
 async def get_market_research():
     """Generate market research using LangGraph with caching"""
     try:
-        user_information = user_profile_df[user_profile_df.iloc[0].to_dict()]
-        print(user_information)
+        # Get user information from the first row of user profile data
+        if user_profile_df is None or user_profile_df.empty:
+            return ApiResponse(success=False, error="User profile data not available")
+        
+        user_information = user_profile_df.iloc[0].to_dict()
+        print(f"Market research for user: {user_information.get('company_name', 'Unknown')}")
         
         # Create cache key based on user information to ensure appropriate cache invalidation
-        cache_key = f"market_research_{user_information['company_type']}_{user_information['location']}_{user_information['industry']}"
+        company_type = user_information.get('company_type', user_information.get('primary_business_activity', 'unknown'))
+        location = user_information.get('location', user_information.get('country', 'unknown'))
+        industry = user_information.get('industry', 'unknown')
+        cache_key = f"market_research_{company_type}_{location}_{industry}"
         
         # Try to get from cache first
         cached_result = app_cache.get(cache_key)
@@ -284,6 +291,7 @@ async def get_market_research():
         
         # Generate fresh market research
         print("Generating fresh market research")
+        print(f"Using cache key: {cache_key}")
         MARKET_RESEARCH_PROMPT = f"""
 Perform comprehensive economic and market research for {user_information.get('company_name', 'a business')} 
 owned by {user_information.get('owner_name', 'the owner')} in the {user_information.get('industry', 'general')} industry 
@@ -343,12 +351,38 @@ and capitalize on economic opportunities in their market.
 Your final answer should take all the learnings from the previous steps and provide a comprehensive report on the market research in 2 short paragraphs.
 """
         
-        result = graph.invoke({
-            "messages": [HumanMessage(content=MARKET_RESEARCH_PROMPT)], 
-            "max_research_loops": 3, 
-            "initial_search_query_count": 3
-        })
-        raw_output = result["messages"][-1].content
+        print("Starting LangGraph market research execution...")
+        try:
+            result = graph.invoke({
+                "messages": [HumanMessage(content=MARKET_RESEARCH_PROMPT)], 
+                "max_research_loops": 3, 
+                "initial_search_query_count": 3
+            })
+            print("LangGraph execution completed")
+            
+            if not result or "messages" not in result or not result["messages"]:
+                raise ValueError("LangGraph returned empty or invalid result")
+                
+            raw_output = result["messages"][-1].content
+            print(f"Raw output length: {len(raw_output) if raw_output else 0} characters")
+            
+            if not raw_output or len(raw_output.strip()) < 50:
+                raise ValueError("LangGraph returned insufficient content")
+                
+        except Exception as graph_error:
+            print(f"LangGraph execution failed: {str(graph_error)}")
+            # Return a fallback response
+            raw_output = f"""
+Market Research Analysis for {user_information.get('company_name', 'Your Business')}
+
+Based on the available data for your {user_information.get('industry', 'business')} company in {user_information.get('country', 'your region')}, here are key market insights:
+
+**Market Opportunities**: The {user_information.get('industry', 'your')} sector shows continued growth potential, particularly for companies with {user_information.get('employees', 'small team')} employees. Digital transformation and customer experience improvements remain key differentiators in the current market environment.
+
+**Strategic Recommendations**: Focus on optimizing cash flow management given your {user_information.get('cash_flow_frequency', 'regular')} payment cycles, consider expanding your technology adoption to improve operational efficiency, and explore partnerships that can help scale your {user_information.get('primary_business_activity', 'business operations')} more effectively.
+
+Note: This is a fallback analysis. For comprehensive market research, please ensure all required services are properly configured.
+"""
         
         # Clean up the market research text to remove garbled URLs
         output = clean_market_research_text(raw_output)

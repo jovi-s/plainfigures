@@ -166,10 +166,13 @@ export function MarketResearch({
     setError(null);
     
     try {
+      console.log('Starting market research request...');
       const response = await FinanceApiClient.getMarketResearch();
+      console.log('Market research response:', response);
       
       if (response.success && response.data) {
         const researchContent = response.data;
+        console.log('Market research content received:', researchContent?.length + ' characters');
         setMarketResearch(researchContent);
         setParsedSections(parseMarketResearch(researchContent));
         
@@ -177,11 +180,12 @@ export function MarketResearch({
           onMarketResearchReceived(researchContent);
         }
       } else {
+        console.error('Market research failed:', response.error);
         setError(response.error || 'Failed to load market research');
       }
     } catch (err) {
-      setError('Failed to load market research');
       console.error('Market research error:', err);
+      setError('Failed to load market research');
     } finally {
       setIsLoading(false);
     }
@@ -294,20 +298,20 @@ export function MarketResearch({
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-emerald-900 text-lg">
             <Search className="h-5 w-5" />
-            Market Research Analysis
+            Sunrise Trading Co.
           </CardTitle>
           <div className="flex flex-wrap items-center gap-4 text-sm text-emerald-700">
             <span className="flex items-center gap-1">
               <MapPin className="h-4 w-4" />
-              Singapore • Beauty & Personal Care
+              Singapore • Import/Export
             </span>
             <span className="flex items-center gap-1">
               <Building2 className="h-4 w-4" />
-              Hair Salon • Growth Stage
+              Electronics Hardware • Growth Stage
             </span>
             <span className="flex items-center gap-1">
               <Users className="h-4 w-4" />
-              65 Employees • $500K Revenue
+              25 Employees • $850K Revenue
             </span>
           </div>
           <p className="text-xs text-emerald-600">
