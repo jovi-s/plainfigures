@@ -176,9 +176,9 @@ export function Messages({
           <h4 className="text-sm font-medium text-gray-700 mb-3">Try asking:</h4>
           <div className="space-y-2">
             {[
-              "What initiatives can I rely on to offset cost pressures?",
-              "Research through my data and tell me how to make more money?",
-              "What should I look for in a business partner in Southeast Asia?",
+              "Are there any upcoming regulatory changes I should prepare for that could affect my business?",
+              "Research through my data and tell me how to make more money",
+              "Given my current cash flow and market trends, what should I focus on to improve profitability over the next quarter?",
               "What are 3 key tips to expand my business to Southeast Asia?"
             ].map((question, index) => (
               <button
