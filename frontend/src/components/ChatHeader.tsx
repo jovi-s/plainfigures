@@ -11,7 +11,6 @@ export interface ChatHeaderProps {
 }
 
 export function ChatHeader({
-  chatId,
   isReadonly = false,
   title = "AI Assistant"
 }: ChatHeaderProps) {

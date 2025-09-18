@@ -22,15 +22,11 @@ export interface MultimodalInputProps {
 }
 
 export function MultimodalInput({
-  chatId,
   input,
   setInput,
   isLoading,
   stop,
-  messages,
-  setMessages,
   sendMessage,
-  onSubmit,
   placeholder = "Ask about your business data...",
   className,
 }: MultimodalInputProps) {

@@ -14,7 +14,6 @@ interface RecordTransactionsProps {
 }
 
 export function RecordTransactions({ 
-  onTransactionCreated,
   onDataExtracted, 
   refreshTrigger 
 }: RecordTransactionsProps) {

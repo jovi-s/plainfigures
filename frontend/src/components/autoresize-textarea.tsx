@@ -1,18 +1,19 @@
 "use client"
 
 import { cn } from "@/utils"
-import { useRef, useEffect, type TextareaHTMLAttributes } from "react"
+import { useRef, useEffect, forwardRef, type TextareaHTMLAttributes } from "react"
 
 interface AutoResizeTextareaProps extends Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, "value" | "onChange"> {
   value: string
   onChange: (value: string) => void
 }
 
-export function AutoResizeTextarea({ className, value, onChange, ...props }: AutoResizeTextareaProps) {
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
+export const AutoResizeTextarea = forwardRef<HTMLTextAreaElement, AutoResizeTextareaProps>(function AutoResizeTextarea({ className, value, onChange, ...props }, ref) {
+  const internalRef = useRef<HTMLTextAreaElement>(null)
+  const textareaRef = ref || internalRef
 
   const resizeTextarea = () => {
-    const textarea = textareaRef.current
+    const textarea = typeof textareaRef === 'function' ? null : textareaRef.current
     if (textarea) {
       textarea.style.height = "auto"
       textarea.style.height = `${textarea.scrollHeight}px`
@@ -36,4 +37,4 @@ export function AutoResizeTextarea({ className, value, onChange, ...props }: Aut
       className={cn("resize-none min-h-4 max-h-80", className)}
     />
   )
-}
+})

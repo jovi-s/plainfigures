@@ -12,17 +12,14 @@ import {
   Target,
   Activity,
   TrendingUp,
-  Calendar,
   Settings,
   Zap,
   TrendingDown,
   AlertTriangle,
   CheckCircle,
-  Clock,
   Info
 } from 'lucide-react';
 import {
-  LineChart,
   Line,
   AreaChart,
   Area,
@@ -115,6 +112,7 @@ interface SimpleChartData {
 }
 
 interface ChartData {
+  target_value?: number;
   charts?: {
     recommendation_charts?: Record<string, SimpleChartData>;
     chart_count?: number;
@@ -450,7 +448,6 @@ export function AICharts({ refreshTrigger = 0 }: AIChartsProps) {
       });
       
       // Use actual backend data for realistic values
-      const daysAhead = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : timeRange === '90d' ? 90 : 365;
       const baseForecast = ensemble.forecast[ensemble.forecast.length - 1] || 0;
       const forecastScenarioMultiplier = scenario === 'optimistic' ? 1.1 : 
                                         scenario === 'pessimistic' ? 0.9 : 1.0;
@@ -476,8 +473,6 @@ export function AICharts({ refreshTrigger = 0 }: AIChartsProps) {
     const trend = cashflowData[cashflowData.length - 1].net - cashflowData[0].net;
     
     // Calculate forecast based on trend and scenario
-    const daysAhead = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : timeRange === '90d' ? 90 : 365;
-    const forecastValue = avgNet * daysAhead; // Total forecast for the period
     
     // Model accuracy varies by scenario and time range (reasonable changes)
     const baseAccuracy = 0.70; // Start with reasonable base accuracy
@@ -502,9 +497,11 @@ export function AICharts({ refreshTrigger = 0 }: AIChartsProps) {
                                      scenario === 'pessimistic' ? 0.8 :   // -20% for pessimistic
                                      1.0; // No change for current
     
+    const daysInPeriod = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : timeRange === '90d' ? 90 : 365;
+    
     return {
-      netCashflow: avgNet * daysAhead, // Current period's total net cashflow
-      forecast: (avgNet * scenarioForecastMultiplier) * daysAhead, // Forecast for next period (realistic amounts)
+      netCashflow: avgNet * daysInPeriod, // Current period's total net cashflow
+      forecast: (avgNet * scenarioForecastMultiplier) * daysInPeriod, // Forecast for next period (realistic amounts)
       modelAccuracy: Math.max(0.1, Math.min(0.99, scenarioAccuracy)),
       avgTransaction: (totalIncome + totalExpenses) / (cashflowData.length * 2),
       trend: trend > 0 ? 'increasing' : trend < -100 ? 'decreasing' : 'stable'
@@ -1198,7 +1195,7 @@ export function AICharts({ refreshTrigger = 0 }: AIChartsProps) {
                             borderRadius: '8px',
                             fontSize: '12px'
                           }}
-                          formatter={(value: number, name: string, props: any) => [
+                          formatter={(value: number) => [
                             `${value}%`, 
                             'Percentage'
                           ]}
