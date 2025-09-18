@@ -28,21 +28,6 @@ export interface Transaction {
   fees_amount?: number | null;
 }
 
-export interface TransactionCreateRequest {
-  user_id: string;
-  date: string;
-  category: string;
-  currency: string;
-  amount: number;
-  direction: 'IN' | 'OUT';
-  counterparty_id?: string;
-  counterparty_type?: string;
-  description?: string;
-  document_reference?: string;
-  tax_amount?: number;
-  payment_method?: string;
-}
-
 // Cashflow summary types
 export interface CashflowSummary {
   totals: {
@@ -92,18 +77,6 @@ export interface InvoiceLineItem {
   vendor: string;
   issue_date: string;
   due_date: string;
-}
-
-export interface InvoiceCreateRequest {
-  user_id: string;
-  invoice_type: 'AR' | 'AP';
-  counterparty_id: string;
-  issue_date: string;
-  due_date: string;
-  currency: string;
-  line_items: InvoiceLineItem[];
-  payment_terms?: string;
-  notes?: string;
 }
 
 // Customer/Supplier types
@@ -163,21 +136,6 @@ export interface UploadResponse {
   invoice_data: InvoiceData;
 }
 
-// Agent interaction types
-export interface AgentMessage {
-  type: 'human' | 'ai';
-  content: string;
-  id: string;
-  agent?: string;
-  timestamp?: string;
-}
-
-export interface AgentResponse {
-  action: string;
-  result: any;
-  message?: string;
-}
-
 // AI Recommendations types
 export interface Recommendation {
   type: 'AP_REDUCTION' | 'AR_INCREASE' | 'CASHFLOW_PROJECTION';
@@ -204,10 +162,24 @@ export interface UserProfile {
   annual_revenue_usd: number;
   years_in_business: number;
   primary_business_activity: string;
-}
-
-// File upload types
-export interface FileUploadRequest {
-  file: File;
-  type: 'image' | 'pdf';
+  current_financial_challenges?: string;
+  cash_flow_frequency?: string;
+  invoice_volume_monthly?: number;
+  expense_categories?: string;
+  microfinancing_interest?: string;
+  credit_score?: string;
+  banking_relationship_bank_name?: string;
+  banking_relationship_years?: number;
+  technology_adoption_level?: string;
+  technology_adoption_tools?: string;
+  financial_goals?: string;
+  business_address_street?: string;
+  business_address_city?: string;
+  business_address_province_or_state?: string;
+  business_address_postal_code?: string;
+  business_address_country?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  preferred_language?: string;
+  recent_activity?: string;
 }

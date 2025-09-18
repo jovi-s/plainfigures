@@ -1,6 +1,6 @@
 import os
 
-from .tools_and_schemas import SearchQueryList, Reflection
+from src.agent.market_research.tools_and_schemas import SearchQueryList, Reflection
 from dotenv import load_dotenv
 from langchain_core.messages import AIMessage
 from langgraph.types import Send
@@ -9,14 +9,14 @@ from langgraph.graph import START, END
 from langchain_core.runnables import RunnableConfig
 from google.genai import Client
 
-from .state import (
+from src.agent.market_research.state import (
     OverallState,
     QueryGenerationState,
     ReflectionState,
     WebSearchState,
 )
-from .configuration import Configuration
-from .prompts import (
+from src.agent.market_research.configuration import Configuration
+from src.agent.market_research.prompts import (
     get_current_date,
     query_writer_instructions,
     web_searcher_instructions,
@@ -24,7 +24,7 @@ from .prompts import (
     answer_instructions,
 )
 from langchain_google_genai import ChatGoogleGenerativeAI
-from .utils import (
+from src.agent.market_research.utils import (
     get_citations,
     get_research_topic,
     insert_citation_markers,
@@ -290,4 +290,4 @@ builder.add_conditional_edges(
 # Finalize the answer
 builder.add_edge("finalize_answer", END)
 
-graph = builder.compile(name="pro-search-agent")
+graph = builder.compile(name="market-research-agent")

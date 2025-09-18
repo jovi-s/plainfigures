@@ -31,6 +31,7 @@ All numeric calculations are computed by code, not by the LLM.
 
 from __future__ import annotations
 
+import ast
 import csv
 import io
 import json
@@ -77,6 +78,7 @@ def _read_csv_dicts(path: Path) -> List[Dict[str, str]]:
 
 
 def _append_csv_row(path: Path, fieldnames: List[str], row: Dict[str, Any]) -> None:
+    """Appends a new row to the CSV file at the very bottom, creating a new line."""
     is_new = not path.exists()
     _ensure_parent_dir(path)
     with path.open("a", newline="", encoding="utf-8") as f:
@@ -122,12 +124,15 @@ def extract_invoice_data_from_image(invoice_base64_image: str) -> Dict[str, Any]
                 "content": [
                     {
                         "type": "text",
-                        "text": (
-                            "Extract key invoice fields as JSON with keys: "
-                            "vendor, issue_date(YYYY-MM-DD), due_date, currency(ISO), "
-                            "line_items[{desc,qty,unit_price,tax_rate}], subtotal, tax, total, "
-                            "and return a single JSON object only."
-                        ),
+                        "text": ("""
+Extract ALL information from the invoice. Return your output as a single JSON object
+with the following keys:
+'invoice_id, line_id, item_sku, item_name, item_description, quantity,
+unit_code, unit_price, currency, line_tax_rate_percent, line_tax_amount,
+total_amount, vendor, issue_date, due_date'.
+If the information is not present, return an empty string for that key.
+If there are multiple line items, return all of the line items in a list for each output key.
+                        """),
                     },
                     {
                         "type": "image_url",
@@ -156,14 +161,21 @@ def extract_invoice_data_from_image(invoice_base64_image: str) -> Dict[str, Any]
     return {"invoice_data": {"raw_text": ""}}
 
 
-def extract_invoice_data_from_pdf(invoice_pdf_bytes: bytes) -> Dict[str, Any]:
+def extract_invoice_data_from_pdf(invoice_pdf_bytes) -> Dict[str, Any]:
     """Extracts invoice text from a PDF file's bytes using PyPDF if available.
+    
+    Args:
+        invoice_pdf_bytes: Can be bytes object or list of integers (from JS Uint8Array)
 
     Returns a dict with key `invoice_data` containing either parsed JSON or raw text.
     """
     if PdfReader is None:
         return {"invoice_data": {"raw_text": ""}}
     try:
+        # Convert list of integers to bytes if needed (from JS Uint8Array -> Array.from())
+        if isinstance(invoice_pdf_bytes, list):
+            invoice_pdf_bytes = bytes(invoice_pdf_bytes)
+        
         reader = PdfReader(io.BytesIO(invoice_pdf_bytes))
         texts = []
         for page in reader.pages:
@@ -172,9 +184,39 @@ def extract_invoice_data_from_pdf(invoice_pdf_bytes: bytes) -> Dict[str, Any]:
             except Exception:
                 continue
         raw = "\n".join(texts).strip()
-        return {"invoice_data": {"raw_text": raw}}
+
+        messages = [
+            {
+                "role": "user",
+                "content": f"""
+You are an expert invoice data extraction system. Parse the following invoice text and extract structured information.
+
+REQUIRED OUTPUT FORMAT:
+Return a valid JSON object with these exact keys (use empty string "" if information not found):
+
+'invoice_id, line_id, item_sku, item_name, item_description, quantity,
+unit_code, unit_price, currency, line_tax_rate_percent, line_tax_amount,
+total_amount, vendor, issue_date, due_date'.
+
+INVOICE TEXT TO PARSE:
+<extracted_invoice_text>
+{raw}
+</extracted_invoice_text>
+            """}
+        ]
+        response = _openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=messages,
+            max_tokens=1000,
+        )
+        content = response.choices[0].message.content or "{}"
+        try:
+            data = json.loads(content)
+        except Exception:
+            data = {"raw_text": content}
+        return {"invoice_data": data}
     except Exception:
-        return {"invoice_data": {"raw_text": ""}}
+        return {"invoice_data": {"raw_text": raw}}
 
 
 def categorize_expense(expense_description: str) -> str:
@@ -191,6 +233,78 @@ def categorize_expense(expense_description: str) -> str:
     if any(k in desc for k in ["utilit", "water", "electric", "phone"]):
         return "Utilities"
     return "Miscellaneous"
+
+
+def save_extracted_invoice_data(invoice_data: Dict[str, Any]) -> Dict[str, Any]:
+    """Save extracted invoice data to invoice_lines.csv"""
+    try:
+        # Generate unique invoice ID
+        invoice_id = _generate_id("DOC")
+        # Handle cases where raw_text might contain markdown-wrapped JSON
+        raw_text = invoice_data["raw_text"]
+        if raw_text.startswith("```json") and raw_text.endswith("```"):
+            # Extract JSON content from markdown code block
+            raw_text = raw_text[7:-3].strip()
+        
+        # Try to parse as JSON first, fall back to ast.literal_eval
+        try:
+            parsed_data = json.loads(raw_text)
+        except json.JSONDecodeError:
+            parsed_data = ast.literal_eval(raw_text)
+        
+        # Define the fieldnames for invoice_lines.csv
+        fieldnames = [
+            "invoice_id", "line_id", "item_sku", "item_name", "item_description", 
+            "quantity", "unit_code", "unit_price", "currency", "line_tax_rate_percent", 
+            "line_tax_amount", "total_amount", "vendor", "issue_date", "due_date"
+        ]
+        
+        # Helper function to convert list to string or return value as-is
+        def format_value(value):
+            if isinstance(value, list):
+                return "|".join(str(item) for item in value)
+            return str(value) if value is not None else ""
+        
+        # Create a single row with all the data
+        row_data = {
+            "invoice_id": invoice_id,
+            "line_id": format_value(parsed_data.get("line_id", "")),
+            "item_sku": format_value(parsed_data.get("item_sku", "")),
+            "item_name": format_value(parsed_data.get("item_name", "")),
+            "item_description": format_value(parsed_data.get("item_description", "")),
+            "quantity": format_value(parsed_data.get("quantity", "")),
+            "unit_code": format_value(parsed_data.get("unit_code", "")),
+            "unit_price": format_value(parsed_data.get("unit_price", "")),
+            "currency": format_value(parsed_data.get("currency", "")),
+            "line_tax_rate_percent": format_value(parsed_data.get("line_tax_rate_percent", "")),
+            "line_tax_amount": format_value(parsed_data.get("line_tax_amount", "")),
+            "total_amount": format_value(parsed_data.get("total_amount", "")),
+            "vendor": str(parsed_data.get("vendor", "")),
+            "issue_date": str(parsed_data.get("issue_date", "")),
+            "due_date": str(parsed_data.get("due_date", ""))
+        }
+        
+        # Clean up monetary values (remove commas from unit_price and total_amount)
+        for field in ["unit_price", "total_amount"]:
+            if row_data[field]:
+                row_data[field] = row_data[field].replace(",", "")
+        
+        # Append single row to CSV (this adds to the bottom of the file)
+        _append_csv_row(INVOICE_LINES_CSV, fieldnames, row_data)
+        
+        return {
+            "success": True,
+            "message": "Successfully saved invoice data",
+            "invoice_id": invoice_id,
+            "lines_saved": 1,
+            "data": row_data
+        }
+        
+    except Exception as e:
+        return {
+            "success": False,
+            "error": f"Failed to save invoice data: {str(e)}"
+        }
 
 
 def process_invoice(context = None, invoice_text: str | None = None) -> Dict[str, Any]:
@@ -221,70 +335,6 @@ def load_suppliers(context = None) -> Dict[str, Any]:
     Returns a dict with `suppliers` as a list of row dicts.
     """
     return {"source": str(SUPPLIERS_CSV), "suppliers": _read_csv_dicts(SUPPLIERS_CSV)}
-
-
-def record_transaction(
-    context = None,
-    *,
-    user_id: str,
-    date: str,
-    category: str,
-    currency: str,
-    amount: float,
-    direction: str,
-    counterparty_id: Optional[str] = None,
-    counterparty_type: Optional[str] = None,
-    description: Optional[str] = None,
-    document_reference: Optional[str] = None,
-    tax_amount: Optional[float] = None,
-    payment_method: Optional[str] = None,
-) -> Dict[str, Any]:
-    """Appends a transaction row to `cashflow.csv`.
-
-    Direction must be one of {IN, OUT}.
-    Date may be in ISO (YYYY-MM-DD) or common regional formats; it will be
-    written exactly as provided to preserve user locale, but validated parsable.
-    """
-    direction_norm = (direction or "").upper()
-    if direction_norm not in {"IN", "OUT"}:
-        return {"status": "error", "message": "direction must be IN or OUT"}
-
-    if _parse_date(date) is None:
-        return {"status": "error", "message": "date format not recognized"}
-
-    transaction_id = _generate_id("TXN")
-    fieldnames = [
-        "user_id",
-        "date",
-        "category",
-        "currency",
-        "amount",
-        "direction",
-        "counterparty_id",
-        "counterparty_type",
-        "transaction_id",
-        "description",
-        "document_reference",
-        "tax_amount",
-        "payment_method",
-    ]
-    row = {
-        "user_id": user_id,
-        "date": date,
-        "category": category,
-        "currency": currency,
-        "amount": amount,
-        "direction": direction_norm,
-        "counterparty_id": counterparty_id or "",
-        "counterparty_type": counterparty_type or "",
-        "transaction_id": transaction_id,
-        "description": description or "",
-        "document_reference": document_reference or "",
-        "tax_amount": tax_amount if tax_amount is not None else "",
-        "payment_method": payment_method or "",
-    }
-    _append_csv_row(CASHFLOW_CSV, fieldnames, row)
-    return {"status": "ok", "transaction_id": transaction_id, "row": row}
 
 
 def summarize_cashflow(

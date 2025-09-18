@@ -3,9 +3,8 @@
  * This serves as a proxy layer between the React frontend and Python backend
  */
 
-import { 
-  TransactionCreateRequest
-} from './types';
+// Import statements for type checking if needed
+// import { } from './types';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -65,32 +64,6 @@ export const FinanceRoutes = {
   },
 
   // Transaction operations
-  async createTransaction(data: TransactionCreateRequest) {
-    // Map to backend function call format
-    const payload = {
-      function_name: 'record_transaction',
-      parameters: {
-        user_id: data.user_id,
-        date: data.date,
-        category: data.category,
-        currency: data.currency,
-        amount: data.amount,
-        direction: data.direction,
-        counterparty_id: data.counterparty_id,
-        counterparty_type: data.counterparty_type,
-        description: data.description,
-        document_reference: data.document_reference,
-        tax_amount: data.tax_amount,
-        payment_method: data.payment_method,
-      }
-    };
-
-    return backendRequest('/functions/call', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
-  },
-
   async getTransactions(userId?: string) {
     // Get transactions directly from the REST endpoint
     const params = userId ? `?user_id=${encodeURIComponent(userId)}` : '';
@@ -116,18 +89,6 @@ export const FinanceRoutes = {
   async getCustomers() {
     const payload = {
       function_name: 'load_customers',
-      parameters: {}
-    };
-
-    return backendRequest('/functions/call', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
-  },
-
-  async getSuppliers() {
-    const payload = {
-      function_name: 'load_suppliers',
       parameters: {}
     };
 
@@ -198,6 +159,20 @@ export const FinanceRoutes = {
     });
   },
 
+  async saveExtractedInvoiceData(invoiceData: any) {
+    const payload = {
+      function_name: 'save_extracted_invoice_data',
+      parameters: {
+        invoice_data: invoiceData
+      }
+    };
+
+    return backendRequest('/functions/call', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
   // User Profile
   async getUserProfile(userId: string) {
     return backendRequest(`/users/${userId}/profile`);
@@ -206,5 +181,79 @@ export const FinanceRoutes = {
   // Simple AI Recommendations (using GPT-4o directly)
   async getOpenAIRecommendations() {
     return backendRequest('/ai/openai-recommendations');
+  },
+
+  async getMarketResearch() {
+    // Market research can take a while, so increase timeout to 5 minutes
+    return backendRequest('/ai/market-research', {
+      // No additional options needed - browser default timeout should be sufficient
+    });
+  },
+
+  async getAICharts(timeRange: string = "30d", scenario: string = "current") {
+    return backendRequest(`/ai/charts?time_range=${timeRange}&scenario=${scenario}`);
+  },
+
+  async getEnhancedRecommendations(marketResearchData: string) {
+    return backendRequest('/ai/enhanced-recommendations', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        market_research_data: marketResearchData
+      })
+    });
+  },
+
+  // Authentication operations
+  async registerUser(email: string, password: string, companyName: string, ownerName: string) {
+    return backendRequest('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({
+        email,
+        password,
+        company_name: companyName,
+        owner_name: ownerName
+      })
+    });
+  },
+
+  async loginUser(email: string, password: string) {
+    return backendRequest('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({
+        email,
+        password
+      })
+    });
+  },
+
+  async completeUserProfile(userId: string, profileData: any) {
+    return backendRequest(`/users/${userId}/profile/complete`, {
+      method: 'POST',
+      body: JSON.stringify({
+        profile_data: profileData
+      })
+    });
+  },
+
+  async updateUserProfile(userId: string, profileData: any) {
+    return backendRequest(`/users/${userId}/profile`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        profile_data: profileData
+      })
+    });
+  },
+
+  async ragQuery(question: string, userContext: any) {
+    return backendRequest('/rag/query', {
+      method: 'POST',
+      body: JSON.stringify({
+        question,
+        user_context: userContext
+      })
+    });
   },
 };

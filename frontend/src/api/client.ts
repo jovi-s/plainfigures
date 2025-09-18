@@ -4,10 +4,8 @@
 import {
   ApiResponse,
   Transaction,
-  TransactionCreateRequest,
   CashflowSummary,
   Customer,
-  Supplier,
   UploadResponse,
   UserProfile,
 } from './types';
@@ -33,21 +31,6 @@ class ApiError extends Error {
  */
 export class FinanceApiClient {
   // Transaction operations
-  static async createTransaction(data: TransactionCreateRequest): Promise<ApiResponse<Transaction>> {
-    try {
-      const result = await FinanceRoutes.createTransaction(data);
-      return {
-        success: true,
-        data: result as Transaction,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
-    }
-  }
-
   static async getTransactions(userId?: string): Promise<ApiResponse<Transaction[]>> {
     try {
       const result = await FinanceRoutes.getTransactions(userId) as any;
@@ -99,21 +82,6 @@ export class FinanceApiClient {
     }
   }
 
-  static async getSuppliers(): Promise<ApiResponse<Supplier[]>> {
-    try {
-      const result = await FinanceRoutes.getSuppliers() as any;
-      return {
-        success: true,
-        data: (result.suppliers || []) as Supplier[],
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
-    }
-  }
-
   // File upload operations
   static async uploadInvoiceImage(file: File): Promise<UploadResponse> {
     const result = await FinanceRoutes.uploadInvoiceImage(file);
@@ -125,6 +93,18 @@ export class FinanceApiClient {
     return result as UploadResponse;
   }
 
+  static async saveExtractedInvoiceData(invoiceData: any): Promise<ApiResponse<any>> {
+    try {
+      const result = await FinanceRoutes.saveExtractedInvoiceData(invoiceData);
+      return result as ApiResponse<any>;
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to save invoice data',
+      };
+    }
+  }
+
   // Health check
   static async healthCheck(): Promise<{ status: string }> {
     const result = await FinanceRoutes.healthCheck();
@@ -134,9 +114,14 @@ export class FinanceApiClient {
   // User Profile
   static async getUserProfile(userId: string): Promise<ApiResponse<UserProfile>> {
     try {
-      const result = await FinanceRoutes.getUserProfile(userId);
-      return { success: true, data: result as UserProfile };
+      const result = await FinanceRoutes.getUserProfile(userId) as any;
+      return {
+        success: result.success || false,
+        data: result.data || null,
+        error: result.error || null,
+      };
     } catch (error) {
+      console.error('FinanceApiClient: Error in getUserProfile:', error);
       return { success: false, error: error instanceof Error ? error.message : 'Failed to get user profile' };
     }
   }
@@ -149,6 +134,111 @@ export class FinanceApiClient {
       return result as ApiResponse<any>;
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Failed to get AI recommendations' };
+    }
+  }
+
+  static async getMarketResearch(): Promise<ApiResponse<any>> {
+    try {
+      const result = await FinanceRoutes.getMarketResearch();
+      return result as ApiResponse<any>;
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to get market research' };
+    }
+  }
+
+  static async getAICharts(timeRange: string = "30d", scenario: string = "current"): Promise<ApiResponse<any>> {
+    try {
+      const result = await FinanceRoutes.getAICharts(timeRange, scenario);
+      return result as ApiResponse<any>;
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to get AI charts' };
+    }
+  }
+
+  static async getEnhancedRecommendations(marketResearchData: string): Promise<ApiResponse<any>> {
+    try {
+      const result = await FinanceRoutes.getEnhancedRecommendations(marketResearchData);
+      return result as ApiResponse<any>;
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to get enhanced recommendations' };
+    }
+  }
+
+  // Authentication operations
+  static async registerUser(email: string, password: string, companyName: string, ownerName: string): Promise<ApiResponse<any>> {
+    try {
+      const result = await FinanceRoutes.registerUser(email, password, companyName, ownerName) as any;
+      return {
+        success: result.success || false,
+        data: result.data || null,
+        error: result.error || null,
+      };
+    } catch (error) {
+      console.error('FinanceApiClient: Error in registerUser:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  static async loginUser(email: string, password: string): Promise<ApiResponse<any>> {
+    try {
+      const result = await FinanceRoutes.loginUser(email, password) as any;
+      return {
+        success: result.success || false,
+        data: result.data || null,
+        error: result.error || null,
+      };
+    } catch (error) {
+      console.error('FinanceApiClient: Error in loginUser:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  static async completeUserProfile(userId: string, profileData: any): Promise<ApiResponse<any>> {
+    try {
+      const result = await FinanceRoutes.completeUserProfile(userId, profileData) as any;
+      return {
+        success: result.success || false,
+        data: result.data || null,
+        error: result.error || null,
+      };
+    } catch (error) {
+      console.error('FinanceApiClient: Error in completeUserProfile:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  static async updateUserProfile(userId: string, profileData: any): Promise<ApiResponse<any>> {
+    try {
+      const result = await FinanceRoutes.updateUserProfile(userId, profileData) as any;
+      return {
+        success: result.success || false,
+        data: result.data || null,
+        error: result.error || null,
+      };
+    } catch (error) {
+      console.error('FinanceApiClient: Error in updateUserProfile:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  static async ragQuery(question: string, userContext: any): Promise<ApiResponse<any>> {
+    try {
+      const result = await FinanceRoutes.ragQuery(question, userContext) as any;
+      return result as ApiResponse<any>;
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
 }
