@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Download, Plus, Trash2, Mic, MicOff, Send, FileText } from "lucide-react";
+import { Download, Plus, Trash2, FileText } from "lucide-react";
 import { Customer } from "@/api/types";
 import jsPDF from "jspdf";
 
@@ -29,10 +29,6 @@ export function GenerateInvoice({ customers }: GenerateInvoiceProps) {
   ]);
   const [notes, setNotes] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
-  
-  // Voice input state
-  const [isRecording, setIsRecording] = useState(false);
-  const [transcriptionText, setTranscriptionText] = useState("");
 
   // Calculate totals
   const subtotal = lineItems.reduce((sum, item) => sum + item.amount, 0);
@@ -73,26 +69,6 @@ export function GenerateInvoice({ customers }: GenerateInvoiceProps) {
     if (lineItems.length > 1) {
       setLineItems(lineItems.filter((_, i) => i !== index));
     }
-  };
-
-  // Handle voice recording toggle
-  const handleVoiceToggle = () => {
-    setIsRecording(!isRecording);
-    if (isRecording) {
-      // Stop recording logic will go here
-      console.log("Stopping voice recording...");
-    } else {
-      // Start recording logic will go here
-      console.log("Starting voice recording...");
-    }
-  };
-
-  // Handle transcription submission
-  const handleTranscriptionSubmit = () => {
-    console.log("Submitting invoice transcription:", transcriptionText);
-    // Backend processing logic will go here
-    // For now, we'll just clear the transcription
-    setTranscriptionText("");
   };
 
   const generatePDF = () => {
@@ -215,70 +191,12 @@ export function GenerateInvoice({ customers }: GenerateInvoiceProps) {
 
   return (
     <div className="space-y-6">
-      {/* Voice Input Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Mic className="h-5 w-5" />
-            Voice Invoice Entry
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-neutral-600 mb-4">
-            Generate invoices using voice input. Speak your customer details, line items, and invoice information.
-          </p>
-          
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <Button
-                onClick={handleVoiceToggle}
-                variant={isRecording ? "destructive" : "default"}
-                size="lg"
-                className="w-16 h-16 rounded-full"
-              >
-                {isRecording ? (
-                  <MicOff className="h-6 w-6" />
-                ) : (
-                  <Mic className="h-6 w-6" />
-                )}
-              </Button>
-              <div>
-                <p className="font-medium">
-                  {isRecording ? "Recording..." : "Click to start recording"}
-                </p>
-                <p className="text-sm text-neutral-500">
-                  {isRecording ? "Click again to stop" : "Speak your invoice details"}
-                </p>
-              </div>
-            </div>
-
-            {transcriptionText && (
-              <div className="space-y-3">
-                <div className="p-3 bg-neutral-50 border border-neutral-200 rounded-md">
-                  <p className="text-sm text-neutral-700">{transcriptionText}</p>
-                </div>
-                <div className="flex gap-3">
-                  <Button
-                    onClick={handleTranscriptionSubmit}
-                    disabled={!transcriptionText.trim()}
-                    className="flex-1"
-                  >
-                    <Send className="h-4 w-4 mr-2" />
-                    Process Voice Input
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Manual Invoice Form */}
+      {/* Invoice Form */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            Manual Invoice Entry
+            Generate Invoice
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
