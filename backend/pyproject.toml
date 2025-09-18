@@ -39,6 +39,7 @@ dependencies = [
     "langchain-text-splitters>=0.3.0",
     "langchain-google-vertexai>=2.1.2",
     "google-cloud-aiplatform>=1.114.0",
+    "google-cloud-storage>=2.19.0",
 ]
 
 requires-python = ">=3.11,<3.13"

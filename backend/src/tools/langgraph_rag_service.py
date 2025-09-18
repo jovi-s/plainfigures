@@ -9,7 +9,7 @@ from typing import Dict, Any, Optional, List
 from pathlib import Path
 
 from langchain_core.messages import HumanMessage
-from src.agent.rag_system.graph import rag_graph, _get_rag_system
+from src.agent.rag_system.react_rag_agent import react_rag_graph, _get_react_rag_system
 from src.agent.rag_system.state import RAGState
 from src.utils.db import save_rag_query
 
@@ -20,8 +20,8 @@ class LangGraphRAGService:
     """LangGraph-based RAG service with data source tools"""
     
     def __init__(self):
-        self.graph = rag_graph
-        self.rag_system = _get_rag_system()
+        self.graph = react_rag_graph
+        self.rag_system = _get_react_rag_system()
         logger.info("LangGraph RAG Service initialized")
     
     def query(self, question: str, user_context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:

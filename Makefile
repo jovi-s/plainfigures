@@ -7,7 +7,7 @@ install:
 activate:
 	source .venv/bin/activate
 
-dev-finance:
+app:
 	make dev-api & make dev-frontend
 
 dev-api:
@@ -47,7 +47,7 @@ clear-address:
 	lsof -ti:8080 | xargs kill -9 2>/dev/null || true
 
 invoke-sealion:
-	uv run python -m backend.src.sealion
+	cd backend && uv run python -m src.sealion
 
 # http://localhost:5173 (frontend)
 # http://localhost:8080 (API endpoints)

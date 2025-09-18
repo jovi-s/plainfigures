@@ -25,12 +25,16 @@ def predict_custom_trained_model_sample(
     endpoint_id: str,
     instances: Union[Dict, List[Dict]],
     location: str = "us-central1",
-    api_endpoint: str = "us-central1-aiplatform.googleapis.com",
+    api_endpoint: str = None,
 ):
     """
     `instances` can be either single instance of type dict or a list
     of instances.
     """
+    # For dedicated endpoints, construct the dedicated domain name
+    if api_endpoint is None:
+        api_endpoint = f"{endpoint_id}.{location}-{project}.prediction.vertexai.googleapis.com"
+    
     # The AI Platform services require regional API endpoints.
     client_options = {"api_endpoint": api_endpoint}
     # Initialize client that will be used to create and send requests.

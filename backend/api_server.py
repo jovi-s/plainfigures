@@ -270,15 +270,8 @@ async def get_openai_recommendations():
 async def get_market_research():
     """Generate market research using LangGraph with caching"""
     try:
-        user_information = {
-            "industry": "beauty_and_personal_care",
-            "location": "Singapore",
-            "company_size": "50-100",
-            "company_type": "hair_salon",
-            "company_stage": "growth",
-            "company_revenue": "500000",
-            "company_employees": "65",
-        }
+        user_information = user_profile_df[user_profile_df.iloc[0].to_dict()]
+        print(user_information)
         
         # Create cache key based on user information to ensure appropriate cache invalidation
         cache_key = f"market_research_{user_information['company_type']}_{user_information['location']}_{user_information['industry']}"
@@ -292,22 +285,57 @@ async def get_market_research():
         # Generate fresh market research
         print("Generating fresh market research")
         MARKET_RESEARCH_PROMPT = f"""
-Perform comprehensive economic and market research for a {user_information['company_type']} business 
-in the {user_information['industry']} industry located in {user_information['location']}. 
-The company is at the {user_information['company_stage']} stage with {user_information['company_employees']} 
-employees and {user_information['company_revenue']} in revenue.
+Perform comprehensive economic and market research for {user_information.get('company_name', 'a business')} 
+owned by {user_information.get('owner_name', 'the owner')} in the {user_information.get('industry', 'general')} industry 
+located in {user_information.get('country', 'their region')}. 
+
+Company Profile:
+- Company: {user_information.get('company_name', 'Not specified')}
+- Owner: {user_information.get('owner_name', 'Not specified')}
+- Industry: {user_information.get('industry', 'Not specified')}
+- Location: {user_information.get('country', 'Not specified')}
+- Employees: {user_information.get('employees', 0)}
+- Annual Revenue: ${user_information.get('annual_revenue_usd', 0)}
+- Years in Business: {user_information.get('years_in_business', 0)}
+- Primary Business Activity: {user_information.get('primary_business_activity', 'Not specified')}
+
+Financial Profile:
+- Current Financial Challenges: {user_information.get('current_financial_challenges', [])}
+- Cash Flow Frequency: {user_information.get('cash_flow_frequency', 'Not specified')}
+- Monthly Invoice Volume: {user_information.get('invoice_volume_monthly', 0)}
+- Expense Categories: {user_information.get('expense_categories', [])}
+- Microfinancing Interest: {user_information.get('microfinancing_interest', 'Not specified')}
+- Credit Score: {user_information.get('credit_score', 'Not specified')}
+- Banking Relationship: {user_information.get('banking_relationship_bank_name', 'Not specified')} ({user_information.get('banking_relationship_years', 0)} years)
+
+Technology & Goals:
+- Technology Adoption Level: {user_information.get('technology_adoption_level', 'Not specified')}
+- Technology Tools: {user_information.get('technology_adoption_tools', [])}
+- Financial Goals: {user_information.get('financial_goals', [])}
+
+Business Address:
+- Street: {user_information.get('business_address_street', 'Not specified')}
+- City: {user_information.get('business_address_city', 'Not specified')}
+- Province/State: {user_information.get('business_address_province_or_state', 'Not specified')}
+- Postal Code: {user_information.get('business_address_postal_code', 'Not specified')}
+- Country: {user_information.get('business_address_country', 'Not specified')}
+
+Contact Information:
+- Preferred Language: {user_information.get('preferred_language', 'en')}
 
 Focus on actionable insights to grow this business including:
-1. Economic trends and opportunities in {user_information['location']} that could benefit this business
-2. Market size and growth potential for {user_information['industry']} services
-3. Competitive landscape analysis and positioning opportunities
-4. Customer demand patterns and emerging market segments
-5. Economic factors affecting pricing strategies and profitability
-6. Investment opportunities and funding landscape for {user_information['company_stage']} companies
-7. Regulatory and economic policy impacts on business growth
-8. Supply chain and operational cost optimization opportunities
-9. Technology adoption trends that could drive business expansion
-10. Strategic partnerships and market entry opportunities
+1. Economic trends and opportunities in {user_information.get('country', 'their region')} that could benefit this {user_information.get('industry', '')} business
+2. Market size and growth potential for {user_information.get('industry', 'their')} industry services
+3. Competitive landscape analysis and positioning opportunities for a {user_information.get('employees', 'small')} employee company
+4. Customer demand patterns and emerging market segments in {user_information.get('business_address_city', 'their city')}
+5. Economic factors affecting pricing strategies and profitability given their {user_information.get('cash_flow_frequency', '')} cash flow
+6. Investment opportunities and funding landscape considering their {user_information.get('credit_score', '')} credit profile
+7. Regulatory and economic policy impacts on {user_information.get('industry', 'their')} businesses in {user_information.get('country', 'their country')}
+8. Supply chain and operational cost optimization for {user_information.get('expense_categories', 'their expense')} categories
+9. Technology adoption trends (current level: {user_information.get('technology_adoption_level', 'not specified')}) that could drive business expansion
+10. Strategic partnerships and market entry opportunities aligned with their financial goals: {user_information.get('financial_goals', [])}
+
+Consider their specific challenges: {user_information.get('current_financial_challenges', [])} and microfinancing interest level: {user_information.get('microfinancing_interest', 'not specified')}.
 
 Provide specific, data-driven recommendations that this business can implement to accelerate growth 
 and capitalize on economic opportunities in their market.
