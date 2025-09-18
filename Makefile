@@ -58,6 +58,6 @@ invoke-sealion:
 # 1. gcloud auth application-default login
 deploy-python-backend:
 	gcloud config set project plainfigures
-	gcloud run deploy plainfigures --memory 1G --max-instances 1 --source . \
+	gcloud run deploy plainfigures --memory 2G --max-instances 1 --source . \
 		--region=asia-southeast1 \
 		--allow-unauthenticated
